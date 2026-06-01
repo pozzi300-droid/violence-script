@@ -1,0 +1,16 @@
+WRD deobfuscation report
+Input: getdwo.lua
+String constants extracted: 2462
+Range reversals found: [(1, 2462), (1, 422), (423, 2462)]
+Decoder alphabet entries: 64
+X() offset: 61536
+
+Outputs:
+- stage1_escapes_decoded.lua      Lua decimal escapes decoded
+- decoded_strings.txt             decoded string pool
+- decoded_pool.lua                decoded string pool as a Lua table
+- stage2_constants_inlined.lua    readable constants inlined where statically resolvable
+
+Note: If the result still has a giant numeric dispatcher, the file is VM-obfuscated.
+Exact original source cannot be recovered statically, but these outputs expose the
+string pool and most readable API names needed for manual reconstruction.
