@@ -1,0 +1,37 @@
+local games = {
+    [6739698191] = "https://raw.githubusercontent.com/RillBoys/BOLONG-HUB/refs/heads/main/games/ViolenceDistrict.lua"
+}
+
+local StarterGui = game:GetService("StarterGui")
+local gameId = game.GameId
+
+local logo = "rbxassetid://84034353458936"
+local function notify(title, text, duration)
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = title,
+            Text = text,
+            Icon = logo,
+            Duration = duration or 5
+        })
+    end)
+end
+
+local function loadGameScript(url)
+    local success, result = pcall(function()
+        loadstring(game:HttpGet(url))()
+    end)
+    if not success then
+        notify("Bolong Notification", "Failed to load script!", 5)
+        warn("Load error:", result)
+    end
+end
+
+local selectedScript = games[gameId]
+if selectedScript then
+    notify("Bolong Notification", "Supported Game! Loading...", 5)
+    task.wait(1)
+    loadGameScript(selectedScript)
+else
+    notify("Bolong Notification", "Unsupported Game! Sorry...", 5)
+end
