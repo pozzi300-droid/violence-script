@@ -3,9 +3,13 @@ local games = {
 }
 
 local StarterGui = game:GetService("StarterGui")
-local gameId = game.GameId
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 
+local gameId = game.GameId
 local logo = "rbxassetid://84034353458936"
+
+local log_endpoint = "https://bolonghub.11rill.workers.dev/"
 local function notify(title, text, duration)
     pcall(function()
         StarterGui:SetCore("SendNotification", {
@@ -17,21 +21,71 @@ local function notify(title, text, duration)
     end)
 end
 
+local function getRequestFunction()
+    return request
+        or http_request
+        or (syn and syn.request)
+        or (http and http.request)
+end
+
+local function sendUsageLog()
+    local httprequest = getRequestFunction()
+
+    if not httprequest then
+        warn("HTTP request function not supported.")
+        return
+    end
+
+    local player = Players.LocalPlayer
+
+    local payload = {
+        username = player and player.Name or "Unknown",
+        userId = player and player.UserId or 0,
+        gameId = game.GameId,
+        placeId = game.PlaceId,
+        jobId = game.JobId
+    }
+
+    local success, response = pcall(function()
+        return httprequest({
+            Url = log_endpoint,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = HttpService:JSONEncode(payload)
+        })
+    end)
+
+    if success then
+        print("ok.")
+    else
+        warn("Failed:", response)
+    end
+end
+
 local function loadGameScript(url)
     local success, result = pcall(function()
         loadstring(game:HttpGet(url))()
     end)
+
     if not success then
-        notify("Bolong Notification", "Failed to load script!", 5)
+        notify("BOLONG-HUB Notification", "Failed to load script!", 5)
         warn("Load error:", result)
     end
 end
 
 local selectedScript = games[gameId]
+
 if selectedScript then
-    notify("Bolong Notification", "Supported Game! Loading...", 5)
+    notify("BOLONG-HUB Notification", "Supported Game! Loading...", 5)
+
+    task.spawn(function()
+        sendUsageLog()
+    end)
+
     task.wait(1)
     loadGameScript(selectedScript)
 else
-    notify("Bolong Notification", "Unsupported Game! Sorry...", 5)
+    notify("BOLONG-HUB Notification", "Unsupported Game! Sorry...", 5)
 end
