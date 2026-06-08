@@ -4,7 +4,6 @@ local games = {
 
 local StarterGui = game:GetService("StarterGui")
 local gameId = game.GameId
-
 local logo = "rbxassetid://84034353458936"
 local function notify(title, text, duration)
     pcall(function()
@@ -17,21 +16,24 @@ local function notify(title, text, duration)
     end)
 end
 
-local function loadGameScript(url)
-    local success, result = pcall(function()
-        loadstring(game:HttpGet(url))()
-    end)
-    if not success then
-        notify("Bolong Notification", "Failed to load script!", 5)
-        warn("Load error:", result)
-    end
-end
-
 local selectedScript = games[gameId]
 if selectedScript then
-    notify("Bolong Notification", "Supported Game! Loading...", 5)
-    task.wait(1)
-    loadGameScript(selectedScript)
+    notify("BOLONG-HUB Notification", "Supported Game! Loading...", 5)
+    task.spawn(function()
+        local code = game:HttpGet(selectedScript)
+        local fn, err = loadstring(code)
+        if not fn then
+            notify("BOLONG-HUB Notification", "Failed to load script!", 5)
+            warn("Load error:", err)
+            return
+        end
+        task.wait()
+        local ok, runErr = pcall(fn)
+        if not ok then
+            notify("BOLONG-HUB Notification", "Script error!", 5)
+            warn("Run error:", runErr)
+        end
+    end)
 else
-    notify("Bolong Notification", "Unsupported Game! Sorry...", 5)
+    notify("BOLONG-HUB Notification", "Unsupported Game! Sorry...", 5)
 end
