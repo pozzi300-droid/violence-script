@@ -9,7 +9,7 @@ local HttpService = game:GetService("HttpService")
 local gameId = game.GameId
 local logo = "rbxassetid://84034353458936"
 
-local log_endpoint = "https://bolonghub.11rill.workers.dev/"
+local LOG_ENDPOINT = "https://bolonghub.11rill.workers.dev/"
 local function notify(title, text, duration)
     pcall(function()
         StarterGui:SetCore("SendNotification", {
@@ -48,7 +48,7 @@ local function sendUsageLog()
 
     local success, response = pcall(function()
         return httprequest({
-            Url = log_endpoint,
+            Url = LOG_ENDPOINT,
             Method = "POST",
             Headers = {
                 ["Content-Type"] = "application/json"
