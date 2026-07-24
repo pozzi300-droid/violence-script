@@ -1,15 +1,12 @@
 local games = {
     [6739698191] = "https://raw.githubusercontent.com/RillBoys/BOLONG-HUB/refs/heads/main/games/ViolenceDistrict.lua"
 }
-
 local StarterGui = game:GetService("StarterGui")
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
-
 local gameId = game.GameId
 local logo = "rbxassetid://84034353458936"
-
-local LOG_ENDPOINT = "https://bolonghub.11rill.workers.dev/"
+local ENDPOINT = "https://bolonghub.11rill.workers.dev/"
 local function notify(title, text, duration)
     pcall(function()
         StarterGui:SetCore("SendNotification", {
@@ -20,14 +17,12 @@ local function notify(title, text, duration)
         })
     end)
 end
-
 local function getRequestFunction()
     return request
         or http_request
         or (syn and syn.request)
         or (http and http.request)
 end
-
 local function sendUsageLog()
     local httprequest = getRequestFunction()
 
@@ -35,9 +30,7 @@ local function sendUsageLog()
         warn("HTTP request function not supported.")
         return
     end
-
     local player = Players.LocalPlayer
-
     local payload = {
         username = player and player.Name or "Unknown",
         userId = player and player.UserId or 0,
@@ -45,10 +38,9 @@ local function sendUsageLog()
         placeId = game.PlaceId,
         jobId = game.JobId
     }
-
     local success, response = pcall(function()
         return httprequest({
-            Url = LOG_ENDPOINT,
+            Url = ENDPOINT,
             Method = "POST",
             Headers = {
                 ["Content-Type"] = "application/json"
@@ -56,36 +48,51 @@ local function sendUsageLog()
             Body = HttpService:JSONEncode(payload)
         })
     end)
-
     if success then
         print("ok.")
     else
-        warn("Failed:", response)
+        warn("no", response)
     end
 end
-
 local function loadGameScript(url)
     local success, result = pcall(function()
         loadstring(game:HttpGet(url))()
     end)
-
     if not success then
-        notify("BOLONG-HUB Notification", "Failed to load script!", 5)
+        notify("BOLONG-HUB NOTIFICATION", "Failed to load script!", 5)
         warn("Load error:", result)
     end
 end
 
+-- ==========================================
+-- EXECUTOR FUNCTION CHECK
+-- ==========================================
+local requiredFunctions = {
+    "firesignal", "hookfunction", "hookmetamethod", "getnamecallmethod", 
+    "newcclosure", "checkcaller", "getconnections", "restorefunction", "gethui"
+}
+local missingFunctions = {}
+local env = getfenv()
+for _, funcName in ipairs(requiredFunctions) do
+    if type(env[funcName]) ~= "function" then
+        table.insert(missingFunctions, funcName)
+    end
+end
+if #missingFunctions > 0 then
+    local missingList = table.concat(missingFunctions, ", ")
+    notify("BOLONG-HUB ERROR", "Executor does not support: " .. missingList, 10)
+    task.wait(2)
+    notify("BOLONG-HUB NOTIFICATION", "Please use a more complete executor!", 10)
+    return
+end
 local selectedScript = games[gameId]
-
 if selectedScript then
-    notify("BOLONG-HUB Notification", "Supported Game! Loading...", 5)
-
+    notify("BOLONG-HUB NOTIFICATION", "Supported Game! Loading...", 5)
     task.spawn(function()
         sendUsageLog()
     end)
-
     task.wait(1)
     loadGameScript(selectedScript)
 else
-    notify("BOLONG-HUB Notification", "Unsupported Game! Sorry...", 5)
+    notify("BOLONG-HUB NOTIFICATION", "Unsupported Game! Sorry...", 5)
 end
