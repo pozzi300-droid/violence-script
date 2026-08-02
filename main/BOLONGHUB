@@ -23,9 +23,20 @@ local function getRequestFunction()
         or (syn and syn.request)
         or (http and http.request)
 end
+local function getExecutorName()
+    if identifyexecutor then
+        local ok, name, version = pcall(identifyexecutor)
+        if ok and name then
+            return tostring(name) .. (version and (" v" .. tostring(version)) or "")
+        end
+    end
+    if syn then return "Delta" end
+    if getexecutorname then return getexecutorname() end
+    return "Unknown"
+end
+
 local function sendUsageLog()
     local httprequest = getRequestFunction()
-
     if not httprequest then
         warn("HTTP request function not supported.")
         return
@@ -36,15 +47,14 @@ local function sendUsageLog()
         userId = player and player.UserId or 0,
         gameId = game.GameId,
         placeId = game.PlaceId,
-        jobId = game.JobId
+        jobId = game.JobId,
+        executor = getExecutorName()
     }
     local success, response = pcall(function()
         return httprequest({
             Url = ENDPOINT,
             Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
+            Headers = { ["Content-Type"] = "application/json" },
             Body = HttpService:JSONEncode(payload)
         })
     end)
