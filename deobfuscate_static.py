@@ -20,22 +20,27 @@ def extract_vwzwzo_table(src):
     return strings
 
 
-def decode_octal_string(s):
-    """Convert octal escape sequences to bytes."""
+def decode_lua_string(s):
+    """Convert Lua decimal escape sequences to bytes.
+
+    In Lua, \\NNN is a DECIMAL byte value (0-255), not octal.
+    """
     result = bytearray()
     i = 0
     while i < len(s):
         if s[i] == '\\' and i + 1 < len(s):
-            # Check for octal
+            # Check for decimal escape: \NNN where NNN is 0-255
             j = i + 1
             while j < len(s) and j < i + 4 and s[j].isdigit():
                 j += 1
             if j > i + 1:
-                octal = s[i + 1:j]
+                decimal_val = s[i + 1:j]
                 try:
-                    result.append(int(octal, 8))
-                    i = j
-                    continue
+                    val = int(decimal_val)
+                    if 0 <= val <= 255:
+                        result.append(val)
+                        i = j
+                        continue
                 except ValueError:
                     pass
             # Other escapes
@@ -66,7 +71,7 @@ def decode_strings(encoded_strings, key_base=31, key_mult=54):
     decoded = {}
     for idx, raw_str in enumerate(encoded_strings):
         string_idx = idx + 1  # 1-based index
-        raw_bytes = decode_octal_string(raw_str)
+        raw_bytes = decode_lua_string(raw_str)
         xor_key = (key_base + string_idx * key_mult) % 256
         decoded_bytes = bytes(b ^ xor_key for b in raw_bytes)
         try:
