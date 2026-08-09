@@ -21,11 +21,11 @@ jobs:
         with:
           luaVersion: "5.4.4"
 
-      # 3. Устанавливаем LuaRocks (для установки инструментов)
+      # 3. Устанавливаем LuaRocks (для установки инструментов, если понадобится)
       - name: Setup LuaRocks
         uses: leafo/gh-actions-luarocks@v4
 
-      # 4. Устанавливаем StyLua (форматер) через cargo, так как он написан на Rust
+      # 4. Устанавливаем StyLua (форматер) через cargo
       - name: Install StyLua
         run: |
           cargo install stylua
@@ -54,17 +54,14 @@ jobs:
           end
 
           local function is_obfuscated(code)
-              -- Проверяем наличие маркеров: bx1 = { ... } и bit32.bxor(..., 129)
               return code:find('bx1%s*=%s*{') and code:find('bit32%.bxor') and code:find('129')
           end
 
           local function extract_bx1(code)
-              -- Ищем массив bx1 (простейший вариант, для реального использования лучше парсить)
               local start = code:find('bx1%s*=%s*{')
               if not start then return nil end
               local depth = 0
               local i = start
-              local found = false
               local bracket_start = nil
               while i <= #code do
                   local ch = code:sub(i, i)
@@ -74,25 +71,21 @@ jobs:
                   elseif ch == '}' then
                       depth = depth - 1
                       if depth == 0 and bracket_start then
-                          found = true
-                          break
+                          return code:sub(bracket_start, i)
                       end
                   end
                   i = i + 1
               end
-              if not found then return nil end
-              return code:sub(bracket_start, i)
+              return nil
           end
 
           local function decode_strings(bx1_table_str)
-              -- Выполняем код, чтобы получить таблицу со строками (безопасно?)
-              -- Для безопасности выполняем в изолированной среде
-              local env = {}
-              setfenv(loadstring("return " .. bx1_table_str), env)()
-              -- Но проще: загружаем как данные, потом декодируем.
-              -- Используем loadstring для получения таблицы
+              -- Выполняем код, чтобы получить таблицу
               local func, err = loadstring("return " .. bx1_table_str)
-              if not func then return nil end
+              if not func then
+                  print("loadstring error: " .. tostring(err))
+                  return nil
+              end
               local bx1 = func()
               if type(bx1) ~= "table" then return nil end
               local decoded = {}
@@ -100,7 +93,6 @@ jobs:
                   local parts = {}
                   for j = 1, #str do
                       local byte = string.byte(str, j)
-                      -- XOR с 129
                       parts[j] = string.char(bit32.bxor(byte, 129))
                   end
                   decoded[i] = table.concat(parts)
@@ -108,50 +100,38 @@ jobs:
               return decoded
           end
 
-          -- Основная функция для обработки файла
           local function process_file(filepath)
               local code = read_file(filepath)
-              if not code or not is_obfuscated(code) then
+              if not code then
+                  print("Cannot read: " .. filepath)
+                  return false
+              end
+              if not is_obfuscated(code) then
                   print("Skipping (not obfuscated): " .. filepath)
                   return false
               end
 
               print("Deobfuscating: " .. filepath)
 
-              -- Извлекаем массив bx1
               local bx1_str = extract_bx1(code)
               if not bx1_str then
-                  print("Could not find bx1 array in " .. filepath)
+                  print("Could not extract bx1 array from " .. filepath)
                   return false
               end
 
-              -- Декодируем строки (требуется bit32)
-              local bit32 = require("bit32") -- если Lua 5.3+ уже есть, но для совместимости
               local decoded = decode_strings(bx1_str)
               if not decoded then
                   print("Failed to decode strings in " .. filepath)
                   return false
               end
 
-              -- Теперь заменяем все 10zpX[число] на соответствующие строки
               local new_code = code
-              -- Строим паттерн для замены: 10zpX[число]
               for idx, str in ipairs(decoded) do
                   local pattern = "10zpX%[" .. idx .. "%]"
                   local replacement = '"' .. str:gsub('"', '\\"') .. '"'
                   new_code = new_code:gsub(pattern, replacement)
               end
 
-              -- Дополнительно заменяем ссылки на декодированный массив на прямые строки
-              -- Удаляем определение bx1 и цикл декодирования (можно просто заменить на пустоту)
-              -- Но проще: удалить блоки, которые декодируют bx1, т.к. мы уже всё подставили.
-              -- Удаляем строки, содержащие "local bx1 = {" ... до "end" или до следующего блока
-              -- Это сложно сделать надёжно, поэтому предлагаем оставить как есть, но все обращения заменены.
-              -- Однако для чистоты удалим сам массив и цикл декодирования (они не нужны)
-              -- Ищем начало массива и удаляем до следующего significant кода (например, "local QxD")
-              -- Это опасно, поэтому пока оставим.
-
-              -- Записываем изменённый код
               if write_file(filepath, new_code) then
                   print("Deobfuscated: " .. filepath)
                   return true
@@ -168,17 +148,16 @@ jobs:
               return
           end
           for file in handle:lines() do
-              -- Убираем ведущий "./"
               local path = file:gsub("^%.%/", "")
               process_file(path)
           end
           handle:close()
           EOF
 
-      # 6. Запускаем деобфускатор (для Lua 5.3+ с bit32)
+      # 6. Запускаем деобфускатор (теперь используем команду lua, а не lua5.4)
       - name: Run deobfuscator
         run: |
-          lua5.4 deobfuscator.lua
+          lua deobfuscator.lua
 
       # 7. Форматируем все .lua файлы с помощью StyLua
       - name: Format Lua files with StyLua
