@@ -45,7 +45,7 @@ jobs:
           local function load_chunk(str)
             local fn, err = load(str, "=(string)", "t", {})
             if not fn then
-              fn, err = loadstring(str) -- fallback
+              fn, err = loadstring(str)
             end
             return fn, err
           end
@@ -125,7 +125,7 @@ jobs:
             if dec1 then
               for idx,str in ipairs(dec1) do
                 local pat="10zpX%["..idx.."%]"
-                local rep='"' .. str:gsub('"', '\\"') .. '"'
+                local rep='"' .. str:gsub('"', '\\"'):gsub('%%', '%%%%') .. '"'
                 new_code=new_code:gsub(pat,rep)
               end
             end
@@ -133,7 +133,7 @@ jobs:
             if dec2 then
               for idx,str in ipairs(dec2) do
                 local pat="lHnUu%["..idx.."%]"
-                local rep='"' .. str:gsub('"', '\\"') .. '"'
+                local rep='"' .. str:gsub('"', '\\"'):gsub('%%', '%%%%') .. '"'
                 new_code=new_code:gsub(pat,rep)
               end
             end
