@@ -42,6 +42,13 @@ jobs:
             f:close()
             return true
           end
+          local function load_chunk(str)
+            local fn, err = load(str, "=(string)", "t", {})
+            if not fn then
+              fn, err = loadstring(str) -- fallback
+            end
+            return fn, err
+          end
           local function extract_and_decode_bx1(code)
             local s=code:find("bx1%s*=%s*{")
             if not s then return nil end
@@ -57,7 +64,7 @@ jobs:
                 dep=dep-1
                 if dep==0 and bs then
                   local tbl=code:sub(bs,i)
-                  local f,err=loadstring("return "..tbl)
+                  local f, err = load_chunk("return " .. tbl)
                   if not f then return nil end
                   local bx1=f()
                   if type(bx1)~="table" then return nil end
@@ -91,7 +98,7 @@ jobs:
                 dep=dep-1
                 if dep==0 and bs then
                   local tbl=code:sub(bs,i)
-                  local f,err=loadstring("return "..tbl)
+                  local f, err = load_chunk("return " .. tbl)
                   if not f then return nil end
                   local arr=f()
                   if type(arr)~="table" then return nil end
