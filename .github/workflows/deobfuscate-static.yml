@@ -1,0 +1,60 @@
+name: Deobfuscate Static (XOR decoder)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'games/ViolenceDistrict.lua'
+      - 'deobfuscate_static.py'
+
+jobs:
+  deobfuscate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Run static deobfuscator
+        run: |
+          mkdir -p output
+          python3 deobfuscate_static.py games/ViolenceDistrict.lua output/ViolenceDistrict.deobf.lua
+
+      - name: Install StyLua
+        uses: taiki-e/install-action@v2
+        with:
+          tool: stylua
+
+      - name: Format deobfuscated file
+        run: |
+          if [ -f output/ViolenceDistrict.deobf.lua ]; then
+            stylua \
+              --indent-type Tabs \
+              --indent-width 4 \
+              --line-endings Unix \
+              --quote-style AutoPreferDouble \
+              --call-parentheses None \
+              --luau \
+              output/ViolenceDistrict.deobf.lua || true
+          fi
+
+      - name: Show preview
+        run: |
+          if [ -f output/ViolenceDistrict.deobf.lua ]; then
+            echo "=== First 200 lines ==="
+            head -200 output/ViolenceDistrict.deobf.lua
+            echo ""
+            echo "=== File stats ==="
+            wc -l output/ViolenceDistrict.deobf.lua
+            wc -c output/ViolenceDistrict.deobf.lua
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deobfuscated-violence-district
+          path: output/
