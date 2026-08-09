@@ -1,176 +1,305 @@
-name: Deobfuscate Lua
+name: Deobfuscate Luau
 
 on:
   push:
     paths:
       - '**.lua'
+      - '**.luau'
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deobfuscate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: leafo/gh-actions-lua@v10
-        with:
-          luaVersion: "5.4.4"
-
-      - name: Create deobfuscator
+      - name: Install Luau interpreter
         run: |
-          cat > deobfuscator.lua << 'EOF'
-          local function bxor(a,b)
-            local r=0
-            for i=0,7 do
-              local abit=(a>>i)&1
-              local bbit=(b>>i)&1
-              if abit~=bbit then r=r|(1<<i) end
-            end
-            return r
-          end
-          local function read_file(p)
-            local f=io.open(p,"rb")
-            if not f then return nil end
-            local c=f:read("*all")
-            f:close()
-            return c
-          end
-          local function write_file(p,c)
-            local f=io.open(p,"wb")
-            if not f then return false end
-            f:write(c)
-            f:close()
-            return true
-          end
-          local function load_chunk(str)
-            local fn, err = load(str, "=(string)", "t", {})
-            if not fn then
-              fn, err = loadstring(str)
-            end
-            return fn, err
-          end
-          local function extract_and_decode_bx1(code)
-            local s=code:find("bx1%s*=%s*{")
-            if not s then return nil end
-            local dep=0
-            local i=s
-            local bs=nil
-            while i<=#code do
-              local ch=code:sub(i,i)
-              if ch=="{" then
-                if dep==0 then bs=i end
-                dep=dep+1
-              elseif ch=="}" then
-                dep=dep-1
-                if dep==0 and bs then
-                  local tbl=code:sub(bs,i)
-                  local f, err = load_chunk("return " .. tbl)
-                  if not f then return nil end
-                  local bx1=f()
-                  if type(bx1)~="table" then return nil end
-                  local dec={}
-                  for idx,s in ipairs(bx1) do
-                    local parts={}
-                    for j=1,#s do
-                      parts[j]=string.char(bxor(string.byte(s,j),129))
-                    end
-                    dec[idx]=table.concat(parts)
-                  end
-                  return dec
-                end
-              end
-              i=i+1
-            end
-            return nil
-          end
-          local function decode_vWOWZo(code)
-            local s=code:find("vWOWZo%s*=%s*{")
-            if not s then return nil end
-            local dep=0
-            local i=s
-            local bs=nil
-            while i<=#code do
-              local ch=code:sub(i,i)
-              if ch=="{" then
-                if dep==0 then bs=i end
-                dep=dep+1
-              elseif ch=="}" then
-                dep=dep-1
-                if dep==0 and bs then
-                  local tbl=code:sub(bs,i)
-                  local f, err = load_chunk("return " .. tbl)
-                  if not f then return nil end
-                  local arr=f()
-                  if type(arr)~="table" then return nil end
-                  local dec={}
-                  for idx,s in ipairs(arr) do
-                    local parts={}
-                    for j=1,#s do
-                      parts[j]=string.char(bxor(string.byte(s,j),129))
-                    end
-                    dec[idx]=table.concat(parts)
-                  end
-                  return dec
-                end
-              end
-              i=i+1
-            end
-            return nil
-          end
-          local function process_file(filepath)
-            local code=read_file(filepath)
-            if not code then return false end
-            local dec1=extract_and_decode_bx1(code)
-            local new_code=code
-            if dec1 then
-              for idx,str in ipairs(dec1) do
-                local pat="10zpX%["..idx.."%]"
-                local rep='"' .. str:gsub('"', '\\"'):gsub('%%', '%%%%') .. '"'
-                new_code=new_code:gsub(pat,rep)
-              end
-            end
-            local dec2=decode_vWOWZo(new_code)
-            if dec2 then
-              for idx,str in ipairs(dec2) do
-                local pat="lHnUu%["..idx.."%]"
-                local rep='"' .. str:gsub('"', '\\"'):gsub('%%', '%%%%') .. '"'
-                new_code=new_code:gsub(pat,rep)
-              end
-            end
-            if new_code~=code then
-              local outpath = filepath:gsub("%.lua$", ".deobf.lua")
-              write_file(outpath, new_code)
-              print("Deobfuscated: "..filepath.." -> "..outpath)
-              return true
-            else
-              print("Skipped (not obfuscated): "..filepath)
-              return false
-            end
-          end
-          local handle=io.popen("find . -type f -name '*.lua' -not -path './.luarocks/*' -not -path './.git/*' -not -path './deobfuscator.lua'")
-          if not handle then print("Failed to find files") os.exit(1) end
-          for file in handle:lines() do
-            local path=file:gsub("^%.%/","")
-            process_file(path)
-          end
-          handle:close()
-          EOF
+          set -euo pipefail
+          api_url="https://api.github.com/repos/luau-lang/luau/releases/latest"
+          asset_url=$(curl -sSL "$api_url" \
+            | jq -r '.assets[] | select(.name | test("ubuntu"; "i")) | .browser_download_url' \
+            | head -n1)
+          if [ -z "$asset_url" ]; then
+            echo "::error::Не найден release-ассет Luau для Linux" >&2
+            exit 1
+          fi
+          echo "Downloading $asset_url"
+          curl -sSL "$asset_url" -o luau.zip
+          mkdir -p "$HOME/.local/luau-bin"
+          unzip -oq luau.zip -d "$HOME/.local/luau-bin"
+          chmod +x "$HOME/.local/luau-bin/luau"
+          echo "$HOME/.local/luau-bin" >> "$GITHUB_PATH"
 
-      - name: Run deobfuscator
-        run: lua deobfuscator.lua
+      - name: Verify Luau
+        run: luau --version
+
+      - name: Create sandbox decoder
+        run: |
+          mkdir -p .deobf-tools
+          cat > .deobf-tools/sandbox.luau << 'LUAU_EOF'
+          --[[
+            sandbox.luau
+
+            Динамическая распаковка обфусцированного Luau-скрипта.
+
+            Идея: вместо разбора конкретного алгоритма конкретного
+            обфускатора (ключи, порядок байтовых операций и т.п.) мы
+            запускаем сам обфусцированный код в изолированном процессе
+            и подменяем глобальные load/loadstring. Когда скрипт сам
+            себя расшифровывает и пытается ВЫПОЛНИТЬ результат через
+            load(...), мы перехватываем эту строку, сохраняем как
+            очередной "слой" на диск и рекурсивно скармливаем её тому
+            же перехватчику — на случай если слоёв несколько.
+
+            Ограничение: если защита сделана через VM-протектор
+            (байткодовый), а не через load()-цепочку, здесь читаемого
+            текста не появится — нужен отдельный статический анализ
+            конкретного протектора.
+          ]]
+
+          local target_path, output_dir = ...
+
+          if not target_path or not output_dir then
+              print("usage: luau sandbox.luau <target_file> <output_dir>")
+              return
+          end
+
+          local MAX_LAYERS = 25
+          local start_time = os.clock()
+          local TIME_BUDGET = 20 -- секунд, мягкий лимит (жёсткий задаёт `timeout` снаружи)
+
+          local function read_file(path)
+              local f = io.open(path, "rb")
+              if not f then return nil end
+              local data = f:read("a")
+              f:close()
+              return data
+          end
+
+          local function write_file(path, data)
+              local f = io.open(path, "wb")
+              if not f then return false end
+              f:write(data)
+              f:close()
+              return true
+          end
+
+          --------------------------------------------------------------
+          -- Заглушка для Roblox/executor API, отсутствующих в чистом Luau CLI
+          --------------------------------------------------------------
+
+          local Stub = {}
+          Stub.__index = function() return Stub.instance end
+          Stub.__call = function() return Stub.instance end
+          Stub.__newindex = function() end
+          Stub.__len = function() return 0 end
+          Stub.__tostring = function() return "stub" end
+          Stub.__concat = function(a, b)
+              if type(a) == "string" then return a end
+              if type(b) == "string" then return b end
+              return ""
+          end
+          Stub.instance = setmetatable({}, Stub)
+
+          local function stub_fn()
+              return Stub.instance
+          end
+
+          local function noop() end
+
+          local stub_globals = {
+              game = Stub.instance,
+              workspace = Stub.instance,
+              script = Stub.instance,
+              Instance = { new = stub_fn },
+              Enum = Stub.instance,
+              Vector2 = { new = stub_fn },
+              Vector3 = { new = stub_fn },
+              CFrame = { new = stub_fn },
+              Color3 = { new = stub_fn, fromRGB = stub_fn, fromHSV = stub_fn },
+              UDim2 = { new = stub_fn },
+              UDim = { new = stub_fn },
+              TweenInfo = { new = stub_fn },
+              Random = { new = stub_fn },
+              Drawing = { new = stub_fn },
+              task = {
+                  wait = function() return 0 end,
+                  spawn = function(fn, ...) if fn then return pcall(fn, ...) end end,
+                  defer = function(fn, ...) if fn then return pcall(fn, ...) end end,
+                  delay = function(_, fn, ...) if fn then return pcall(fn, ...) end end,
+              },
+              wait = function() return 0 end,
+              spawn = function(fn, ...) if fn then return pcall(fn, ...) end end,
+              delay = function(_, fn, ...) if fn then return pcall(fn, ...) end end,
+              tick = os.time,
+              require = stub_fn,
+              getgenv = function() return _G end,
+              getrenv = function() return _G end,
+              getfenv = function() return _G end,
+              setfenv = noop,
+              hookfunction = function(fn) return fn end,
+              hookmetamethod = stub_fn,
+              newcclosure = function(fn) return fn end,
+              checkcaller = function() return true end,
+              identifyexecutor = function() return "luau-cli", "0.0" end,
+              is_synapse_function = function() return false end,
+              syn = Stub.instance,
+              settings = stub_fn,
+              UserSettings = stub_fn,
+          }
+
+          for name, value in pairs(stub_globals) do
+              _G[name] = value
+          end
+
+          --------------------------------------------------------------
+          -- Перехват load/loadstring
+          --------------------------------------------------------------
+
+          local real_load = load
+          local layer_count = 0
+
+          local function sandboxed_load(src, chunkname, ...)
+              layer_count = layer_count + 1
+
+              if type(src) ~= "string" then
+                  return stub_fn()
+              end
+
+              if layer_count > MAX_LAYERS then
+                  print("!! layer limit reached, aborting further unwrapping")
+                  return stub_fn()
+              end
+
+              if os.clock() - start_time > TIME_BUDGET then
+                  print("!! time budget exceeded, aborting further unwrapping")
+                  return stub_fn()
+              end
+
+              local layer_path = string.format("%s/layer_%03d.lua", output_dir, layer_count)
+              write_file(layer_path, src)
+              print(string.format("captured layer %d -> %s (%d bytes)", layer_count, layer_path, #src))
+
+              local nested_chunk, compile_err = real_load(src, chunkname)
+              if nested_chunk then
+                  local ok, run_err = pcall(nested_chunk)
+                  if not ok then
+                      print("  (nested layer runtime note: " .. tostring(run_err) .. ")")
+                  end
+              else
+                  print("  (nested layer did not compile as-is: " .. tostring(compile_err) .. ")")
+              end
+
+              return stub_fn()
+          end
+
+          load = sandboxed_load
+          loadstring = sandboxed_load
+
+          --------------------------------------------------------------
+          -- Запуск целевого файла
+          --------------------------------------------------------------
+
+          local source = read_file(target_path)
+          if not source then
+              print("Could not read " .. target_path)
+              return
+          end
+
+          local chunk, err = real_load(source, "=(target)")
+          if not chunk then
+              print("Top-level parse error: " .. tostring(err))
+              return
+          end
+
+          local ok, run_err = pcall(chunk)
+          if not ok then
+              print("Top-level runtime note: " .. tostring(run_err))
+          end
+
+          print(string.format("Total layers captured: %d", layer_count))
+          LUAU_EOF
+
+      - name: Run dynamic deobfuscation
+        shell: bash
+        run: |
+          set -uo pipefail
+          mapfile -t files < <(find . -type f \( -name '*.lua' -o -name '*.luau' \) \
+            -not -path './.git/*' \
+            -not -path './.deobf-tools/*' \
+            -not -name '*.deobf.lua' \
+            -not -name '*.deobf.luau')
+
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "Lua/Luau файлы не найдены."
+            exit 0
+          fi
+
+          total_found=0
+
+          for file in "${files[@]}"; do
+            echo "== Processing: $file =="
+            layers_dir="${file%.*}.layers"
+            rm -rf "$layers_dir"
+            mkdir -p "$layers_dir"
+
+            timeout 30s luau .deobf-tools/sandbox.luau "$file" "$layers_dir" \
+              || echo "  (sandbox завершился с ошибкой/таймаутом — это может быть нормально)"
+
+            last_layer=$(find "$layers_dir" -type f -name 'layer_*.lua' | sort | tail -n1)
+
+            if [ -n "$last_layer" ]; then
+              ext="${file##*.}"
+              outpath="${file%.*}.deobf.${ext}"
+              cp "$last_layer" "$outpath"
+              echo "  -> deobfuscated: $outpath (from $(basename "$last_layer"))"
+              total_found=$((total_found + 1))
+            else
+              echo "  -> load()/loadstring() не пойман, удаляю пустую папку слоёв"
+              rmdir "$layers_dir" 2>/dev/null || true
+            fi
+          done
+
+          echo "Всего деобфусцировано файлов: $total_found"
 
       - name: Install StyLua
-        run: cargo install stylua
-        env:
-          CARGO_NET_GIT_FETCH_WITH_CLI: true
+        uses: taiki-e/install-action@v2
+        with:
+          tool: stylua
 
       - name: Format deobfuscated files
+        shell: bash
         run: |
-          stylua --indent-type tabs --indent-width 4 --line-endings Unix --quote-style AutoPreferDouble --call-parentheses none --luau --glob '**.deobf.lua' . || true
+          mapfile -t files < <(find . -type f \( -name '*.deobf.lua' -o -name '*.deobf.luau' \))
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "Нет файлов для форматирования."
+          else
+            stylua \
+              --indent-type Tabs \
+              --indent-width 4 \
+              --line-endings Unix \
+              --quote-style AutoPreferDouble \
+              --call-parentheses None \
+              --luau \
+              --verify \
+              "${files[@]}"
+          fi
 
-      - name: Upload deobfuscated files
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: deobfuscated-lua
-          path: '**/*.deobf.lua'
-          if-no-files-found: error
+          name: deobfuscated-luau
+          path: |
+            **/*.deobf.lua
+            **/*.deobf.luau
+            **/*.layers/**
+          if-no-files-found: warn
