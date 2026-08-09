@@ -58,6 +58,38 @@ jobs:
             s = s:gsub('\t', '\\t')
             return s
           end
+          -- Naive line-breaker: inserts a newline after every top-level ';'
+          -- while tracking whether we're inside a "..." or '...' string,
+          -- so we never insert a raw newline inside a string literal.
+          local function basic_reflow(code)
+            local out={}
+            local n=#code
+            local i=1
+            local instr=nil
+            while i<=n do
+              local ch=code:sub(i,i)
+              if instr then
+                out[#out+1]=ch
+                if ch=="\\" then
+                  i=i+1
+                  if i<=n then out[#out+1]=code:sub(i,i) end
+                elseif ch==instr then
+                  instr=nil
+                end
+              else
+                if ch=='"' or ch=="'" then
+                  instr=ch
+                  out[#out+1]=ch
+                elseif ch==";" then
+                  out[#out+1]=";\n"
+                else
+                  out[#out+1]=ch
+                end
+              end
+              i=i+1
+            end
+            return table.concat(out)
+          end
           local function decode_array(code, varname)
             local s=code:find(varname:gsub("(%W)","%%%1").."%s*=%s*{")
             if not s then return nil end
@@ -116,6 +148,7 @@ jobs:
             end
 
             if new_code~=code then
+              new_code = basic_reflow(new_code)
               local outpath = filepath:gsub("%.lua$", ".deobf.lua")
               write_file(outpath, new_code)
               print("Deobfuscated: "..filepath.." -> "..outpath)
