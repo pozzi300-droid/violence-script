@@ -28,7 +28,7 @@ jobs:
 
       - name: Run improved deobfuscator script
         run: |
-          python3 scripts/deobfuscate_violence_district_improved.py games/ViolenceDistrict.lua output
+          python3 deobfuscate_violence_district_improved.py games/ViolenceDistrict.lua output
 
       - name: List outputs
         run: ls -R output || true
