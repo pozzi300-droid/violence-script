@@ -40,7 +40,10 @@ jobs:
           echo "$HOME/.local/luau-bin" >> "$GITHUB_PATH"
 
       - name: Verify Luau
-        run: luau --version
+        run: |
+          set -euo pipefail
+          echo 'print("Luau OK, _VERSION = " .. tostring(_VERSION))' > /tmp/luau_check.luau
+          luau /tmp/luau_check.luau
 
       - name: Create sandbox decoder
         run: |
@@ -69,7 +72,7 @@ jobs:
           local target_path, output_dir = ...
 
           if not target_path or not output_dir then
-              print("usage: luau sandbox.luau <target_file> <output_dir>")
+              print("usage: luau sandbox.luau -a <target_file> <output_dir>")
               return
           end
 
@@ -252,7 +255,10 @@ jobs:
             rm -rf "$layers_dir"
             mkdir -p "$layers_dir"
 
-            timeout 30s luau .deobf-tools/sandbox.luau "$file" "$layers_dir" \
+            # ВАЖНО: -a обязателен, иначе аргументы будут восприняты
+            # интерпретатором как дополнительные файлы для выполнения,
+            # а не как arg list, доступный внутри sandbox.luau через `...`
+            timeout 30s luau .deobf-tools/sandbox.luau -a "$file" "$layers_dir" \
               || echo "  (sandbox завершился с ошибкой/таймаутом — это может быть нормально)"
 
             last_layer=$(find "$layers_dir" -type f -name 'layer_*.lua' | sort | tail -n1)
