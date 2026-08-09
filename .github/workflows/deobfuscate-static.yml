@@ -6,6 +6,7 @@ on:
     paths:
       - 'games/ViolenceDistrict.lua'
       - 'deobfuscate_static.py'
+      - 'deobfuscate_pass2.py'
 
 jobs:
   deobfuscate:
@@ -19,10 +20,14 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Run static deobfuscator
+      - name: Pass 1 - Decode string table
         run: |
           mkdir -p output
-          python3 deobfuscate_static.py games/ViolenceDistrict.lua output/ViolenceDistrict.deobf.lua
+          python3 deobfuscate_static.py games/ViolenceDistrict.lua output/pass1.lua
+
+      - name: Pass 2 - Clean variables and ENV calls
+        run: |
+          python3 deobfuscate_pass2.py output/pass1.lua output/ViolenceDistrict.clean.lua
 
       - name: Install StyLua
         uses: taiki-e/install-action@v2
@@ -31,7 +36,7 @@ jobs:
 
       - name: Format deobfuscated file
         run: |
-          if [ -f output/ViolenceDistrict.deobf.lua ]; then
+          if [ -f output/ViolenceDistrict.clean.lua ]; then
             stylua \
               --indent-type Tabs \
               --indent-width 4 \
@@ -39,18 +44,18 @@ jobs:
               --quote-style AutoPreferDouble \
               --call-parentheses None \
               --luau \
-              output/ViolenceDistrict.deobf.lua || true
+              output/ViolenceDistrict.clean.lua || true
           fi
 
       - name: Show preview
         run: |
-          if [ -f output/ViolenceDistrict.deobf.lua ]; then
-            echo "=== First 200 lines ==="
-            head -200 output/ViolenceDistrict.deobf.lua
+          if [ -f output/ViolenceDistrict.clean.lua ]; then
+            echo "=== First 150 lines ==="
+            head -150 output/ViolenceDistrict.clean.lua
             echo ""
             echo "=== File stats ==="
-            wc -l output/ViolenceDistrict.deobf.lua
-            wc -c output/ViolenceDistrict.deobf.lua
+            wc -l output/ViolenceDistrict.clean.lua
+            wc -c output/ViolenceDistrict.clean.lua
           fi
 
       - name: Upload artifact
