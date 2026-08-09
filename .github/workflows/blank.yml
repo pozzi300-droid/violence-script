@@ -165,7 +165,7 @@ jobs:
 
       - name: Format with StyLua
         run: |
-          stylua --indent-type tabs --indent-width 4 --column-width 120 --line-endings lf --quote-style auto --call-parentheses none --collapse-simple-statement false --sort-requires false --search-parent-directories true --glob '**.lua' .
+          stylua --indent-type tabs --indent-width 4 --column-width 120 --line-endings Unix --quote-style auto --call-parentheses none --collapse-simple-statement false --sort-requires false --search-parent-directories true --glob '**.lua' .
 
       - name: Upload deobfuscated and formatted files
         uses: actions/upload-artifact@v4
