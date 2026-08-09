@@ -1,137 +1,104 @@
-name: Deobfuscate Lua Files
+name: Deobfuscate Lua
 
 on:
   push:
     paths:
-      - '**.lua'          # запускается при пуше, изменяющем .lua файлы
-  workflow_dispatch:      # можно запустить вручную из интерфейса GitHub
+      - '**.lua'
+  workflow_dispatch:
 
 jobs:
   deobfuscate:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Клонируем репозиторий
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 2. Устанавливаем Lua (Lua 5.4)
-      - name: Setup Lua
-        uses: leafo/gh-actions-lua@v10
+      - uses: actions/checkout@v4
+      - uses: leafo/gh-actions-lua@v10
         with:
           luaVersion: "5.4.4"
-
-      # 3. Устанавливаем LuaRocks (для установки инструментов, если понадобится)
-      - name: Setup LuaRocks
-        uses: leafo/gh-actions-luarocks@v4
-
-      # 4. Устанавливаем StyLua (форматер) через cargo
+      - uses: leafo/gh-actions-luarocks@v4
       - name: Install StyLua
-        run: |
-          cargo install stylua
+        run: cargo install stylua
         env:
           CARGO_NET_GIT_FETCH_WITH_CLI: true
-
-      # 5. Создаём скрипт деобфускации (на Lua)
-      - name: Create deobfuscator script
+      - name: Create deobfuscator
         run: |
           cat > deobfuscator.lua << 'EOF'
-          -- Деобфускатор для Lua скриптов (XOR 129, массив bx1)
-          local function read_file(path)
-              local f = io.open(path, "rb")
+          local function read_file(p)
+              local f = io.open(p, "rb")
               if not f then return nil end
-              local content = f:read("*all")
+              local c = f:read("*all")
               f:close()
-              return content
+              return c
           end
-
-          local function write_file(path, content)
-              local f = io.open(path, "wb")
+          local function write_file(p, c)
+              local f = io.open(p, "wb")
               if not f then return false end
-              f:write(content)
+              f:write(c)
               f:close()
               return true
           end
-
           local function is_obfuscated(code)
               return code:find('bx1%s*=%s*{') and code:find('bit32%.bxor') and code:find('129')
           end
-
           local function extract_bx1(code)
-              local start = code:find('bx1%s*=%s*{')
-              if not start then return nil end
-              local depth = 0
-              local i = start
-              local bracket_start = nil
+              local s = code:find('bx1%s*=%s*{')
+              if not s then return nil end
+              local dep = 0
+              local i = s
+              local bs = nil
               while i <= #code do
                   local ch = code:sub(i, i)
                   if ch == '{' then
-                      if depth == 0 then bracket_start = i end
-                      depth = depth + 1
+                      if dep == 0 then bs = i end
+                      dep = dep + 1
                   elseif ch == '}' then
-                      depth = depth - 1
-                      if depth == 0 and bracket_start then
-                          return code:sub(bracket_start, i)
+                      dep = dep - 1
+                      if dep == 0 and bs then
+                          return code:sub(bs, i)
                       end
                   end
                   i = i + 1
               end
               return nil
           end
-
-          local function decode_strings(bx1_table_str)
-              -- Выполняем код, чтобы получить таблицу
-              local func, err = loadstring("return " .. bx1_table_str)
-              if not func then
-                  print("loadstring error: " .. tostring(err))
-                  return nil
-              end
-              local bx1 = func()
+          local function decode_strings(bx1_str)
+              local f, err = loadstring("return " .. bx1_str)
+              if not f then return nil end
+              local bx1 = f()
               if type(bx1) ~= "table" then return nil end
-              local decoded = {}
+              local dec = {}
               for i, str in ipairs(bx1) do
                   local parts = {}
                   for j = 1, #str do
-                      local byte = string.byte(str, j)
-                      parts[j] = string.char(bit32.bxor(byte, 129))
+                      parts[j] = string.char(bit32.bxor(string.byte(str, j), 129))
                   end
-                  decoded[i] = table.concat(parts)
+                  dec[i] = table.concat(parts)
               end
-              return decoded
+              return dec
           end
-
           local function process_file(filepath)
               local code = read_file(filepath)
-              if not code then
-                  print("Cannot read: " .. filepath)
-                  return false
-              end
+              if not code then return false end
               if not is_obfuscated(code) then
                   print("Skipping (not obfuscated): " .. filepath)
                   return false
               end
-
               print("Deobfuscating: " .. filepath)
-
               local bx1_str = extract_bx1(code)
               if not bx1_str then
-                  print("Could not extract bx1 array from " .. filepath)
+                  print("Could not extract bx1 from " .. filepath)
                   return false
               end
-
               local decoded = decode_strings(bx1_str)
               if not decoded then
-                  print("Failed to decode strings in " .. filepath)
+                  print("Failed to decode in " .. filepath)
                   return false
               end
-
               local new_code = code
               for idx, str in ipairs(decoded) do
                   local pattern = "10zpX%[" .. idx .. "%]"
                   local replacement = '"' .. str:gsub('"', '\\"') .. '"'
                   new_code = new_code:gsub(pattern, replacement)
               end
-
               if write_file(filepath, new_code) then
                   print("Deobfuscated: " .. filepath)
                   return true
@@ -140,9 +107,7 @@ jobs:
                   return false
               end
           end
-
-          -- Обработка всех .lua файлов в репозитории
-          local handle = io.popen("find . -name '*.lua' -type f")
+          local handle = io.popen("find . -type f -name '*.lua' -not -path './.luarocks/*' -not -path './.git/*' -not -path './deobfuscator.lua'")
           if not handle then
               print("Failed to find files")
               return
@@ -153,22 +118,14 @@ jobs:
           end
           handle:close()
           EOF
-
-      # 6. Запускаем деобфускатор (теперь используем команду lua, а не lua5.4)
       - name: Run deobfuscator
+        run: lua deobfuscator.lua
+      - name: Format with StyLua
         run: |
-          lua deobfuscator.lua
-
-      # 7. Форматируем все .lua файлы с помощью StyLua
-      - name: Format Lua files with StyLua
-        run: |
-          stylua --indent-type tabs --indent-width 4 --column-width 120 --line-endings lf --quote-style auto --call-parentheses none --collapse-simple-statement false --sort-requires false --no-escape-strings --search-parent-directories true --glob '**.lua' .
-
-      # 8. Коммитим и пушим изменения (если есть)
-      - name: Commit and push changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+          stylua --indent-type tabs --indent-width 4 --column-width 120 --line-endings lf --quote-style auto --call-parentheses none --collapse-simple-statement false --sort-requires false --search-parent-directories true --glob '**.lua' .
+      - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Автоматическая деобфускация и форматирование Lua файлов"
+          commit_message: "Deobfuscate and format Lua files"
           branch: ${{ github.head_ref || github.ref_name }}
           file_pattern: '*.lua'
           push_options: '--force'
