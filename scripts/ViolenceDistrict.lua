@@ -1,5 +1,4 @@
 -- Deobfuscated by wezxwe
--- Original: BOLONG-HUB v4.1.1 for Violence District
 
 local  LIB = {
 
