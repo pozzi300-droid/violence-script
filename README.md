@@ -15,8 +15,9 @@ BOLONG-HUB/
 
 ## Usage
 
-1. Copy `BOLONG-HUB` folder to your exploit workspace (rename to `BOLONGHUB`)
-2. Run: `loadstring(readfile("BOLONGHUB/libs/loader.lua"))()`
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/pozzi300-droid/violence-script/main/libs/loader.lua"))()
+```
 
 ## Features
 
