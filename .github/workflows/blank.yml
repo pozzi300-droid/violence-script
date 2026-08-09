@@ -1,4 +1,4 @@
-name: Deobfuscate Lua
+name: Deobfuscate and Format Lua
 
 on:
   push:
@@ -11,121 +11,158 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: leafo/gh-actions-lua@v10
         with:
           luaVersion: "5.4.4"
-      - uses: leafo/gh-actions-luarocks@v4
+
+      - name: Create deobfuscator
+        run: |
+          cat > deobfuscator.lua << 'EOF'
+          local function bxor(a,b)
+            local r=0
+            for i=0,7 do
+              local abit=(a>>i)&1
+              local bbit=(b>>i)&1
+              if abit~=bbit then r=r|(1<<i) end
+            end
+            return r
+          end
+          local function read_file(p)
+            local f=io.open(p,"rb")
+            if not f then return nil end
+            local c=f:read("*all")
+            f:close()
+            return c
+          end
+          local function write_file(p,c)
+            local f=io.open(p,"wb")
+            if not f then return false end
+            f:write(c)
+            f:close()
+            return true
+          end
+          local function extract_and_decode_bx1(code)
+            local s=code:find("bx1%s*=%s*{")
+            if not s then return nil end
+            local dep=0
+            local i=s
+            local bs=nil
+            while i<=#code do
+              local ch=code:sub(i,i)
+              if ch=="{" then
+                if dep==0 then bs=i end
+                dep=dep+1
+              elseif ch=="}" then
+                dep=dep-1
+                if dep==0 and bs then
+                  local tbl=code:sub(bs,i)
+                  local f,err=loadstring("return "..tbl)
+                  if not f then return nil end
+                  local bx1=f()
+                  if type(bx1)~="table" then return nil end
+                  local dec={}
+                  for idx,s in ipairs(bx1) do
+                    local parts={}
+                    for j=1,#s do
+                      parts[j]=string.char(bxor(string.byte(s,j),129))
+                    end
+                    dec[idx]=table.concat(parts)
+                  end
+                  return dec
+                end
+              end
+              i=i+1
+            end
+            return nil
+          end
+          local function decode_vWOWZo(code)
+            local s=code:find("vWOWZo%s*=%s*{")
+            if not s then return nil end
+            local dep=0
+            local i=s
+            local bs=nil
+            while i<=#code do
+              local ch=code:sub(i,i)
+              if ch=="{" then
+                if dep==0 then bs=i end
+                dep=dep+1
+              elseif ch=="}" then
+                dep=dep-1
+                if dep==0 and bs then
+                  local tbl=code:sub(bs,i)
+                  local f,err=loadstring("return "..tbl)
+                  if not f then return nil end
+                  local arr=f()
+                  if type(arr)~="table" then return nil end
+                  local dec={}
+                  for idx,s in ipairs(arr) do
+                    local parts={}
+                    for j=1,#s do
+                      parts[j]=string.char(bxor(string.byte(s,j),129))
+                    end
+                    dec[idx]=table.concat(parts)
+                  end
+                  return dec
+                end
+              end
+              i=i+1
+            end
+            return nil
+          end
+          local function process_file(filepath)
+            local code=read_file(filepath)
+            if not code then return false end
+            local dec1=extract_and_decode_bx1(code)
+            local new_code=code
+            if dec1 then
+              for idx,str in ipairs(dec1) do
+                local pat="10zpX%["..idx.."%]"
+                local rep='"' .. str:gsub('"', '\\"') .. '"'
+                new_code=new_code:gsub(pat,rep)
+              end
+            end
+            local dec2=decode_vWOWZo(new_code)
+            if dec2 then
+              for idx,str in ipairs(dec2) do
+                local pat="lHnUu%["..idx.."%]"
+                local rep='"' .. str:gsub('"', '\\"') .. '"'
+                new_code=new_code:gsub(pat,rep)
+              end
+            end
+            if new_code~=code then
+              write_file(filepath,new_code)
+              print("Deobfuscated: "..filepath)
+              return true
+            else
+              print("Skipped (not obfuscated): "..filepath)
+              return false
+            end
+          end
+          local handle=io.popen("find . -type f -name '*.lua' -not -path './.luarocks/*' -not -path './.git/*' -not -path './deobfuscator.lua'")
+          if not handle then print("Failed to find files") os.exit(1) end
+          for file in handle:lines() do
+            local path=file:gsub("^%.%/","")
+            process_file(path)
+          end
+          handle:close()
+          EOF
+
+      - name: Run deobfuscator
+        run: lua deobfuscator.lua
+
       - name: Install StyLua
         run: cargo install stylua
         env:
           CARGO_NET_GIT_FETCH_WITH_CLI: true
-      - name: Create deobfuscator
-        run: |
-          cat > deobfuscator.lua << 'EOF'
-          local function read_file(p)
-              local f = io.open(p, "rb")
-              if not f then return nil end
-              local c = f:read("*all")
-              f:close()
-              return c
-          end
-          local function write_file(p, c)
-              local f = io.open(p, "wb")
-              if not f then return false end
-              f:write(c)
-              f:close()
-              return true
-          end
-          local function is_obfuscated(code)
-              return code:find('bx1%s*=%s*{') and code:find('bit32%.bxor') and code:find('129')
-          end
-          local function extract_bx1(code)
-              local s = code:find('bx1%s*=%s*{')
-              if not s then return nil end
-              local dep = 0
-              local i = s
-              local bs = nil
-              while i <= #code do
-                  local ch = code:sub(i, i)
-                  if ch == '{' then
-                      if dep == 0 then bs = i end
-                      dep = dep + 1
-                  elseif ch == '}' then
-                      dep = dep - 1
-                      if dep == 0 and bs then
-                          return code:sub(bs, i)
-                      end
-                  end
-                  i = i + 1
-              end
-              return nil
-          end
-          local function decode_strings(bx1_str)
-              local f, err = loadstring("return " .. bx1_str)
-              if not f then return nil end
-              local bx1 = f()
-              if type(bx1) ~= "table" then return nil end
-              local dec = {}
-              for i, str in ipairs(bx1) do
-                  local parts = {}
-                  for j = 1, #str do
-                      parts[j] = string.char(bit32.bxor(string.byte(str, j), 129))
-                  end
-                  dec[i] = table.concat(parts)
-              end
-              return dec
-          end
-          local function process_file(filepath)
-              local code = read_file(filepath)
-              if not code then return false end
-              if not is_obfuscated(code) then
-                  print("Skipping (not obfuscated): " .. filepath)
-                  return false
-              end
-              print("Deobfuscating: " .. filepath)
-              local bx1_str = extract_bx1(code)
-              if not bx1_str then
-                  print("Could not extract bx1 from " .. filepath)
-                  return false
-              end
-              local decoded = decode_strings(bx1_str)
-              if not decoded then
-                  print("Failed to decode in " .. filepath)
-                  return false
-              end
-              local new_code = code
-              for idx, str in ipairs(decoded) do
-                  local pattern = "10zpX%[" .. idx .. "%]"
-                  local replacement = '"' .. str:gsub('"', '\\"') .. '"'
-                  new_code = new_code:gsub(pattern, replacement)
-              end
-              if write_file(filepath, new_code) then
-                  print("Deobfuscated: " .. filepath)
-                  return true
-              else
-                  print("Failed to write: " .. filepath)
-                  return false
-              end
-          end
-          local handle = io.popen("find . -type f -name '*.lua' -not -path './.luarocks/*' -not -path './.git/*' -not -path './deobfuscator.lua'")
-          if not handle then
-              print("Failed to find files")
-              return
-          end
-          for file in handle:lines() do
-              local path = file:gsub("^%.%/", "")
-              process_file(path)
-          end
-          handle:close()
-          EOF
-      - name: Run deobfuscator
-        run: lua deobfuscator.lua
+
       - name: Format with StyLua
         run: |
           stylua --indent-type tabs --indent-width 4 --column-width 120 --line-endings lf --quote-style auto --call-parentheses none --collapse-simple-statement false --sort-requires false --search-parent-directories true --glob '**.lua' .
-      - uses: stefanzweifel/git-auto-commit-action@v5
+
+      - name: Upload deobfuscated and formatted files
+        uses: actions/upload-artifact@v4
         with:
-          commit_message: "Deobfuscate and format Lua files"
-          branch: ${{ github.head_ref || github.ref_name }}
-          file_pattern: '*.lua'
-          push_options: '--force'
+          name: deobfuscated-lua
+          path: '**/*.lua'
+          if-no-files-found: error
