@@ -1,6 +1,2 @@
--- BOLONG-HUB Loader
--- Loads Violence District script with local UI library
--- Usage: loadstring(readfile("BOLONGHUB/loader.lua"))()
-
-local UILib = loadstring(readfile("BOLONGHUB/libs/b0lngUi.lua"))()
-loadstring(readfile("BOLONGHUB/scripts/ViolenceDistrict.lua"))()
+local UILib = loadstring(game:HttpGet("https://raw.githubusercontent.com/pozzi300-droid/BOLONG-HUB/main/libs/b0lngUi.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/pozzi300-droid/BOLONG-HUB/main/scripts/ViolenceDistrict.lua"))()
