@@ -1,4 +1,4 @@
-name: Deobfuscate and Format Lua
+name: Deobfuscate Lua
 
 on:
   push:
@@ -138,8 +138,9 @@ jobs:
               end
             end
             if new_code~=code then
-              write_file(filepath,new_code)
-              print("Deobfuscated: "..filepath)
+              local outpath = filepath:gsub("%.lua$", ".deobf.lua")
+              write_file(outpath, new_code)
+              print("Deobfuscated: "..filepath.." -> "..outpath)
               return true
             else
               print("Skipped (not obfuscated): "..filepath)
@@ -163,13 +164,13 @@ jobs:
         env:
           CARGO_NET_GIT_FETCH_WITH_CLI: true
 
-      - name: Format with StyLua (skip errors)
+      - name: Format deobfuscated files
         run: |
-          stylua --indent-type tabs --indent-width 4 --line-endings Unix --quote-style AutoPreferDouble --call-parentheses none --luau --glob '**.lua' . || true
+          stylua --indent-type tabs --indent-width 4 --line-endings Unix --quote-style AutoPreferDouble --call-parentheses none --luau --glob '**.deobf.lua' . || true
 
-      - name: Upload deobfuscated and formatted files
+      - name: Upload deobfuscated files
         uses: actions/upload-artifact@v4
         with:
           name: deobfuscated-lua
-          path: '**/*.lua'
+          path: '**/*.deobf.lua'
           if-no-files-found: error
