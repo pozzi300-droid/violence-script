@@ -1,6144 +1,5821 @@
-local MainState = {}
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local VirtualUser = game:GetService("VirtualUser")
-local GuiService = game:GetService("GuiService")
-local Lighting = game:GetService("Lighting")
-local Stats = game:GetService("Stats")
-local Workspace = game:GetService("Workspace")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local CollectionService = game:GetService("CollectionService")
-local UIS2 = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-local RadAngle30 = math.rad(30)
-local RadAngle45 = math.rad(45)
-local Angle42 = math.rad(42)
-local Angle28 = math.rad(28)
-local Angle18 = math.rad(18)
-local Angle72 = math.rad(72)
-local MinClamp = -0.95
-local MaxClamp = 0.95
-local Gravity = Workspace.Gravity
-local DefaultHeight = 2
-local DefaultSpeed = 1.5
-local SmallOffset = 0.15
-local DefaultCount = 3
-local UILib = loadstring(game:HttpGet("https://raw.githubusercontent.com/pozzi300-droid/violence-script/main/libs/b0lngUi.lua"))()
-local ScriptVersion = "v4.1.1"
-local NotifyColor = Color3.fromRGB(255, 255, 255)
-local function ShowNotify(Title, Message, Duration) UILib:MakeNotify({ Title = Title or "BOLONG-HUB", Description = "Info", Content = Message or "", Color = NotifyColor, Time = 0.4, Delay = Duration or 2,})
+-- Obfuscated by BolongBot | https://discord.gg/pWpgqVGxNK
+-- ═══════════════════════════════════════════════════════════════
+-- СПРАВОЧНИК ПО ОБФУСЦИРОВАННЫМ ИМЕНАМ (ENV таблица w_ZpoH0p1):
+-- ═══════════════════════════════════════════════════════════════
+-- w_ZpoH0p1["HmnU_lbWXHQX1I"]  = type
+-- w_ZpoH0p1["qpzwM0xWbbIH"]    = pairs
+-- w_ZpoH0p1["bHopuzIW"]         = pcall
+-- w_ZpoH0p1["bHmuv"]            = typeof
+-- w_ZpoH0p1["vumZ11WpXWw"]      = rawequal
+-- w_ZpoH0p1["DZu1Dmvbw"]        = ipairs
+-- w_ZpoH0p1["pQwQXMN1QNbu_z"]   = tonumber
+-- w_ZpoH0p1["pQZnn0HWw"]        = tostring
+-- w_ZpoH0p1["WbzmnX"]           = next
+-- w_ZpoH0p1["wWnZxWuzZuz"]      = print
+-- w_ZpoH0p1["_WXbbv_1_HnO"]     = math.clamp
+-- w_ZpoH0p1["lqWzNNmZIlpXZ"]    = math.abs
+-- w_ZpoH0p1["lZUWvp_XuN"]       = math.max
+-- w_ZpoH0p1["I_plQ"]            = table.insert
+-- w_ZpoH0p1["MQUq1oIZmD"]       = math.floor
+-- w_ZpoH0p1["qWxWwz"]           = string.format
+-- w_ZpoH0p1["w0QIN"]            = table.remove
+-- w_ZpoH0p1["HbxXmooXu_wlZl"]   = string.find
+-- w_ZpoH0p1["pUpM0XUbWv"]       = math.min
+-- w_ZpoH0p1["MIWZ1OD"]          = table.unpack
+-- ═══════════════════════════════════════════════════════════════
+-- ПЕРЕМЕННЫЕ (сервисы и игрок):
+-- ═══════════════════════════════════════════════════════════════
+-- b0W0wpHoxmHDWX  = MainState (главная таблица состояния)
+-- OD_0p_00Xblo    = Players
+-- u0xpmq_WoUlm    = RunService
+-- BQbuWD1UMvux    = UserInputService
+-- HWvNq           = VirtualInputManager
+-- pvIzmpOMQ       = VirtualUser
+-- D1xooONpx       = GuiService
+-- qxUnN           = Lighting
+-- BUb0O1q         = Stats
+-- uvWUOOzvx1      = Workspace
+-- DMNlwumvQ0Mmvp  = ReplicatedStorage
+-- WoxXzobD        = CollectionService
+-- OqbbHwQNoU      = UserInputService (дубликат)
+-- Hnv0Zw          = LocalPlayer
+-- lXUHZ           = PlayerGui
+-- ═══════════════════════════════════════════════════════════════
+-- НАСТРОЙКИ (Wv0HMNDowvn = Settings):
+-- ═══════════════════════════════════════════════════════════════
+-- killerShowName/Outline/Color   — ESP киллера
+-- survivorShowName/Outline/Color — ESP выжившего
+-- maxDistance                     — макс. дистанция ESP
+-- cameraZoomEnabled/Value        — зум камеры
+-- warnEnabled/Dist1/2/3          — предупреждение о киллере
+-- customFovValue                 — кастомный FOV
+-- autoGenerator                  — авто-генератор
+-- cameralockEnabled/Smoothness   — лок на камеру
+-- hitboxEnabled/SurvivorSize     — хитбокс
+-- espGenerator/Window/Pallet     — ESP объектов карты
+-- cameraVeilEnabled/SpearSpeed   — прицел копья
+-- silentAimFovRadius             — тихий прицел
+-- autoCrouchEnabled/Radius       — авто-присед
+-- moonwalkEnabled                — мунволк
+-- ═══════════════════════════════════════════════════════════════
+-- СОСТОЯНИЕ (HM1uHIZZl0 = ESPState):
+-- ═══════════════════════════════════════════════════════════════
+-- espObjects/outlineObjects      — объекты ESP
+-- playerRoles                    — роли игроков (killer/survivor)
+-- cachedMapObjects               — кэш генераторов/палетт/крюков/ворот
+-- CV_Enabled/CurrentTarget       — Camera Veil (прицел копья)
+-- CV_LastSpearSpeed/GravityMult  — параметры копья
+-- ═══════════════════════════════════════════════════════════════
+local w_ZpoH0p1={["HmnU_lbWXHQX1I"]= type,["qpzwM0xWbbIH"]= pairs,["bHopuzIW"]= pcall,["bHmuv"]= typeof,["vumZ11WpXWw"]= rawequal,["DZu1Dmvbw"]= ipairs,["pQwQXMN1QNbu_z"]= tonumber,["pQZnn0HWw"]= tostring,["WbzmnX"]= next,["wWnZxWuzZuz"]= print,["_WXbbv_1_HnO"]= math["clamp"],["lqWzNNmZIlpXZ"]= math["abs"],["lZUWvp_XuN"]= math["max"],["I_plQ"]= table["insert"],["MQUq1oIZmD"]= math["floor"],["qWxWwz"]= string["format"],["w0QIN"]= table["remove"],["HbxXmooXu_wlZl"]= string["find"],["pUpM0XUbWv"]= math["min"],["MIWZ1OD"]= table["unpack"]}
+local b0W0wpHoxmHDWX={}
+local OD_0p_00Xblo= game["GetService"](game,"Players")
+local u0xpmq_WoUlm= game["GetService"](game,"RunService")
+local BQbuWD1UMvux= game["GetService"](game,"UserInputService")
+local HWvNq= game["GetService"](game,"VirtualInputManager")
+local pvIzmpOMQ= game["GetService"](game,"VirtualUser")
+local D1xooONpx= game["GetService"](game,"GuiService")
+local qxUnN= game["GetService"](game,"Lighting")
+local BUb0O1q= game["GetService"](game,"Stats")
+local uvWUOOzvx1= game["GetService"](game,"Workspace")
+local DMNlwumvQ0Mmvp= game["GetService"](game,"ReplicatedStorage")
+local WoxXzobD= game["GetService"](game,"CollectionService")
+local OqbbHwQNoU= game["GetService"](game,"UserInputService")
+local Hnv0Zw= OD_0p_00Xblo["LocalPlayer"]
+local lXUHZ= Hnv0Zw["WaitForChild"](Hnv0Zw,"PlayerGui")
+local WnZzNDxUzWNM= math["rad"](30)
+local IqZNvwmMq0xq= math["rad"](45)
+local bQnHb0zmnnW1Z_= math["rad"](42)
+local o0xuulOwqZzqoq= math["rad"]((690-662))
+local OplO01_N= math["rad"](18)
+local DXxXZIHnb0H= math["rad"](72)
+local pznNWoQz=-0.95
+local bNDqoQboMuHvq=0.95
+local HvQQ1qo1oqobx= uvWUOOzvx1["Gravity"]
+local HIDbOl1zlXQ=2
+local lZzozu1n=1.5
+local bOQbMlXUwwWx=0.15
+local HHn0OQb=3
+local B0mzDm1QO= loadstring(game["HttpGet"](game,"https://raw.githubusercontent.com/pozzi300-droid/violence-script/main/libs/b0lngUi.lua"))()
+local uHbIpwDDHx="v4.1.1"
+local bH0vx= Color3["fromRGB"](255,255,(170+85))
+local function pUXUIwpIMmH(QUNQlx,BDvbN_u,QxXul) B0mzDm1QO:MakeNotify({["Title"]= QUNQlx or"BOLONG-HUB",["Description"]="Info",["Content"]= BDvbN_u or"",["Color"]= bH0vx,["Time"]=0.4,["Delay"]= QxXul or 2,})
 end
-local Settings = { killerShowName = false, killerShowOutline = true, killerOutlineOnly = true, killerColor = Color3.fromRGB(255, 60, 60), survivorShowName = false, survivorShowOutline = true, survivorOutlineOnly = true, survivorColor = Color3.fromRGB(60, 200, 255), maxDistance = 500, fillTransparency = 0.6, cameraZoomEnabled = false, cameraZoomValue = 1000, warnEnabled = false, warnDist1 = 60, warnDist2 = 40, warnDist3 = 20, customFovValue = 70, lockFovEnabled = false, autoGenerator = true, autoGeneratorMode = "Instant", espGenShowPK = false, cameralockEnabled = false, cameralockTargetType = "All", cameralockMaxDistance = 700, cameralockSmoothness = 1, cameralockLockMode = "Always Lock", cameralockAimPart = "Torso", hitboxEnabled = false, survivorHitboxSize = 100, killerHitboxSize = 100, hitboxEspEnabled = false, hitboxEspSurvivorColor = Color3.fromRGB(0, 255, 120), hitboxEspKillerColor = Color3.fromRGB(255, 60, 60), hitboxEspTransparency = 0.5, hitboxEspOutlineOnly = false, espGeneratorEnabled = false, espGeneratorProgressGen = false, espGeneratorColor = Color3.fromRGB(200, 100, 0), espWindowEnabled = false, espWindowColor = Color3.fromRGB(255, 223, 0), espPalletEnabled = false, espPalletColor = Color3.fromRGB(53, 189, 166), espHookEnabled = false, espHookColor = Color3.fromRGB(252, 116, 116), espGateEnabled = false, espGateColor = Color3.fromRGB(255, 255, 255), cameraVeilEnabled = false, cameraVeilSnapLine = false, cameraVeilMaxDistance = 175, cameraVeilSmoothness = 1, cameraVeilSpearSpeed = 220, cameraVeilGravityMult = 1, cameraVeilTargetType = "Survivor", skipEndScreenEnabled = false, skipLoadEndScreenEnabled = false, silentAimFovRadius = 150, spearFovRadius = 150, spearSnaplineMaxDistance = 400, spearSnaplineShowText = true, autoCrouchEnabled = false, autoCrouchRadius = 18, antiBlindEnabled = false, espItemEnabled = false, forceCursorEnabled = false, moonwalkEnabled = false,}
-local ESPState = { espObjects = {}, outlineObjects = {}, playerRoles = {}, playerTeamConns = {}, playerCharConns = {}, cachedMapObjects = { Generators = {}, Pallets = {}, Hooks = {}, Gates = {}}, cachedPalletMeta = {}, cachedHookMeshParts = {}, completedGenerators = {}, genIndices = {}, nextGenIndex = 1, objEspInitialized = false, windowEspObjects = {}, NoSlowdown = false, SpeedBoostInit = false, BoostPercent = 50, AntiFallSlow = false, safeModeSpeed = true, autoParryEnabled = false, autoParryRadiusEsp = false, autoParryRadius = 10, lastParryTime = 0, activeAttackers = {}, HoldLockActive = false, godEnabled = false, godLastHP = nil, hitboxOriginalSizes = {}, hitboxEspObjects = {}, instantLastVisible = false, lastPressTime = 0, lastSkillHit = 0, randomIsNeutral = false, originalMaxZoom = nil, originalFOV = nil, cursorBackupIcon = nil, cursorBackupBehavior = nil, forceCursorConn1 = nil, forceCursorConn2 = nil, originalMouseIconEnabled = nil, originalMouseBehavior = nil, perfGui = nil, pnameEnabled = false, pnameFakeNames = {}, pnameNameConns = {}, pnameSlotConns = {}, pnameWatchConn = nil, pnameAddedConn = nil, CV_Enabled = false, CV_CurrentTarget = nil, CV_WasHolding = false, CV_HoldingPC = false, CV_HoldingMobile = false, CV_LastStableDir = nil, CV_SnapGui = nil, CV_SnapLine = nil, CV_SnapDot = nil, CV_LastSpearSpeed = nil, CV_LastGravityMult = nil, CV_frameCount = 0, CV_snapLineFrame = -99, CV_cachedSpearMode = false, CV_spearModeFrame = -99, CV_acquireStartFrame = nil, CV_ballisticFrame = -99, CV_lastSolvedHeadPos = nil, CV_lastSolvedDir = nil, CV_lastSolvedPredicted = nil, CV_lastSolvedTime = nil, CV_Connections = {}, CV_InputBeganConn = nil, CV_InputEndedConn = nil, CV_WatchConn = nil, CV_VisualConn = nil, CV_HookedButtons = {}, CV_RenderStepName = "BOLONGHUB_CameraVeil", skipEndScreenConns = {}, fullbrightEnabled = false, removeVfxEnabled = false, silentAimEnabled = false, silentAimTarget = nil, silentAimLookVector = nil, laserEspEnabled = true, triggerLaser = false, currentMuzzlePos = nil, currentTargetPos = nil, FOVCircle = nil, silentAimFovVisible = false, silentSpearEnabled = false, silentSpearTargetTorso = nil, silentSpearTargetVel = Vector3.new(0, 0, 0), silentSpearLookVector = nil, spearIndicatorEnabled = false, spearFovCircleEnabled = false, spearIsHolding = false, spearHoldStartTime = nil, lastSpearSpeed = 142.5, lastGravityMult = 1, SPEAR_SNAPLINE = { enabled = false, locked = false, lockedTarget = nil, lockedPlayerName = "", currentNearestDist = math.huge, lockPulse = 0,}, SpearFOVCircle = nil, SpearIndicatorGui = nil, SpearStatusText = nil, SpearInfoText = nil, SpearAccentBar = nil, SpearMainFrame = nil, SnapLineGui = nil, SnapLineFrame = nil, SnapLineDot = nil, SnapLineTextLabel = nil, autoCrouchIsCrouching = false, autoCrouchActiveSlashers = {}, autoCrouchAnimConns = {}, _jitterFlip = false, _hookedMobButtons = {}, _hookedSlasherButtons = {}, _perfElapsed = 0, _perfFrames = 0, _perfActive = false, ghostGateEnabled = false, movConns = { antiFall = nil, noSlow = nil}, aimConn = nil, aimTargetCache = nil, aimTargetT = 0, aimLastStableDir = nil, ghostGateOriginals = {}, antiLoopWindowEnabled = false, predGui = nil, predInfoLabel = nil, predActive = false, predMapName = "Unknown", predLastPos = nil, predMapInfoConn = nil, autoDropNearbyPallets = false, palletPointsCache = nil, lastPalletPointScan = 0, autoDropCooldown = false, moonwalkMobileDir = 0, moonwalkPCForward = false, moonwalkPCBackward = false, moonwalkGui = nil,}
-local ItemIcons = {["Adrenaline Shot"]="rbxassetid://135388781922226", Bandage = "rbxassetid://97791520639443", Flashlight = "rbxassetid://103299939715311", Gate = "rbxassetid://131249244284700",["Holy Water"]="rbxassetid://86130208614143",["Motion Tracker"]="rbxassetid://92303584765773",["Parrying Dagger"]="rbxassetid://76822757630703",["Riot Shield"]="rbxassetid://95718705901699",["Shadow Clone"]="rbxassetid://134088840518889",["Twist of Fate"]="rbxassetid://98397448432071",["WaxBound Candle"]="rbxassetid://110413686590821",}
-local function func1(TypeStr)
-if not TypeStr or type(TypeStr)~="string" then
- return nil
+local Wv0HMNDowvn={["killerShowName"]= false,["killerShowOutline"]= true,["killerOutlineOnly"]= true,["killerColor"]= Color3["fromRGB"]((1004-749),(-821+881),(-716+776)),["survivorShowName"]= false,["survivorShowOutline"]= true,["survivorOutlineOnly"]= true,["survivorColor"]= Color3["fromRGB"]((298-238),200,255),["maxDistance"]=500,["fillTransparency"]=0.6,["cameraZoomEnabled"]= false,["cameraZoomValue"]=1000,["warnEnabled"]= false,["warnDist1"]=60,["warnDist2"]=(448-408),["warnDist3"]=(119-99),["customFovValue"]=(147-77),["lockFovEnabled"]= false,["autoGenerator"]= true,["autoGeneratorMode"]="Instant",["espGenShowPK"]= false,["cameralockEnabled"]= false,["cameralockTargetType"]="All",["cameralockMaxDistance"]=700,["cameralockSmoothness"]=(-978+979),["cameralockLockMode"]="Always Lock",["cameralockAimPart"]="Torso",["hitboxEnabled"]= false,["survivorHitboxSize"]=100,["killerHitboxSize"]=100,["hitboxEspEnabled"]= false,["hitboxEspSurvivorColor"]= Color3["fromRGB"](0,255,(-590+710)),["hitboxEspKillerColor"]= Color3["fromRGB"](255,(-517+577),(65-5)),["hitboxEspTransparency"]=0.5,["hitboxEspOutlineOnly"]= false,["espGeneratorEnabled"]= false,["espGeneratorProgressGen"]= false,["espGeneratorColor"]= Color3["fromRGB"](200,(-522+622),0),["espWindowEnabled"]= false,["espWindowColor"]= Color3["fromRGB"](255,223,(707-707)),["espPalletEnabled"]= false,["espPalletColor"]= Color3["fromRGB"]((-919+972),189,(-678+844)),["espHookEnabled"]= false,["espHookColor"]= Color3["fromRGB"](252,116,(621-505)),["espGateEnabled"]= false,["espGateColor"]= Color3["fromRGB"](255,(673-418),255),["cameraVeilEnabled"]= false,["cameraVeilSnapLine"]= false,["cameraVeilMaxDistance"]=(525-350),["cameraVeilSmoothness"]=(2-1),["cameraVeilSpearSpeed"]=(-731+951),["cameraVeilGravityMult"]=1,["cameraVeilTargetType"]="Survivor",["skipEndScreenEnabled"]= false,["skipLoadEndScreenEnabled"]= false,["silentAimFovRadius"]=(1090-940),["spearFovRadius"]=150,["spearSnaplineMaxDistance"]=400,["spearSnaplineShowText"]= true,["autoCrouchEnabled"]= false,["autoCrouchRadius"]=(-843+861),["antiBlindEnabled"]= false,["espItemEnabled"]= false,["forceCursorEnabled"]= false,["moonwalkEnabled"]= false,}
+local HM1uHIZZl0={["espObjects"]={},["outlineObjects"]={},["playerRoles"]={},["playerTeamConns"]={},["playerCharConns"]={},["cachedMapObjects"]={["Generators"]={},["Pallets"]={},["Hooks"]={},["Gates"]={}},["cachedPalletMeta"]={},["cachedHookMeshParts"]={},["completedGenerators"]={},["genIndices"]={},["nextGenIndex"]=(766-765),["objEspInitialized"]= false,["windowEspObjects"]={},["NoSlowdown"]= false,["SpeedBoost"]= false,["BoostPercent"]=(-786+836),["AntiFallSlow"]= false,["safeModeSpeed"]= true,["autoParryEnabled"]= false,["autoParryRadiusEsp"]= false,["autoParryRadius"]=(1000-990),["lastParryTime"]=0,["activeAttackers"]={},["HoldLockActive"]= false,["godEnabled"]= false,["godLastHP"]= nil,["hitboxOriginalSizes"]={},["hitboxEspObjects"]={},["instantLastVisible"]= false,["lastPressTime"]=(-388+388),["lastSkillHit"]=(551-551),["randomIsNeutral"]= false,["originalMaxZoom"]= nil,["originalFOV"]= nil,["cursorBackupIcon"]= nil,["cursorBackupBehavior"]= nil,["forceCursorConn1"]= nil,["forceCursorConn2"]= nil,["originalMouseIconEnabled"]= nil,["originalMouseBehavior"]= nil,["perfGui"]= nil,["pnameEnabled"]= false,["pnameFakeNames"]={},["pnameNameConns"]={},["pnameSlotConns"]={},["pnameWatchConn"]= nil,["pnameAddedConn"]= nil,["CV_Enabled"]= false,["CV_CurrentTarget"]= nil,["CV_WasHolding"]= false,["CV_HoldingPC"]= false,["CV_HoldingMobile"]= false,["CV_LastStableDir"]= nil,["CV_SnapGui"]= nil,["CV_SnapLine"]= nil,["CV_SnapDot"]= nil,["CV_LastSpearSpeed"]= nil,["CV_LastGravityMult"]= nil,["CV_frameCount"]=(-15+15),["CV_snapLineFrame"]=-99,["CV_cachedSpearMode"]= false,["CV_spearModeFrame"]=-(-793+892),["CV_acquireStartFrame"]= nil,["CV_ballisticFrame"]=-(-504+603),["CV_lastSolvedHeadPos"]= nil,["CV_lastSolvedDir"]= nil,["CV_lastSolvedPredicted"]= nil,["CV_lastSolvedTime"]= nil,["CV_Connections"]={},["CV_InputBeganConn"]= nil,["CV_InputEndedConn"]= nil,["CV_WatchConn"]= nil,["CV_VisualConn"]= nil,["CV_HookedButtons"]={},["CV_RenderStepName"]="BOLONGHUB_CameraVeil",["skipEndScreenConns"]={},["fullbrightEnabled"]= false,["removeVfxEnabled"]= false,["silentAimEnabled"]= false,["silentAimTarget"]= nil,["silentAimLookVector"]= nil,["laserEspEnabled"]= true,["triggerLaser"]= false,["currentMuzzlePos"]= nil,["currentTargetPos"]= nil,["FOVCircle"]= nil,["silentAimFovVisible"]= false,["silentSpearEnabled"]= false,["silentSpearTargetTorso"]= nil,["silentSpearTargetVel"]= Vector3["new"](0,0,(-55+55)),["silentSpearLookVector"]= nil,["spearIndicatorEnabled"]= false,["spearFovCircleEnabled"]= false,["spearIsHolding"]= false,["spearHoldStartTime"]= nil,["lastSpearSpeed"]=142.5,["lastGravityMult"]=1,["SPEAR_SNAPLINE"]={["enabled"]= false,["locked"]= false,["lockedTarget"]= nil,["lockedPlayerName"]="",["currentNearestDist"]= math["huge"],["lockPulse"]=0,},["SpearFOVCircle"]= nil,["SpearIndicatorGui"]= nil,["SpearStatusText"]= nil,["SpearInfoText"]= nil,["SpearAccentBar"]= nil,["SpearMainFrame"]= nil,["SnapLineGui"]= nil,["SnapLineFrame"]= nil,["SnapLineDot"]= nil,["SnapLineTextLabel"]= nil,["autoCrouchIsCrouching"]= false,["autoCrouchActiveSlashers"]={},["autoCrouchAnimConns"]={},["_jitterFlip"]= false,["_hookedMobButtons"]={},["_hookedSlasherButtons"]={},["_perfElapsed"]=0,["_perfFrames"]=(936-936),["_perfActive"]= false,["ghostGateEnabled"]= false,["movConns"]={["antiFall"]= nil,["noSlow"]= nil},["aimConn"]= nil,["aimTargetCache"]= nil,["aimTargetT"]=0,["aimLastStableDir"]= nil,["ghostGateOriginals"]={},["antiLoopWindowEnabled"]= false,["predGui"]= nil,["predInfoLabel"]= nil,["predActive"]= false,["predMapName"]="Unknown",["predLastPos"]= nil,["predMapInfoConn"]= nil,["autoDropNearbyPallets"]= false,["palletPointsCache"]= nil,["lastPalletPointScan"]=0,["autoDropCooldown"]= false,["moonwalkMobileDir"]=(-67+67),["moonwalkPCForward"]= false,["moonwalkPCBackward"]= false,["moonwalkGui"]= nil,}
+-- ═══ Иконки предметов (ItemIcons) ═══
+local vUuMpXWnnp={["Adrenaline Shot"]="rbxassetid://135388781922226",["Bandage"]="rbxassetid://97791520639443",["Flashlight"]="rbxassetid://103299939715311",["Gate"]="rbxassetid://131249244284700",["Holy Water"]="rbxassetid://86130208614143",["Motion Tracker"]="rbxassetid://92303584765773",["Parrying Dagger"]="rbxassetid://76822757630703",["Riot Shield"]="rbxassetid://95718705901699",["Shadow Clone"]="rbxassetid://134088840518889",["Twist of Fate"]="rbxassetid://98397448432071",["WaxBound Candle"]="rbxassetid://110413686590821",}
+-- ═══ Поиск иконки по имени предмета ═══
+local function poOUloUDHH(umOwmoO_pXlXNx)
+if not umOwmoO_pXlXNx or w_ZpoH0p1["HmnU_lbWXHQX1I"](umOwmoO_pXlXNx)~="string" then
+    return nil
+end umOwmoO_pXlXNx= umOwmoO_pXlXNx["match"](umOwmoO_pXlXNx,"^%s*(.-)%s*$")
+local OzmZnNxM= vUuMpXWnnp[umOwmoO_pXlXNx]
+if OzmZnNxM then
+    return OzmZnNxM
 end
-TypeStr = TypeStr:match("^%s*(.-)%s*$")
-local Icon = ItemIcons[TypeStr]
-if Icon then
- return Icon
-end
-for StringLib, IconUrl in pairs(ItemIcons) do
- if StringLib.lower(StringLib)== TypeStr.lower(TypeStr) then
- return IconUrl
- end
+for B_xnoOlZlv_X,w_XDu in w_ZpoH0p1["qpzwM0xWbbIH"](vUuMpXWnnp) do
+    if B_xnoOlZlv_X["lower"](B_xnoOlZlv_X)== umOwmoO_pXlXNx["lower"](umOwmoO_pXlXNx) then
+        return w_XDu
+    end
 end
 return nil
 end
-local MagicConst = 17
-local ESPFolder = {"BOLONGHUB"}
-local ESPFramesFolder = Instance.new("Folder")
-ESPFramesFolder.Name = "__BolongESP__" ESPFramesFolder.Parent = workspace
-local ESPEntries = {}
-local function CreateESPEntry(EntryName, EntryInterval, EntryCallback) ESPEntries[#ESPEntries+ 1]={ name = EntryName, interval = EntryInterval, timer = 0, fn = EntryCallback}
+local ulUmWDQmqmmv=(-22+39)
+local bZ0Z0M={"BOLONGHUB"}
+local QwZOO1pHbl1_= Instance["new"]("Folder") QwZOO1pHbl1_["Name"]="__BolongESP__" QwZOO1pHbl1_["Parent"]= workspace
+local IWzQn={}
+-- ═══ Создание ESP записи (таймер + callback) ═══
+local function NpvQIDpz(B0Hlx_OxUw,uNmqn,OOUxOlXnloupNo) IWzQn[#IWzQn+(-842+843)]={["name"]= B0Hlx_OxUw,["interval"]= uNmqn,["timer"]=0,["fn"]= OOUxOlXnloupNo}
 end
-local AntiAFKActive = false
-local TaskDelayHook
-local SpeedMultipliers = {[25]= true,[17]= true,[30]= true,[67.8]= true}
-local function RemoveESPEntry()
-if TaskDelayHook then
- return
+local qX0lIxI= false
+local Im1ZmzU0
+local uu1XowWzxIwQ1p={[(-150+175)]= true,[(372-355)]= true,[30]= true,[67.8]= true}
+-- ═══ Хук task.delay для ускорения (SpeedBoost) ═══
+local function omWzxqom()
+if Im1ZmzU0 then
+    return
+end w_ZpoH0p1["bHopuzIW"](
+function() Im1ZmzU0= hookfunction(task["delay"],newcclosure(
+function(w00XlMpuWXxZM,oUb1uHnXwX)
+if not qX0lIxI then
+    return Im1ZmzU0(w00XlMpuWXxZM,oUb1uHnXwX)
 end
-pcall(
-function()
-TaskDelayHook = hookfunction(task.delay, newcclosure(
-function(DelayArg, CallbackArg)
-if not AntiAFKActive then
- return TaskDelayHook(DelayArg, CallbackArg)
+if uu1XowWzxIwQ1p[w00XlMpuWXxZM] then
+    return Im1ZmzU0(0,oUb1uHnXwX)
 end
-if SpeedMultipliers[DelayArg] then
- return TaskDelayHook(0, CallbackArg)
-end
-return TaskDelayHook(DelayArg, CallbackArg)
+return Im1ZmzU0(w00XlMpuWXxZM,oUb1uHnXwX)
 end))
 end)
 end
-local function ClearAllESP()
-if TaskDelayHook then
-pcall(restorefunction, task.delay)
-TaskDelayHook = nil
+-- ═══ Восстановление task.delay ═══
+local function oWUuXq_pI1wWX()
+if Im1ZmzU0 then
+w_ZpoH0p1["bHopuzIW"](restorefunction,task["delay"]) Im1ZmzU0= nil
 end
 end
-local function GetPlayerRole(Player)
-return ESPState.playerRoles[Player] or "survivor"
+-- ═══ Определение роли игрока (killer/survivor) ═══
+local function vWlM1ZWQubmZp(wnOnZ)
+return HM1uHIZZl0["playerRoles"][wnOnZ] or"survivor"
 end
-local function IsPlayerAlive(IdleConn)
-local PcallOk, TeamName = pcall(
+-- ═══ Проверка роли через Team.Name ═══
+local function oHpnQZpOMIO0n(InM1MXp)
+local p_Xb1Xu_pZwOuo,MzOMUHp= w_ZpoH0p1["bHopuzIW"](
 function()
-return IdleConn.Teamand IdleConn.Team.Name:lower() or ""
+return InM1MXp["Team"] and InM1MXp["Team"]["Name"]:lower() or""
+end) HM1uHIZZl0["playerRoles"][InM1MXp]=(p_Xb1Xu_pZwOuo and MzOMUHp["find"](MzOMUHp,"killer")) and"killer" or"survivor"
+end
+local OwMIl
+-- ═══ Анти-ослепление (хук FireServer) ═══
+local function QDxDD_zwXQzl() task["spawn"](
+function()
+local lqlz_uHz,l1IlDO0lZxX= w_ZpoH0p1["bHopuzIW"](
+function()
+return DMNlwumvQ0Mmvp["WaitForChild"](DMNlwumvQ0Mmvp,"Remotes",10):WaitForChild("Items",10):WaitForChild("Flashlight",10):WaitForChild("GotBlinded",10)
 end)
-ESPState.playerRoles[IdleConn]=(PcallOk and TeamName:find("killer")) and "killer" or "survivor"
-end
-local AgainstVal
-local function UpdateAntiBlind()
-task.spawn(
-function()
-local FindOk, FindResult = pcall(
-function()
-return ReplicatedStorage:WaitForChild("Remotes", 10):WaitForChild("Items", 10):WaitForChild("Flashlight", 10):WaitForChild("GotBlinded", 10)
-end)
-if not FindOk or not FindResult then
- return
-end
-AgainstVal = FindResult
-local OrigNamecall OrigNamecall = hookmetamethod(game,"__namecall",
+if not lqlz_uHz or not l1IlDO0lZxX then
+    return
+end OwMIl= l1IlDO0lZxX
+local ubzvooDIZxz ubzvooDIZxz= hookmetamethod(game,"__namecall",
 function(...)
-local Method = getnamecallmethod()
-local CallArgs = table.pack(...)
-local CheckVal = CallArgs[1]
-if Method=="FireServer" and typeof(CheckVal)=="Instance" and rawequal(CheckVal, AgainstVal) then
- if Settings.antiBlindEnabledand CallArgs[2]== true then
- return
- end
+local OwbMpxmxIIb_= getnamecallmethod()
+local HqNNbbpoOIpDX= table["pack"](...)
+local lQpIxOzQMxnHIM= HqNNbbpoOIpDX[1]
+if OwbMpxmxIIb_=="FireServer" and w_ZpoH0p1["bHmuv"](lQpIxOzQMxnHIM)=="Instance" and w_ZpoH0p1["vumZ11WpXWw"](lQpIxOzQMxnHIM,OwMIl) then
+    if Wv0HMNDowvn["antiBlindEnabled"] and HqNNbbpoOIpDX[(353-351)]== true then
+        return
+    end
 end
-return OrigNamecall(...)
+return ubzvooDIZxz(...)
 end)
-local OrigIndex OrigIndex = hookmetamethod(game,"__index",
-function(CheckVal2, PropName)
-if not checkcaller() and PropName=="FireServer" and typeof(CheckVal2)=="Instance" and rawequal(CheckVal2, AgainstVal) then
- return newcclosure(
- function(...)
- local HookArgs = table.pack(...)
- if Settings.antiBlindEnabled and HookArgs[2]== true then
- return
- end
-return OrigIndex(CheckVal2, PropName)(...)
-end)
-end
-return OrigIndex(CheckVal2, PropName)
-end)
+local OX__ZID1D OX__ZID1D= hookmetamethod(game,"__index",
+function(QXZ00uWHnvWp,BONppHIDnUNXz)
+if not checkcaller() and BONppHIDnUNXz=="FireServer" and w_ZpoH0p1["bHmuv"](QXZ00uWHnvWp)=="Instance" and w_ZpoH0p1["vumZ11WpXWw"](QXZ00uWHnvWp,OwMIl) then
+    return newcclosure(
+    function(...)
+    local WvpzlUoNbplMDv= table["pack"](...)
+    if Wv0HMNDowvn["antiBlindEnabled"] and WvpzlUoNbplMDv[(313-311)]== true then
+        return
+    end
+    return OX__ZID1D(QXZ00uWHnvWp,BONppHIDnUNXz)(...)
 end)
 end
-UpdateAntiBlind() CreateESPEntry("AntiBlindForce", 0.2,
+return OX__ZID1D(QXZ00uWHnvWp,BONppHIDnUNXz)
+end)
+end)
+end QDxDD_zwXQzl() NpvQIDpz("AntiBlindForce",0.2,
 function()
-if not Settings.antiBlindEnabledthen
-return
+if not Wv0HMNDowvn["antiBlindEnabled"] then
+    return
 end
-for _, Desc in ipairs(PlayerGui.GetDescendants(PlayerGui)) do
- if Desc.Name=="Blind" then
- if Desc:IsA("ScreenGui") then
- if Desc.Enabled then
-Desc.Enabled = false
- end
-elseif Desc:IsA("GuiObject") then
- if Desc.Visible then
-Desc.Visible = false
- end
-if Desc.BackgroundTransparency< 1 then
-Desc.BackgroundTransparency = 1
- end
-end
- end
+for pxNquNopnH,pb_D_pHxnqU in w_ZpoH0p1["DZu1Dmvbw"](lXUHZ["GetDescendants"](lXUHZ)) do
+    if pb_D_pHxnqU["Name"]=="Blind" then
+        if pb_D_pHxnqU["IsA"](pb_D_pHxnqU,"ScreenGui") then
+            if pb_D_pHxnqU["Enabled"] then
+pb_D_pHxnqU["Enabled"]= false
+            end
+        elseif pb_D_pHxnqU["IsA"](pb_D_pHxnqU,"GuiObject") then
+            if pb_D_pHxnqU["Visible"] then
+pb_D_pHxnqU["Visible"]= false
+            end
+            if pb_D_pHxnqU["BackgroundTransparency"]<1 then
+pb_D_pHxnqU["BackgroundTransparency"]=(523-522)
+            end
+        end
+    end
 end
 end)
-local IdleConn2
-local function SetupAntiAFK(Enable)
-if Enable then
- if not IdleConn2 then
-IdleConn2 = LocalPlayer.Idled:Connect(
- function() VirtualUser:CaptureController() VirtualUser:ClickButton2(Vector2.new())
- end)
+local wl0MHx_D
+-- ═══ Анти-AFK (подключение к Idled) ═══
+local function qwvvHbn(bZWbzubw_U)
+if bZWbzubw_U then
+    if not wl0MHx_D then
+wl0MHx_D= Hnv0Zw["Idled"]:Connect(
+        function() pvIzmpOMQ:CaptureController() pvIzmpOMQ:ClickButton2(Vector2["new"]())
+    end)
 end
 else
-if IdleConn2 then
-IdleConn2.Disconnect(IdleConn2)
-IdleConn2 = nil
+if wl0MHx_D then
+wl0MHx_D["Disconnect"](wl0MHx_D) wl0MHx_D= nil
 end
 end
 end
-local GuiHolder, AntiAFKConn2, TempFlag, ResetCameraVeil do
- local function GetExploitGui()
- local GetHuiOk, GetHuiResult = pcall(
- function()
- if gethui then
- return gethui()
- end
-return game:GetService("CoreGui")
+local IbxMMx1lp,wm_0lW,DvpWoQQ0pQ_1,qW1lMWN do
+    local function uZZQq()
+    local _QqDzI,NZpQOz= w_ZpoH0p1["bHopuzIW"](
+    function()
+    if gethui then
+        return gethui()
+    end
+    return game["GetService"](game,"CoreGui")
 end)
-return(GetHuiOk and GetHuiResult) or PlayerGui
+return(_QqDzI and NZpQOz) or lXUHZ
 end
-local function GetTargetPosition(Char)
-if not Char then
- return nil
+local function Q0mnQUbb1__u(BHUQIQHZ1o_p)
+if not BHUQIQHZ1o_p then
+    return nil
 end
-local Head = Char:FindFirstChild("Head")
-if Head then
- return Head.Position
+local Mlm0WN= BHUQIQHZ1o_p["FindFirstChild"](BHUQIQHZ1o_p,"Head")
+if Mlm0WN then
+    return Mlm0WN["Position"]
 end
-local Root = Char:FindFirstChild("HumanoidRootPart")
-if Root then
- return Root.Positionend
- local UpperTorso = Char:FindFirstChild("UpperTorso")
- if UpperTorso then
- return UpperTorso.Position
- end
-local Torso = Char:FindFirstChild("Torso")
- if Torso then
- return Torso.Positionend
- return Char.PrimaryPart and Char.PrimaryPart.Positionor nil
- end
-local function GetFlatVelocity(VelChar)
- if not VelChar then
- return Vector3.new(0, 0, 0)
- end
-local Vel = VelChar.AssemblyLinearVelocitylocal FlatVel = Vector3.new(Vel.X, 0, Vel.Z)
- if FlatVel.Magnitude> 65 then
-FlatVel = FlatVel.Unit* 65
- end
-return FlatVel
+local lOIXX= BHUQIQHZ1o_p["FindFirstChild"](BHUQIQHZ1o_p,"HumanoidRootPart")
+if lOIXX then
+    return lOIXX["Position"]
 end
-local function GetCameraOrigin()
-local MyChar = LocalPlayer.Characterlocal MyRoot = MyChar and MyChar:FindFirstChild("HumanoidRootPart")
-if not MyRoot then
- return nil
+local qxIHQnU= BHUQIQHZ1o_p["FindFirstChild"](BHUQIQHZ1o_p,"UpperTorso")
+if qxIHQnU then
+    return qxIHQnU["Position"]
 end
-local Cam = Workspace.CurrentCamera
-local LookDir = (Cam and Cam.CFrame.LookVector) or MyRoot.CFrame.LookVectorreturn MyRoot.Position+ LookDir* 3+ Vector3.new(0, 1.5, 0)
+local H0znx= BHUQIQHZ1o_p["FindFirstChild"](BHUQIQHZ1o_p,"Torso")
+if H0znx then
+    return H0znx["Position"]
 end
-local function CalcSpearSpeed(TargetChar)
-local ClampedVal = tonumber(ESPState.CV_LastSpearSpeed) or tonumber(Settings.cameraVeilSpearSpeed) or 220
-return math.clamp(ClampedVal, 35, 800)
+return BHUQIQHZ1o_p["PrimaryPart"] and BHUQIQHZ1o_p["PrimaryPart"]["Position"] or nil
 end
-local function BallisticSolve(Dist, Angle, Spd, Grav)
-local CosA = math.cos(Angle)
-if CosA<= 0.015 then
- return nil, nil
+local function OX_lDUl0QzzoNb(QZwnU__v1MII)
+if not QZwnU__v1MII then
+    return Vector3["new"]((263-263),(823-823),0)
 end
-local T = Dist/(Spd* CosA)
-if T~= T or T<= 0 then
- return nil, nil
+local bONxNnmWz= QZwnU__v1MII["AssemblyLinearVelocity"]
+local u_nv0U1Nm0O= Vector3["new"](bONxNnmWz["X"],0,bONxNnmWz["Z"])
+if u_nv0U1Nm0O["Magnitude"]>65 then
+u_nv0U1Nm0O= u_nv0U1Nm0O["Unit"]*65
 end
-local DT = 1/ 60
-local GravDrop = 0.5* Grav* DT* T
-local PredY = Spd* math.sin(Angle)* T-(0.5* Grav* T* T)- GravDrop
-return PredY, T
+return u_nv0U1Nm0O
 end
-local function ScoreBallistic(Src, VertDist, PitchAngle, Spd2, GravM)
-local HorizDist, TT = BallisticSolve(Src, PitchAngle, Spd2, GravM)
-if not HorizDist or not TT then
- return nil
+local function Mp_0M0()
+local OwmNHQoI1lv= Hnv0Zw["Character"]
+local DXluXUD1vwImD= OwmNHQoI1lv and OwmNHQoI1lv["FindFirstChild"](OwmNHQoI1lv,"HumanoidRootPart")
+if not DXluXUD1vwImD then
+    return nil
 end
-if TT< 0.025 or TT> 4 then
- return nil
+local bH0qbxQ= uvWUOOzvx1["CurrentCamera"]
+local QIID0m=(bH0qbxQ and bH0qbxQ["CFrame"]["LookVector"]) or DXluXUD1vwImD["CFrame"]["LookVector"]
+return DXluXUD1vwImD["Position"]+ QIID0m*3+ Vector3["new"](0,1.5,0)
 end
-local Score1 = math.abs(HorizDist- VertDist)
-local AbsVertDist = math.max(PitchAngle- Angle42, 0)* 0.35
-local Score2 = math.max(TT- 1.3, 0)* 0.25
-return Score1+ AbsVertDist+ Score2, Score1, TT
+local function NHbINz(MXlnI0xZzI)
+local lvqOX= w_ZpoH0p1["pQwQXMN1QNbu_z"](HM1uHIZZl0["CV_LastSpearSpeed"]) or w_ZpoH0p1["pQwQXMN1QNbu_z"](Wv0HMNDowvn["cameraVeilSpearSpeed"]) or 220
+return w_ZpoH0p1["_WXbbv_1_HnO"](lvqOX,(53-18),(187+613))
 end
-local function PredictShot(From, To, Spd3, GravF)
-local Delta = To- From
-local FlatDelta = Vector3.new(Delta.X, 0, Delta.Z)
-local FlatDist2 = FlatDelta.Magnitude
-local YDelta = Delta.Yif Delta.Magnitude<= 0.001 then
- return nil
+local function OQlbQ0ONxDoOo(WDblnM,_pqolOuzm,NQloXUN,b_Oqvx_W_puob)
+local Hzq0O1QWmUlbq= math["cos"](_pqolOuzm)
+if Hzq0O1QWmUlbq<= 0.015 then
+    return nil,nil
 end
-if FlatDist2<= 0.35 or GravF<= 0.001 then
- return Delta.Unit, math.clamp(Delta.Magnitude/ Spd3, 0.025, 4)
+local Nxlq01NlX0oNW= WDblnM/(NQloXUN* Hzq0O1QWmUlbq)
+if Nxlq01NlX0oNW~= Nxlq01NlX0oNW or Nxlq01NlX0oNW<=(-126+126) then
+    return nil,nil
 end
-local FlatDir = FlatDelta.Unit
-local MinPitch = math.atan2(YDelta, FlatDist2)
-local LowPitch = math.max(- Angle28, MinPitch- Angle18)
-local HighPitch = Angle72
-local BaseY, BestScore, BestTime, BestTT = nil, math.huge, math.huge, nil
-local Steps2 = 24
-for Step = 0, Steps2 do
- local TestAngle = LowPitch+(HighPitch- LowPitch)*(Step/ Steps2)
- local TestScore, TestTime, TestTT = ScoreBallistic(FlatDist2, YDelta, TestAngle, Spd3, GravF)
- if TestScore and TestScore< BestScore then
-BestScore, BestTime, BaseY, BestTT = TestScore, TestTime, TestAngle, TestTT
- if BestTime< SmallOffset then
+local WxXZpwMpW=1/(-550+610)
+local HbxOuWZ_qqHO=0.5* b_Oqvx_W_puob* WxXZpwMpW* Nxlq01NlX0oNW
+local uvUMpmnz_= NQloXUN* math["sin"](_pqolOuzm)* Nxlq01NlX0oNW-(0.5* b_Oqvx_W_puob* Nxlq01NlX0oNW* Nxlq01NlX0oNW)- HbxOuWZ_qqHO
+return uvUMpmnz_,Nxlq01NlX0oNW
+end
+local function oQQXvbHmD(vD1HUWXzOqM0X,wulINp1quXXw,IpqwZq_vUOuvpl,uD1OZlNI,NlzZUbp_on_O)
+local oHDqzU1Iu1Hpuu,QpMQm0lZXvNo= OQlbQ0ONxDoOo(vD1HUWXzOqM0X,IpqwZq_vUOuvpl,uD1OZlNI,NlzZUbp_on_O)
+if not oHDqzU1Iu1Hpuu or not QpMQm0lZXvNo then
+    return nil
+end
+if QpMQm0lZXvNo<0.025 or QpMQm0lZXvNo>4 then
+    return nil
+end
+local OpDum= w_ZpoH0p1["lqWzNNmZIlpXZ"](oHDqzU1Iu1Hpuu- wulINp1quXXw)
+local BmqHUbuW= w_ZpoH0p1["lZUWvp_XuN"](IpqwZq_vUOuvpl- bQnHb0zmnnW1Z_,(-283+283))*0.35
+local DOlqo_U= w_ZpoH0p1["lZUWvp_XuN"](QpMQm0lZXvNo-1.3,(-671+671))*0.25
+return OpDum+ BmqHUbuW+ DOlqo_U,OpDum,QpMQm0lZXvNo
+end
+local function IUUq_nZXqZ(IwXnOXHOnOlz_,HMqzxXHwp,w0OMbbMz1q_MW0,uMXnWnIn)
+local Obp0M0U0Ivw= HMqzxXHwp- IwXnOXHOnOlz_
+local WzlmvOQlblMp= Vector3["new"](Obp0M0U0Ivw["X"],0,Obp0M0U0Ivw["Z"])
+local DInuDmwIpnNH= WzlmvOQlblMp["Magnitude"]
+local MIvQbIlXHm= Obp0M0U0Ivw["Y"]
+if Obp0M0U0Ivw["Magnitude"]<= 0.001 then
+    return nil
+end
+if DInuDmwIpnNH<= 0.35 or uMXnWnIn<= 0.001 then
+    return Obp0M0U0Ivw["Unit"],w_ZpoH0p1["_WXbbv_1_HnO"](Obp0M0U0Ivw["Magnitude"]/ w0OMbbMz1q_MW0,0.025,(688-684))
+end
+local QnoQbXX= WzlmvOQlblMp["Unit"]
+local wuHOHlmmnzo= math["atan2"](MIvQbIlXHm,DInuDmwIpnNH)
+local qNuZQwqlqqnv0l= w_ZpoH0p1["lZUWvp_XuN"](- o0xuulOwqZzqoq,wuHOHlmmnzo- OplO01_N)
+local MlvUHluw_u= DXxXZIHnb0H
+local BZwbOzZzDIWZ,_UNXXWqN,Wn0wmzQxM,Bq_HxDWq_qNlb1= nil,math["huge"],math["huge"],nil
+local bQxvx_nvnnQ=(-25+49)
+for O_O_ZUX1pNp=(-557+557),bQxvx_nvnnQ do
+    local vDN1HU= qNuZQwqlqqnv0l+(MlvUHluw_u- qNuZQwqlqqnv0l)*(O_O_ZUX1pNp/ bQxvx_nvnnQ)
+    local pvIQq_XInZUlzl,bWowN,QbxmIu1OH_NIvb= oQQXvbHmD(DInuDmwIpnNH,MIvQbIlXHm,vDN1HU,w0OMbbMz1q_MW0,uMXnWnIn)
+    if pvIQq_XInZUlzl and pvIQq_XInZUlzl< _UNXXWqN then
+_UNXXWqN,Wn0wmzQxM,BZwbOzZzDIWZ,Bq_HxDWq_qNlb1= pvIQq_XInZUlzl,bWowN,vDN1HU,QbxmIu1OH_NIvb
+        if Wn0wmzQxM< bOQbMlXUwwWx then
 break
- end
+        end
+    end
 end
-end
-if BaseY then
- local GravityMul = (HighPitch- LowPitch)/ Steps2* 2.5
- local RefinePasses = (BestTime< SmallOffset) and 1 or 3
- for Pass = 1, RefinePasses do
- local RefBestAngle, RefBestScore, RefBestTime, RefBestTT = BaseY, BestScore, BestTime, BestTT
- for Steps = -3, 3 do
- local SubAngle = math.clamp(BaseY+ GravityMul*(Steps/ 3), LowPitch, HighPitch)
- local SubScore, SubTime, SubTT = ScoreBallistic(FlatDist2, YDelta, SubAngle, Spd3, GravF)
- if SubScore and SubScore< RefBestScore then
-RefBestScore, RefBestTime, RefBestAngle, RefBestTT = SubScore, SubTime, SubAngle, SubTT
- end
-end BaseY, BestScore, BestTime, BestTT = RefBestAngle, RefBestScore, RefBestTime, RefBestTT
- if BestTime< SmallOffset then
+if BZwbOzZzDIWZ then
+    local pH_HpONHmz=(MlvUHluw_u- qNuZQwqlqqnv0l)/ bQxvx_nvnnQ*2.5
+    local lO_qopX=(Wn0wmzQxM< bOQbMlXUwwWx) and(-510+511) or 3
+    for u1QmNW_MxOOvqq=1,lO_qopX do
+        local HUlqu00,vquwopOpOv,_vU0vzlvvQll,MUIHD_MNxqwOI= BZwbOzZzDIWZ,_UNXXWqN,Wn0wmzQxM,Bq_HxDWq_qNlb1
+        for lmo0WpwX10nMN=-(-427+430),(-536+539) do
+            local O0WlqO= w_ZpoH0p1["_WXbbv_1_HnO"](BZwbOzZzDIWZ+ pH_HpONHmz*(lmo0WpwX10nMN/3),qNuZQwqlqqnv0l,MlvUHluw_u)
+            local vMqzXwm,MIH0lUbvNq,w_bNbwllHmHlzW= oQQXvbHmD(DInuDmwIpnNH,MIvQbIlXHm,O0WlqO,w0OMbbMz1q_MW0,uMXnWnIn)
+            if vMqzXwm and vMqzXwm< vquwopOpOv then
+vquwopOpOv,_vU0vzlvvQll,HUlqu00,MUIHD_MNxqwOI= vMqzXwm,MIH0lUbvNq,O0WlqO,w_bNbwllHmHlzW
+            end
+        end BZwbOzZzDIWZ,_UNXXWqN,Wn0wmzQxM,Bq_HxDWq_qNlb1= HUlqu00,vquwopOpOv,_vU0vzlvvQll,MUIHD_MNxqwOI
+        if Wn0wmzQxM< bOQbMlXUwwWx then
 break
- end
-GravityMul = GravityMul* 0.38
- end
+        end pH_HpONHmz= pH_HpONHmz*0.38
+    end
 end
-if not BaseY then
- local FallbackTime = math.clamp(FlatDist2/ Spd3, 0.025, 4)
- local FallbackPos = To+ Vector3.new(0, 0.5* GravF* FallbackTime* FallbackTime, 0)
- local FallbackDir = FallbackPos- From
- if FallbackDir.Magnitude<= 0.001 then
- return nil
- end
-return FallbackDir.Unit, FallbackTime
+if not BZwbOzZzDIWZ then
+    local OMow0Z= w_ZpoH0p1["_WXbbv_1_HnO"](DInuDmwIpnNH/ w0OMbbMz1q_MW0,0.025,4)
+    local lbN1pOIzoQ= HMqzxXHwp+ Vector3["new"](0,0.5* uMXnWnIn* OMow0Z* OMow0Z,0)
+    local ozvlzDOw1XDwD= lbN1pOIzoQ- IwXnOXHOnOlz_
+    if ozvlzDOw1XDwD["Magnitude"]<= 0.001 then
+        return nil
+    end
+    return ozvlzDOw1XDwD["Unit"],OMow0Z
 end
-local FinalDir = FlatDir* math.cos(BaseY)+ Vector3.new(0, math.sin(BaseY), 0)
-if FinalDir.Magnitude<= 0.001 then
- return nil
+local BzmzM0puov= QnoQbXX* math["cos"](BZwbOzZzDIWZ)+ Vector3["new"](0,math["sin"](BZwbOzZzDIWZ),(555-555))
+if BzmzM0puov["Magnitude"]<= 0.001 then
+    return nil
 end
-return FinalDir.Unit, BestTT
+return BzmzM0puov["Unit"],Bq_HxDWq_qNlb1
 end
-local function CameraVeilSolve(TargetHeadPos)
-local CamOrigin = GetCameraOrigin()
-if not CamOrigin or not TargetHeadPos then
- return nil
+-- ═══ Решение баллистики копья (Camera Veil) ═══
+local function HI_0HovXQm1Z(oHq1wHNwqUpZq)
+local O00NnqIQU= Mp_0M0()
+if not O00NnqIQU or not oHq1wHNwqUpZq then
+    return nil
 end
-local SpearSpd = CalcSpearSpeed((TargetHeadPos- CamOrigin).Magnitude)
-local GravMult2 = math.max(tonumber(ESPState.CV_LastGravityMult) or tonumber(Settings.cameraVeilGravityMult) or1, 0)
-local EffectiveGrav = Gravity* GravMult2
-return PredictShot(CamOrigin, TargetHeadPos, SpearSpd, EffectiveGrav)
+local WoHOWIxNp_= NHbINz((oHq1wHNwqUpZq- O00NnqIQU)["Magnitude"])
+local bzxQuu01= w_ZpoH0p1["lZUWvp_XuN"](w_ZpoH0p1["pQwQXMN1QNbu_z"](HM1uHIZZl0["CV_LastGravityMult"]) or w_ZpoH0p1["pQwQXMN1QNbu_z"](Wv0HMNDowvn["cameraVeilGravityMult"]) or(733-732),(299-299))
+local q1p1mUu0N1H= HvQQ1qo1oqobx* bzxQuu01
+return IUUq_nZXqZ(O00NnqIQU,oHq1wHNwqUpZq,WoHOWIxNp_,q1p1mUu0N1H)
 end
-local function CameraVeilPredict(HeadPos, Velocity2)
-if not HeadPos then
- return nil
+-- ═══ Предсказание позиции цели с учётом скорости ═══
+local function Npuqux(_1IQW1bWuwuX,OoopINQpI1Hv)
+if not _1IQW1bWuwuX then
+    return nil
 end
-local CamPos = GetCameraOrigin()
-if CamPos then
- local CamToHead = HeadPos- CamPos
- local DistToHead = CamToHead.Magnitudeif DistToHead< 6 then
- if DistToHead< 0.001 then
- return nil
- end
-local SpearSpd2 = tonumber(ESPState.CV_LastSpearSpeed) or tonumber(Settings.cameraVeilSpearSpeed) or220
- return CamToHead.Unit, HeadPos, math.clamp(DistToHead/ math.max(SpearSpd2, 1), 0.01, 1)
- end
+local oxOQOu= Mp_0M0()
+if oxOQOu then
+    local _MOQOwpUxWM0= _1IQW1bWuwuX- oxOQOu
+    local vbqbmOHpDvWQWl= _MOQOwpUxWM0["Magnitude"]
+    if vbqbmOHpDvWQWl<6 then
+        if vbqbmOHpDvWQWl<0.001 then
+            return nil
+        end
+        local ow_WN_HX= w_ZpoH0p1["pQwQXMN1QNbu_z"](HM1uHIZZl0["CV_LastSpearSpeed"]) or w_ZpoH0p1["pQwQXMN1QNbu_z"](Wv0HMNDowvn["cameraVeilSpearSpeed"]) or(948-728)
+        return _MOQOwpUxWM0["Unit"],_1IQW1bWuwuX,w_ZpoH0p1["_WXbbv_1_HnO"](vbqbmOHpDvWQWl/ w_ZpoH0p1["lZUWvp_XuN"](ow_WN_HX,(-409+410)),0.01,(-448+449))
+    end
 end
-local FrameNum = ESPState.CV_frameCountlocal FramesSinceBallistic = FrameNum- ESPState.CV_ballisticFramelocal CloseToLast = ESPState.CV_lastSolvedHeadPos and(HeadPos- ESPState.CV_lastSolvedHeadPos).Magnitude< DefaultSpeed
-if FramesSinceBallistic< DefaultHeight and CloseToLast and ESPState.CV_lastSolvedDir then
- return ESPState.CV_lastSolvedDir, ESPState.CV_lastSolvedPredicted, ESPState.CV_lastSolvedTimeend
- local PredictedHead = HeadPos
- local AimDir, AimTime = CameraVeilSolve(PredictedHead)
- if AimDir and AimTime and Velocity2 and Velocity2.Magnitude> 1.25 then
- local LeadFactor = math.clamp(AimTime* 0.68, 0, 1.1)
- local LeadOffset = Velocity2* LeadFactor
- if LeadOffset.Magnitude> 32 then
-LeadOffset = LeadOffset.Unit* 32
- end
-local LeadedPos = HeadPos+ LeadOffset
- local LeadDir, LeadTT = CameraVeilSolve(LeadedPos)
- if LeadDir and LeadTT then
-AimDir, AimTime, PredictedHead = LeadDir, LeadTT, LeadedPos
- end
-end ESPState.CV_ballisticFrame = FrameNum ESPState.CV_lastSolvedHeadPos = HeadPos ESPState.CV_lastSolvedDir = AimDir ESPState.CV_lastSolvedPredicted = PredictedHead ESPState.CV_lastSolvedTime = AimTime
- return AimDir, PredictedHead, AimTime
+local MxQUNumD= HM1uHIZZl0["CV_frameCount"]
+local OQvInxpqX= MxQUNumD- HM1uHIZZl0["CV_ballisticFrame"]
+local HpI_0Nv= HM1uHIZZl0["CV_lastSolvedHeadPos"] and(_1IQW1bWuwuX- HM1uHIZZl0["CV_lastSolvedHeadPos"])["Magnitude"]< lZzozu1n
+if OQvInxpqX< HIDbOl1zlXQ and HpI_0Nv and HM1uHIZZl0["CV_lastSolvedDir"] then
+    return HM1uHIZZl0["CV_lastSolvedDir"],HM1uHIZZl0["CV_lastSolvedPredicted"],HM1uHIZZl0["CV_lastSolvedTime"]
 end
-local IsSpearModeActive
-local function FindBestSurvivor()
-local Cam2 = Workspace.CurrentCameraif not Cam2 then
- return nil
+local pZ_NINbWO= _1IQW1bWuwuX
+local vuUQv,QMzmU= HI_0HovXQm1Z(pZ_NINbWO)
+if vuUQv and QMzmU and OoopINQpI1Hv and OoopINQpI1Hv["Magnitude"]>1.25 then
+    local HnZxImnzNHlQu= w_ZpoH0p1["_WXbbv_1_HnO"](QMzmU*0.68,(-367+367),1.1)
+    local luuxOQnXM= OoopINQpI1Hv* HnZxImnzNHlQu
+    if luuxOQnXM["Magnitude"]>(46-14) then
+luuxOQnXM= luuxOQnXM["Unit"]*(1015-983)
+    end
+    local qxpUzubnxvxvp= _1IQW1bWuwuX+ luuxOQnXM
+    local wUIUUxUvu,BbxoIwWu1HHOQ= HI_0HovXQm1Z(qxpUzubnxvxvp)
+    if wUIUUxUvu and BbxoIwWu1HHOQ then
+vuUQv,QMzmU,pZ_NINbWO= wUIUUxUvu,BbxoIwWu1HHOQ,qxpUzubnxvxvp
+    end
+end HM1uHIZZl0["CV_ballisticFrame"]= MxQUNumD HM1uHIZZl0["CV_lastSolvedHeadPos"]= _1IQW1bWuwuX HM1uHIZZl0["CV_lastSolvedDir"]= vuUQv HM1uHIZZl0["CV_lastSolvedPredicted"]= pZ_NINbWO HM1uHIZZl0["CV_lastSolvedTime"]= QMzmU
+return vuUQv,pZ_NINbWO,QMzmU
 end
-local CamPos2, CamLook = Cam2.CFrame.Position, Cam2.CFrame.LookVector
-local BestTarget, BestAngle2 = nil, RadAngle30
-local MyChar2 = LocalPlayer.Character
-local MyRoot2 = MyChar2 and MyChar2:FindFirstChild("HumanoidRootPart")
-if not MyRoot2 then
- return nil
+local qwIwXO_vlnv
+-- ═══ Поиск ближайшего выжившего для Camera Veil ═══
+local function NWbUwz_UNw()
+local NvOIlUo= uvWUOOzvx1["CurrentCamera"]
+if not NvOIlUo then
+    return nil
 end
-for _, Plr in ipairs(Players.GetPlayers(Players)) do
- if Plr~= LocalPlayer then
- local Role = GetPlayerRole(Plr)
- if Role=="survivor" then
- local PlrChar = Plr.Characterlocal PlrHum = PlrChar and PlrChar:FindFirstChildOfClass("Humanoid")
- if PlrChar and PlrHum and PlrHum.Health> 0 then
- local PlrPos = GetTargetPosition(PlrChar)
- if PlrPos then
- local PlrDist = (PlrPos- MyRoot2.Position).Magnitude
- if PlrDist<= Settings.cameraVeilMaxDistancethen
- local CamToPlr = PlrPos- CamPos2
- if CamToPlr.Magnitude> 0.001 then
- local AngleDiff = math.acos(math.clamp(CamLook:Dot(CamToPlr.Unit),- 1, 1))
- if AngleDiff< BestAngle2 then
-BestAngle2 = AngleDiff;
-BestTarget = Plr
- end
+local uZvquuxInbb1,HDIMx= NvOIlUo["CFrame"]["Position"],NvOIlUo["CFrame"]["LookVector"]
+local bMmpzwuuMxo,lWxHnlM= nil,WnZzNDxUzWNM
+local BX0nbn1= Hnv0Zw["Character"]
+local NHuQzlI= BX0nbn1 and BX0nbn1["FindFirstChild"](BX0nbn1,"HumanoidRootPart")
+if not NHuQzlI then
+    return nil
 end
- end
+for qnNWlNblDoI,WXuIUlMu in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if WXuIUlMu~= Hnv0Zw then
+        local BNIHq1= vWlM1ZWQubmZp(WXuIUlMu)
+        if BNIHq1=="survivor" then
+            local WwuWbu= WXuIUlMu["Character"]
+            local bOMpbOzpzIXwX= WwuWbu and WwuWbu["FindFirstChildOfClass"](WwuWbu,"Humanoid")
+            if WwuWbu and bOMpbOzpzIXwX and bOMpbOzpzIXwX["Health"]>(-631+631) then
+                local QvQpWnvbpx= Q0mnQUbb1__u(WwuWbu)
+                if QvQpWnvbpx then
+                    local llzzo10_=(QvQpWnvbpx- NHuQzlI["Position"])["Magnitude"]
+                    if llzzo10_<= Wv0HMNDowvn["cameraVeilMaxDistance"] then
+                        local Duuoo1o= QvQpWnvbpx- uZvquuxInbb1
+                        if Duuoo1o["Magnitude"]>0.001 then
+                            local BzXH0_q00z= math["acos"](w_ZpoH0p1["_WXbbv_1_HnO"](HDIMx["Dot"](HDIMx,Duuoo1o["Unit"]),-(642-641),1))
+                            if BzXH0_q00z< lWxHnlM then
+lWxHnlM= BzXH0_q00z;
+bMmpzwuuMxo= WXuIUlMu
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
 end
- end
+return bMmpzwuuMxo
+end
+-- ═══ Создание GUI для линии прицела ═══
+local function INZnNq1Zw()
+if HM1uHIZZl0["CV_SnapGui"] and HM1uHIZZl0["CV_SnapGui"]["Parent"] and HM1uHIZZl0["CV_SnapLine"] and HM1uHIZZl0["CV_SnapLine"]["Parent"] and HM1uHIZZl0["CV_SnapDot"] and HM1uHIZZl0["CV_SnapDot"]["Parent"] then
+    return
+end
+local MDIMbu_zIqX0D= Instance["new"]("ScreenGui") MDIMbu_zIqX0D["Name"]="CameraVeil_SnapLine" MDIMbu_zIqX0D["IgnoreGuiInset"]= true;
+MDIMbu_zIqX0D["ResetOnSpawn"]= false;
+MDIMbu_zIqX0D["Parent"]= uZZQq()
+local QqzDxbZvqMwb= Instance["new"]("Frame") QqzDxbZvqMwb["Name"]="Line";
+QqzDxbZvqMwb["AnchorPoint"]= Vector2["new"](0.5,0.5);
+QqzDxbZvqMwb["BorderSizePixel"]=(-934+934) QqzDxbZvqMwb["BackgroundColor3"]= Color3["fromRGB"]((-937+937),(-263+518),(-784+904));
+QqzDxbZvqMwb["BackgroundTransparency"]=0.08 QqzDxbZvqMwb["Visible"]= false;
+QqzDxbZvqMwb["Parent"]= MDIMbu_zIqX0D
+local vOw1wz= Instance["new"]("Frame") vOw1wz["Name"]="Dot";
+vOw1wz["AnchorPoint"]= Vector2["new"](0.5,0.5);
+vOw1wz["BorderSizePixel"]=0 vOw1wz["BackgroundColor3"]= Color3["fromRGB"](0,255,(-452+572));
+vOw1wz["BackgroundTransparency"]=0 vOw1wz["Size"]= UDim2["fromOffset"]((860-853),(866-859));
+vOw1wz["Visible"]= false;
+vOw1wz["Parent"]= MDIMbu_zIqX0D
+local pmlZuxUuNqUX_= Instance["new"]("UICorner");
+pmlZuxUuNqUX_["CornerRadius"]= UDim["new"](1,(-39+39));
+pmlZuxUuNqUX_["Parent"]= vOw1wz HM1uHIZZl0["CV_SnapGui"]= MDIMbu_zIqX0D;
+HM1uHIZZl0["CV_SnapLine"]= QqzDxbZvqMwb;
+HM1uHIZZl0["CV_SnapDot"]= vOw1wz
+end
+-- ═══ Обновление позиции линии прицела ═══
+local function BQ_XUlH0N(DlZlHMpvlDZ_nD)
+if not Wv0HMNDowvn["cameraVeilSnapLine"] or not HM1uHIZZl0["CV_Enabled"] then
+    if HM1uHIZZl0["CV_SnapLine"] then
+HM1uHIZZl0["CV_SnapLine"]["Visible"]= false
+    end
+    if HM1uHIZZl0["CV_SnapDot"] then
+HM1uHIZZl0["CV_SnapDot"]["Visible"]= false
+    end
+    return
+end
+if not qwIwXO_vlnv() then
+    if HM1uHIZZl0["CV_SnapLine"] then
+HM1uHIZZl0["CV_SnapLine"]["Visible"]= false
+    end
+    if HM1uHIZZl0["CV_SnapDot"] then
+HM1uHIZZl0["CV_SnapDot"]["Visible"]= false
+    end
+    return
+end
+local qMW_QMN= HM1uHIZZl0["CV_frameCount"]
+if DlZlHMpvlDZ_nD and(qMW_QMN- HM1uHIZZl0["CV_snapLineFrame"])<2 then
+    return
+end HM1uHIZZl0["CV_snapLineFrame"]= qMW_QMN
+local OmbM_Mx0zM= w_ZpoH0p1["bHopuzIW"](
+function() INZnNq1Zw()
+local _UD0HxWXZMlOzD= HM1uHIZZl0["CV_SnapLine"];
+local HvHHU110ZDDw= HM1uHIZZl0["CV_SnapDot"];
+local qDwouHxODONwzq= uvWUOOzvx1["CurrentCamera"]
+if not _UD0HxWXZMlOzD or not qDwouHxODONwzq then
+    if _UD0HxWXZMlOzD then
+_UD0HxWXZMlOzD["Visible"]= false
+    end
+    if HvHHU110ZDDw then
+HvHHU110ZDDw["Visible"]= false
+    end
+    return
+end
+local BoWOvqm= DlZlHMpvlDZ_nD
+local DMmMmQv=(HM1uHIZZl0["CV_CurrentTarget"]~= nil and HM1uHIZZl0["CV_WasHolding"])
+if not DMmMmQv then
+    local MNpHu0b= NWbUwz_UNw()
+    if MNpHu0b then
+        local wwDOoOoI0= MNpHu0b["Character"]
+        if wwDOoOoI0 then
+BoWOvqm= Q0mnQUbb1__u(wwDOoOoI0)
+        end
+    else BoWOvqm= nil
 end
 end
+if not BoWOvqm then
+_UD0HxWXZMlOzD["Visible"]= false;
+    if HvHHU110ZDDw then
+HvHHU110ZDDw["Visible"]= false
+    end
+    return
 end
-return BestTarget
+local Q1IqxOOXMMmDb,bbouponbIpmxU= qDwouHxODONwzq["WorldToViewportPoint"](qDwouHxODONwzq,BoWOvqm)
+if not bbouponbIpmxU or Q1IqxOOXMMmDb["Z"]<=(775-775) then
+_UD0HxWXZMlOzD["Visible"]= false;
+    if HvHHU110ZDDw then
+HvHHU110ZDDw["Visible"]= false
+    end
+    return
 end
-local function AutoGen()
-if ESPState.CV_SnapGui and ESPState.CV_SnapGui.Parentand ESPState.CV_SnapLineand ESPState.CV_SnapLine.Parentand ESPState.CV_SnapDotand ESPState.CV_SnapDot.Parentthen
-return
+local wXD0WZxpWm= qDwouHxODONwzq["ViewportSize"]
+local DUOwWvUO= Vector2["new"](wXD0WZxpWm["X"]*0.5,wXD0WZxpWm["Y"]*0.5)
+local HHlQMNmlXDpqo= Vector2["new"](Q1IqxOOXMMmDb["X"],Q1IqxOOXMMmDb["Y"])
+local pMO_ZI0npQmX= HHlQMNmlXDpqo- DUOwWvUO;
+local uoDHvplb0ZnI0= pMO_ZI0npQmX["Magnitude"]
+if uoDHvplb0ZnI0<2 then
+_UD0HxWXZMlOzD["Visible"]= false;
+    if HvHHU110ZDDw then
+HvHHU110ZDDw["Visible"]= false
+    end
+    return
 end
-local SnapGui = Instance.new("ScreenGui")
-SnapGui.Name = "CameraVeil_SnapLine" SnapGui.IgnoreGuiInset = true;
-SnapGui.ResetOnSpawn = false;
-SnapGui.Parent = GetExploitGui()
-local SnapLine = Instance.new("Frame")
-SnapLine.Name = "Line";
-SnapLine.AnchorPoint = Vector2.new(0.5, 0.5);
-SnapLine.BorderSizePixel = 0 SnapLine.BackgroundColor3 = Color3.fromRGB(0, 255, 120);
-SnapLine.BackgroundTransparency = 0.08 SnapLine.Visible = false;
-SnapLine.Parent = SnapGui
-local SnapDot = Instance.new("Frame")
-SnapDot.Name = "Dot";
-SnapDot.AnchorPoint = Vector2.new(0.5, 0.5);
-SnapDot.BorderSizePixel = 0 SnapDot.BackgroundColor3 = Color3.fromRGB(0, 255, 120);
-SnapDot.BackgroundTransparency = 0 SnapDot.Size = UDim2.fromOffset(7, 7);
-SnapDot.Visible = false;
-SnapDot.Parent = SnapGui
-local DotCorner = Instance.new("UICorner");
-DotCorner.CornerRadius = UDim.new(1, 0);
-DotCorner.Parent = SnapDot ESPState.CV_SnapGui = SnapGui;
-ESPState.CV_SnapLine = SnapLine;
-ESPState.CV_SnapDot = SnapDot
-end
-local function UpdateSnapLine(TargetPos)
-if not Settings.cameraVeilSnapLine or not ESPState.CV_Enabledthen
-if ESPState.CV_SnapLinethen ESPState.CV_SnapLine.Visible = false
-end
-if ESPState.CV_SnapDot then
-ESPState.CV_SnapDot.Visible = false
-end
-return
-end
-if not IsSpearModeActive() then
- if ESPState.CV_SnapLine then
-ESPState.CV_SnapLine.Visible = false
- end
-if ESPState.CV_SnapDot then
-ESPState.CV_SnapDot.Visible = false
- end
-return
-end
-local CurFrame = ESPState.CV_frameCountif TargetPos and(CurFrame- ESPState.CV_snapLineFrame)< 2 then
- return
-end
-ESPState.CV_snapLineFrame = CurFrame
-local SnapOk = pcall(
-function() AutoGen()
-local LineFrame = ESPState.CV_SnapLine;
-local DotFrame = ESPState.CV_SnapDot;
-local Cam3 = Workspace.CurrentCameraif not LineFrame or not Cam3 then
- if LineFrame then
-LineFrame.Visible = false
- end
-if DotFrame then
-DotFrame.Visible = false
- end
-return
-end
-local DotPos = TargetPos
-local IsHolding = (ESPState.CV_CurrentTarget~= nil and ESPState.CV_WasHolding)
-if not IsHolding then
- local Survivor = FindBestSurvivor()
- if Survivor then
- local SurvivorChar = Survivor.Characterif SurvivorChar then
-DotPos = GetTargetPosition(SurvivorChar)
- end
-else DotPos = nil
-end
-end
-if not DotPos then
-LineFrame.Visible = false;
- if DotFrame then
-DotFrame.Visible = false
- end
-return
-end
-local ScreenPos, OnScreen = Cam3:WorldToViewportPoint(DotPos)
-if not OnScreen or ScreenPos.Z<= 0 then
-LineFrame.Visible = false;
- if DotFrame then
-DotFrame.Visible = false
- end
-return
-end
-local ViewportSize = Cam3.ViewportSizelocal ScreenCenter = Vector2.new(ViewportSize.X* 0.5, ViewportSize.Y* 0.5)
-local TargetScreen = Vector2.new(ScreenPos.X, ScreenPos.Y)
-local ScreenDelta = TargetScreen- ScreenCenter;
-local ScreenDist = ScreenDelta.Magnitudeif ScreenDist< 2 then
-LineFrame.Visible = false;
- if DotFrame then
-DotFrame.Visible = false
- end
-return
-end
-local LineColor = IsHolding and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(255, 220, 0)
-local LineAlpha = IsHolding and 0.08 or 0.35 LineFrame.BackgroundColor3 = LineColor;
-LineFrame.BackgroundTransparency = LineAlpha LineFrame.Size = UDim2.fromOffset(ScreenDist, IsHolding and 2 or 1)
-LineFrame.Position = UDim2.fromOffset((ScreenCenter.X+ TargetScreen.X)* 0.5,(ScreenCenter.Y+ TargetScreen.Y)* 0.5)
-LineFrame.Rotation = math.deg(math.atan2(ScreenDelta.Y, ScreenDelta.X));
-LineFrame.Visible = true
-if DotFrame then
-DotFrame.BackgroundColor3 = LineColor;
-DotFrame.Position = UDim2.fromOffset(TargetScreen.X, TargetScreen.Y);
-DotFrame.Visible = true
+local olzMnl= DMmMmQv and Color3["fromRGB"]((-391+391),(-475+730),120) or Color3["fromRGB"](255,220,0)
+local lvDHXZ= DMmMmQv and 0.08 or 0.35 _UD0HxWXZMlOzD["BackgroundColor3"]= olzMnl;
+_UD0HxWXZMlOzD["BackgroundTransparency"]= lvDHXZ _UD0HxWXZMlOzD["Size"]= UDim2["fromOffset"](uoDHvplb0ZnI0,DMmMmQv and 2 or(-341+342)) _UD0HxWXZMlOzD["Position"]= UDim2["fromOffset"]((DUOwWvUO["X"]+ HHlQMNmlXDpqo["X"])*0.5,(DUOwWvUO["Y"]+ HHlQMNmlXDpqo["Y"])*0.5) _UD0HxWXZMlOzD["Rotation"]= math["deg"](math["atan2"](pMO_ZI0npQmX["Y"],pMO_ZI0npQmX["X"]));
+_UD0HxWXZMlOzD["Visible"]= true
+if HvHHU110ZDDw then
+HvHHU110ZDDw["BackgroundColor3"]= olzMnl;
+HvHHU110ZDDw["Position"]= UDim2["fromOffset"](HHlQMNmlXDpqo["X"],HHlQMNmlXDpqo["Y"]);
+HvHHU110ZDDw["Visible"]= true
 end
 end)
-if not SnapOk then
- if ESPState.CV_SnapLinethen ESPState.CV_SnapLine.Visible = false
+if not OmbM_Mx0zM then
+    if HM1uHIZZl0["CV_SnapLine"] then
+HM1uHIZZl0["CV_SnapLine"]["Visible"]= false
+    end
+    if HM1uHIZZl0["CV_SnapDot"] then
+HM1uHIZZl0["CV_SnapDot"]["Visible"]= false
+    end
 end
-if ESPState.CV_SnapDotthen ESPState.CV_SnapDot.Visible = false
 end
+function qW1lMWN() HM1uHIZZl0["CV_CurrentTarget"]= nil;
+HM1uHIZZl0["CV_WasHolding"]= false HM1uHIZZl0["CV_LastStableDir"]= nil;
+HM1uHIZZl0["CV_acquireStartFrame"]= nil BQ_XUlH0N(nil)
+end qwIwXO_vlnv=
+function()
+local ooHMIpMN= HM1uHIZZl0["CV_frameCount"]
+if ooHMIpMN== HM1uHIZZl0["CV_spearModeFrame"] then
+    return HM1uHIZZl0["CV_cachedSpearMode"]
+end HM1uHIZZl0["CV_spearModeFrame"]= ooHMIpMN
+local pWvNmQ= Hnv0Zw["Character"]
+local IwDwUOIwxplm= false
+if pWvNmQ then
+    local Wnvz0Ql,qQHuQH= w_ZpoH0p1["bHopuzIW"](pWvNmQ["GetAttribute"],pWvNmQ,"spearmode") IwDwUOIwxplm= Wnvz0Ql and qQHuQH== true
+end HM1uHIZZl0["CV_cachedSpearMode"]= IwDwUOIwxplm
+return IwDwUOIwxplm
 end
+local function wlwzz()
+if not qwIwXO_vlnv() then
+    return false
 end
-function ResetCameraVeil()
-ESPState.CV_CurrentTarget = nil;
-ESPState.CV_WasHolding = false ESPState.CV_LastStableDir = nil;
-ESPState.CV_acquireStartFrame = nil UpdateSnapLine(nil)
+return HM1uHIZZl0["CV_HoldingPC"] or HM1uHIZZl0["CV_HoldingMobile"]
 end
-IsSpearModeActive = function()
-local FrameCheck = ESPState.CV_frameCount
-if FrameCheck== ESPState.CV_spearModeFramethen
-return ESPState.CV_cachedSpearMode
+-- ═══ Основной цикл Camera Veil (RenderStep) ═══
+local function bnXb_qOXXuw() HM1uHIZZl0["CV_frameCount"]= HM1uHIZZl0["CV_frameCount"]+(901-900)
+if not HM1uHIZZl0["CV_Enabled"] then
+    return
 end
-ESPState.CV_spearModeFrame = FrameCheck
-local TargetInst = LocalPlayer.Characterlocal gui1 = false
-if TargetInst then
- local Wnvz0Ql, qQHuQH = pcall(TargetInst.GetAttribute, TargetInst,"spearmode")
-gui1 = Wnvz0Ql and qQHuQH== true
+local opbQz0IlNuOXn= wlwzz()
+if not opbQz0IlNuOXn then
+    if HM1uHIZZl0["CV_WasHolding"] then
+qW1lMWN()
+    else BQ_XUlH0N(nil)
 end
-ESPState.CV_cachedSpearMode = gui1
-return gui1
-end
-local function IsSpearMode()
-if not IsSpearModeActive() then
- return false
-end
-return ESPState.CV_HoldingPCor ESPState.CV_HoldingMobileend
-local function SetupCameraVeil()
-ESPState.CV_frameCount = ESPState.CV_frameCount+ 1
-if not ESPState.CV_Enabledthen
 return
 end
-local cam1 = IsSpearMode()
-if not cam1 then
- if ESPState.CV_WasHoldingthen ResetCameraVeil()
-else UpdateSnapLine(nil)
+if not HM1uHIZZl0["CV_WasHolding"] then
+HM1uHIZZl0["CV_LastStableDir"]= nil HM1uHIZZl0["CV_CurrentTarget"]= NWbUwz_UNw() HM1uHIZZl0["CV_WasHolding"]= true HM1uHIZZl0["CV_acquireStartFrame"]= HM1uHIZZl0["CV_frameCount"]
 end
-return
+if HM1uHIZZl0["CV_acquireStartFrame"] and(HM1uHIZZl0["CV_frameCount"]- HM1uHIZZl0["CV_acquireStartFrame"])< HHn0OQb then
+    local DNDb1qzQ= NWbUwz_UNw()
+    if DNDb1qzQ then
+HM1uHIZZl0["CV_CurrentTarget"]= DNDb1qzQ
+    end
 end
-if not ESPState.CV_WasHolding then
-ESPState.CV_LastStableDir = nil ESPState.CV_CurrentTarget = FindBestSurvivor()
-ESPState.CV_WasHolding = true ESPState.CV_acquireStartFrame = ESPState.CV_frameCount
+local pNvNno1W0n1xm= HM1uHIZZl0["CV_CurrentTarget"]
+if not pNvNno1W0n1xm then
+HM1uHIZZl0["CV_WasHolding"]= false;
+    return
 end
-if ESPState.CV_acquireStartFrameand(ESPState.CV_frameCount- ESPState.CV_acquireStartFrame)< DefaultCount then
- local gui2 = FindBestSurvivor()
- if gui2 then
-ESPState.CV_CurrentTarget = gui2
- end
+local lu_0NWnUp= pNvNno1W0n1xm["Character"]
+local BDuXQMoHu1w= lu_0NWnUp and lu_0NWnUp["FindFirstChildOfClass"](lu_0NWnUp,"Humanoid")
+local qzDZNlN00mWOUz= vWlM1ZWQubmZp(pNvNno1W0n1xm)
+if not lu_0NWnUp or not BDuXQMoHu1w or BDuXQMoHu1w["Health"]<=(-648+648) or qzDZNlN00mWOUz~="survivor" then
+HM1uHIZZl0["CV_WasHolding"]= false;
+HM1uHIZZl0["CV_CurrentTarget"]= nil;
+    return
 end
-local inst1 = ESPState.CV_CurrentTarget
-if not inst1 then
-ESPState.CV_WasHolding = false;
- return
+local uH_pv_O_= Q0mnQUbb1__u(lu_0NWnUp)
+if not uH_pv_O_ then
+HM1uHIZZl0["CV_WasHolding"]= false;
+HM1uHIZZl0["CV_CurrentTarget"]= nil;
+    return
 end
-local inst2 = inst1.Character
-local inst3 = inst2 and inst2:FindFirstChildOfClass("Humanoid")
-local char1 = GetPlayerRole(inst1)
-if not inst2 or not inst3 or inst3.Health<= 0 or char1~="survivor" then
-ESPState.CV_WasHolding = false;
-ESPState.CV_CurrentTarget = nil;
- return
+local NpZuOM_Mxq= uvWUOOzvx1["CurrentCamera"]
+local B0oWw= Hnv0Zw["Character"]
+local qMZwMNlmWQ= B0oWw and B0oWw["FindFirstChild"](B0oWw,"HumanoidRootPart")
+if not NpZuOM_Mxq or not qMZwMNlmWQ then
+    return
 end
-local SnapTarget = GetTargetPosition(inst2)
-if not SnapTarget then
-ESPState.CV_WasHolding = false;
-ESPState.CV_CurrentTarget = nil;
- return
+if(uH_pv_O_- qMZwMNlmWQ["Position"])["Magnitude"]> Wv0HMNDowvn["cameraVeilMaxDistance"] then
+HM1uHIZZl0["CV_WasHolding"]= false;
+HM1uHIZZl0["CV_CurrentTarget"]= nil;
+    return
 end
-local CamPart = Workspace.CurrentCameralocal inst4 = LocalPlayer.Character
-local inst5 = inst4 and inst4:FindFirstChild("HumanoidRootPart")
-if not CamPart or not inst5 then
- return
+local Bo0pHnmZqbn= OX_lDUl0QzzoNb(lu_0NWnUp["FindFirstChild"](lu_0NWnUp,"HumanoidRootPart"))
+local WUbzuHzzMloZDZ= Npuqux(uH_pv_O_,Bo0pHnmZqbn)
+local OXOQU_Xn= WUbzuHzzMloZDZ and WUbzuHzzMloZDZ["Magnitude"]>0.001 and WUbzuHzzMloZDZ["Y"]< bNDqoQboMuHvq and WUbzuHzzMloZDZ["Y"]> pznNWoQz
+if OXOQU_Xn then
+    if HM1uHIZZl0["CV_LastStableDir"] then
+        local WlqwnmNm= math["acos"](w_ZpoH0p1["_WXbbv_1_HnO"](HM1uHIZZl0["CV_LastStableDir"]:Dot(WUbzuHzzMloZDZ["Unit"]),-(23-22),1))
+        if WlqwnmNm< IqZNvwmMq0xq then
+HM1uHIZZl0["CV_LastStableDir"]= WUbzuHzzMloZDZ["Unit"]
+        end
+    else HM1uHIZZl0["CV_LastStableDir"]= WUbzuHzzMloZDZ["Unit"]
+end WUbzuHzzMloZDZ= HM1uHIZZl0["CV_LastStableDir"]
+elseif HM1uHIZZl0["CV_LastStableDir"] then
+WUbzuHzzMloZDZ= HM1uHIZZl0["CV_LastStableDir"]
+else WUbzuHzzMloZDZ= NpZuOM_Mxq["CFrame"]["LookVector"]
 end
-if(SnapTarget- inst5.Position).Magnitude> Settings.cameraVeilMaxDistance then
-ESPState.CV_WasHolding = false;
-ESPState.CV_CurrentTarget = nil;
- return
+local qxOqMUvoMOH= NpZuOM_Mxq["CFrame"]["Position"]
+local WpwlOU= w_ZpoH0p1["_WXbbv_1_HnO"](Wv0HMNDowvn["cameraVeilSmoothness"] or 1,0.05,(-796+797))
+local HzQqNOQH_= NpZuOM_Mxq["CFrame"]["LookVector"]:Lerp(WUbzuHzzMloZDZ,WpwlOU)
+if HzQqNOQH_["Magnitude"]>0.001 then
+NpZuOM_Mxq["CFrame"]= CFrame["new"](qxOqMUvoMOH,qxOqMUvoMOH+ HzQqNOQH_["Unit"]) BQ_XUlH0N(uH_pv_O_)
 end
-local cam2 = GetFlatVelocity(inst2:FindFirstChild("HumanoidRootPart"))
-local val1 = CameraVeilPredict(SnapTarget, cam2)
-local val2 = val1 and val1.Magnitude> 0.001 and val1.Y< MaxClamp and val1.Y> MinClamp
-if val2 then
- if ESPState.CV_LastStableDir then
- local WlqwnmNm = math.acos(math.clamp(ESPState.CV_LastStableDir:Dot(val1.Unit),- 1, 1))
- if WlqwnmNm< RadAngle45 then
-ESPState.CV_LastStableDir = val1.Unitend
- else ESPState.CV_LastStableDir = val1.Unitend val1 = ESPState.CV_LastStableDirelseif ESPState.CV_LastStableDirthen val1 = ESPState.CV_LastStableDir
- else val1 = CamPart.CFrame.LookVectorend
- local SolveOrigin = CamPart.CFrame.Position
- local cam3 = math.clamp(Settings.cameraVeilSmoothnessor 1, 0.05, 1)
- local SolveDir = CamPart.CFrame.LookVector:Lerp(val1, cam3)
- if SolveDir.Magnitude> 0.001 then
-CamPart.CFrame = CFrame.new(SolveOrigin, SolveOrigin+ SolveDir.Unit) UpdateSnapLine(SnapTarget)
- end
 end
-local function CleanupCameraVeil(Obj, AncestorName)
-local Ancestor = Obj and Obj.Parentwhile Ancestor do
- if Ancestor.Name== AncestorName then
- return true
- end
-Ancestor = Ancestor.Parentend
- return false
+-- ═══ Очистка GUI Camera Veil ═══
+local function IQ__boUwo(_bmuxpMqMI,_0z_Oz1NHwXn_H)
+local OQQW00oZUXU0H_= _bmuxpMqMI and _bmuxpMqMI["Parent"]
+while OQQW00oZUXU0H_ do
+    if OQQW00oZUXU0H_["Name"]== _0z_Oz1NHwXn_H then
+        return true
+    end OQQW00oZUXU0H_= OQQW00oZUXU0H_["Parent"]
 end
-local function SetupEndScreenSkip(Button)
-if not(Button and Button:IsA("GuiButton")) then
- return false
+return false
 end
-if Button.Name~="attack" then
- return false
+-- ═══ Проверка кнопки атаки (для пропуска катсцены) ═══
+local function IN11Xq0I1xXxZ(pvDbMz)
+if not(pvDbMz and pvDbMz["IsA"](pvDbMz,"GuiButton")) then
+    return false
 end
-if not CleanupCameraVeil(Button,"Slasher-mob") then
- return false
+if pvDbMz["Name"]~="attack" then
+    return false
 end
-if not CleanupCameraVeil(Button,"Control") and not CleanupCameraVeil(Button,"Controls") then
- return false
+if not IQ__boUwo(pvDbMz,"Slasher-mob") then
+    return false
+end
+if not IQ__boUwo(pvDbMz,"Control") and not IQ__boUwo(pvDbMz,"Controls") then
+    return false
 end
 return true
 end
-local function SetupSilentAim(Button2)
-if not SetupEndScreenSkip(Button2) then
- return
+-- ═══ Подключение хуков к кнопкам атаки ═══
+local function InDmQ(HxozwplXoD_M)
+if not IN11Xq0I1xXxZ(HxozwplXoD_M) then
+    return
 end
-if ESPState.CV_HookedButtons[Button2] then
- return
+if HM1uHIZZl0["CV_HookedButtons"][HxozwplXoD_M] then
+    return
+end HM1uHIZZl0["CV_HookedButtons"][HxozwplXoD_M]= true
+local function Nuv_Un()
+if not HM1uHIZZl0["CV_Enabled"] or not qwIwXO_vlnv() then
+    return
+end HM1uHIZZl0["CV_HoldingMobile"]= true
 end
-ESPState.CV_HookedButtons[Button2]= true
-local function SetupMoonwalk()
-if not ESPState.CV_Enabledor not IsSpearModeActive() then
- return
+local function Nvp00NDMlpmDlH() HM1uHIZZl0["CV_HoldingMobile"]= false
 end
-ESPState.CV_HoldingMobile = true
-end
-local function SetupSpeedBoost()
-ESPState.CV_HoldingMobile = false
-end
-local NewConn = Button2.InputBegan:Connect(
-function(InputObj)
-local InputType = InputObj.UserInputTypeif InputType~= Enum.UserInputType.Touch and InputType~= Enum.UserInputType.MouseButton1 then
- return
-end
-SetupMoonwalk()
-local EndedConn EndedConn = UIS2.InputEnded:Connect(
-function(EndedInput)
-if EndedInput== InputObj then
-SetupSpeedBoost();
- if EndedConn then
-EndedConn.Disconnect(EndedConn)
- end
+local DZbzQbUZn= HxozwplXoD_M["InputBegan"]:Connect(
+function(ImDpX0pnI1UIQ)
+local BzMn0UI= ImDpX0pnI1UIQ["UserInputType"]
+if BzMn0UI~= Enum["UserInputType"]["Touch"] and BzMn0UI~= Enum["UserInputType"]["MouseButton1"] then
+    return
+end Nuv_Un()
+local obQnz0uMuQ1Iql obQnz0uMuQ1Iql= OqbbHwQNoU["InputEnded"]:Connect(
+function(bHZWXMnlXxN1)
+if bHZWXMnlXxN1== ImDpX0pnI1UIQ then
+Nvp00NDMlpmDlH();
+    if obQnz0uMuQ1Iql then
+obQnz0uMuQ1Iql["Disconnect"](obQnz0uMuQ1Iql)
+    end
 end
 end)
-end)
-table.insert(ESPState.CV_Connections, NewConn)
-local EndedConn2 = Button2.InputEnded:Connect(
-function(InputObj2)
-local InputType2 = InputObj2.UserInputTypeif InputType2~= Enum.UserInputType.Touch and InputType2~= Enum.UserInputType.MouseButton1 then
- return
+end) w_ZpoH0p1["I_plQ"](HM1uHIZZl0["CV_Connections"],DZbzQbUZn)
+local qIQuO= HxozwplXoD_M["InputEnded"]:Connect(
+function(wIzHwwXxlqlDw)
+local u_qzzzuUm= wIzHwwXxlqlDw["UserInputType"]
+if u_qzzzuUm~= Enum["UserInputType"]["Touch"] and u_qzzzuUm~= Enum["UserInputType"]["MouseButton1"] then
+    return
+end Nvp00NDMlpmDlH()
+end) w_ZpoH0p1["I_plQ"](HM1uHIZZl0["CV_Connections"],qIQuO)
 end
-SetupSpeedBoost()
-end)
-table.insert(ESPState.CV_Connections, EndedConn2)
-end
-function TempFlag()
-local GuiFolder = LocalPlayer:FindFirstChildOfClass("PlayerGui") or PlayerGui
-if not GuiFolder then
- return
-end
-pcall(
+function DvpWoQQ0pQ_1()
+local H_10HM0OMN_Z= Hnv0Zw["FindFirstChildOfClass"](Hnv0Zw,"PlayerGui") or lXUHZ
+if not H_10HM0OMN_Z then
+    return
+end w_ZpoH0p1["bHopuzIW"](
 function()
-for ConnKey, ConnVal in ipairs(GuiFolder.GetDescendants(GuiFolder)) do
-SetupSilentAim(ConnVal)
+for H_z0ouQD_MlX,IzwDIWWwD in w_ZpoH0p1["DZu1Dmvbw"](H_10HM0OMN_Z["GetDescendants"](H_10HM0OMN_Z)) do
+InDmQ(IzwDIWWwD)
 end
 end)
-if ESPState.CV_WatchConnthen ESPState.CV_WatchConn:Disconnect()
+if HM1uHIZZl0["CV_WatchConn"] then
+HM1uHIZZl0["CV_WatchConn"]:Disconnect()
+end HM1uHIZZl0["CV_WatchConn"]= H_10HM0OMN_Z["DescendantAdded"]:Connect(InDmQ) w_ZpoH0p1["I_plQ"](HM1uHIZZl0["CV_Connections"],HM1uHIZZl0["CV_WatchConn"])
 end
-ESPState.CV_WatchConn = GuiFolder.DescendantAdded:Connect(SetupSilentAim)
-table.insert(ESPState.CV_Connections, ESPState.CV_WatchConn)
+local function HX_Hp()
+if HM1uHIZZl0["CV_VisualConn"] then
+    return
 end
-local function func2()
-if ESPState.CV_VisualConnthen
-return
-end
-local PcallOk2, RemoteObj = pcall(
+local BoumqvpZpH,Q1bDv0= w_ZpoH0p1["bHopuzIW"](
 function()
-local RS = game:GetService("ReplicatedStorage")
-local Remotes = RS:FindFirstChild("Remotes")
-local Mechanics = Remotes and Remotes:FindFirstChild("Mechanics")
-return Mechanics and Mechanics:FindFirstChild("visualize")
+local _qZmZm= game["GetService"](game,"ReplicatedStorage")
+local HXIzuIpHuU= _qZmZm["FindFirstChild"](_qZmZm,"Remotes")
+local _oo1Qbw= HXIzuIpHuU and HXIzuIpHuU["FindFirstChild"](HXIzuIpHuU,"Mechanics")
+return _oo1Qbw and _oo1Qbw["FindFirstChild"](_oo1Qbw,"visualize")
 end)
-if PcallOk2 and RemoteObj and RemoteObj:IsA("RemoteEvent") then
-ESPState.CV_VisualConn = RemoteObj.OnClientEvent:Connect(
- function(PlayerChar, _, IsNumber, IsPositive)
- if PlayerChar~= LocalPlayer.Characterthen
- return
+if BoumqvpZpH and Q1bDv0 and Q1bDv0["IsA"](Q1bDv0,"RemoteEvent") then
+HM1uHIZZl0["CV_VisualConn"]= Q1bDv0["OnClientEvent"]:Connect(
+    function(lqpuHnQOq_oMpM,uUvN_xIzZ,IpX1pQHx_W_xo,MvpblUn1m00_HI)
+    if lqpuHnQOq_oMpM~= Hnv0Zw["Character"] then
+        return
+    end
+    if w_ZpoH0p1["HmnU_lbWXHQX1I"](IpX1pQHx_W_xo)=="number" and IpX1pQHx_W_xo>0 then
+HM1uHIZZl0["CV_LastSpearSpeed"]= IpX1pQHx_W_xo
+    end
+    if w_ZpoH0p1["HmnU_lbWXHQX1I"](MvpblUn1m00_HI)=="number" and MvpblUn1m00_HI>=(-644+644) then
+HM1uHIZZl0["CV_LastGravityMult"]= MvpblUn1m00_HI
+    end
+end) w_ZpoH0p1["I_plQ"](HM1uHIZZl0["CV_Connections"],HM1uHIZZl0["CV_VisualConn"])
 end
-if type(IsNumber)=="number" and IsNumber> 0 then
-ESPState.CV_LastSpearSpeed = IsNumber
 end
-if type(IsPositive)=="number" and IsPositive>= 0 then
-ESPState.CV_LastGravityMult = IsPositive
+function IbxMMx1lp()
+if HM1uHIZZl0["CV_Enabled"] then
+    return
+end HM1uHIZZl0["CV_Enabled"]= true HM1uHIZZl0["CV_HoldingPC"]= false;
+HM1uHIZZl0["CV_HoldingMobile"]= false qW1lMWN();
+HX_Hp();
+DvpWoQQ0pQ_1() HM1uHIZZl0["CV_InputBeganConn"]= OqbbHwQNoU["InputBegan"]:Connect(
+function(OWwZDuxHow00)
+if OWwZDuxHow00["UserInputType"]== Enum["UserInputType"]["MouseButton2"] and qwIwXO_vlnv() then
+HM1uHIZZl0["CV_HoldingPC"]= true
 end
-end)
-table.insert(ESPState.CV_Connections, ESPState.CV_VisualConn)
+end) w_ZpoH0p1["I_plQ"](HM1uHIZZl0["CV_Connections"],HM1uHIZZl0["CV_InputBeganConn"]) HM1uHIZZl0["CV_InputEndedConn"]= OqbbHwQNoU["InputEnded"]:Connect(
+function(HQwZWn1bZN)
+if HQwZWn1bZN["UserInputType"]== Enum["UserInputType"]["MouseButton2"] then
+HM1uHIZZl0["CV_HoldingPC"]= false
 end
-end
-function GuiHolder()
-if ESPState.CV_Enabled then
- return
-end
-ESPState.CV_Enabled = true ESPState.CV_HoldingPC = false;
-ESPState.CV_HoldingMobile = false ResetCameraVeil();
-func2();
-TempFlag()
-ESPState.CV_InputBeganConn = UIS2.InputBegan:Connect(
-function(InputObj3)
-if InputObj3.UserInputType== Enum.UserInputType.MouseButton2 and IsSpearModeActive() then
-ESPState.CV_HoldingPC = true
-end
-end)
-table.insert(ESPState.CV_Connections, ESPState.CV_InputBeganConn)
-ESPState.CV_InputEndedConn = UIS2.InputEnded:Connect(
-function(InputObj4)
-if InputObj4.UserInputType== Enum.UserInputType.MouseButton2 then
-ESPState.CV_HoldingPC = false
-end
-end)
-table.insert(ESPState.CV_Connections, ESPState.CV_InputEndedConn) pcall(
-function() RunService:UnbindFromRenderStep(ESPState.CV_RenderStepName)
-end) pcall(
-function() RunService:BindToRenderStep(ESPState.CV_RenderStepName, Enum.RenderPriority.Camera.Value+ 2, SetupCameraVeil)
+end) w_ZpoH0p1["I_plQ"](HM1uHIZZl0["CV_Connections"],HM1uHIZZl0["CV_InputEndedConn"]) w_ZpoH0p1["bHopuzIW"](
+function() u0xpmq_WoUlm:UnbindFromRenderStep(HM1uHIZZl0["CV_RenderStepName"])
+end) w_ZpoH0p1["bHopuzIW"](
+function() u0xpmq_WoUlm:BindToRenderStep(HM1uHIZZl0["CV_RenderStepName"],Enum["RenderPriority"]["Camera"]["Value"]+(964-962),bnXb_qOXXuw)
 end)
 end
-function AntiAFKConn2()
-ESPState.CV_Enabled = false ESPState.CV_HoldingPC = false;
-ESPState.CV_HoldingMobile = false ResetCameraVeil()
-ESPState.CV_frameCount = 0;
-ESPState.CV_snapLineFrame = -99;
-ESPState.CV_spearModeFrame = -99;
-ESPState.CV_cachedSpearMode = false ESPState.CV_ballisticFrame = -99;
-ESPState.CV_lastSolvedHeadPos = nil;
-ESPState.CV_lastSolvedDir = nil ESPState.CV_lastSolvedPredicted = nil;
-if 0>(730) then
- local gui3 = 381+ 730
- local gui4 = gui3* 2
-end
-ESPState.CV_lastSolvedTime = nil pcall(
-function() RunService:UnbindFromRenderStep(ESPState.CV_RenderStepName)
+function wm_0lW() HM1uHIZZl0["CV_Enabled"]= false HM1uHIZZl0["CV_HoldingPC"]= false;
+HM1uHIZZl0["CV_HoldingMobile"]= false qW1lMWN() HM1uHIZZl0["CV_frameCount"]=0;
+HM1uHIZZl0["CV_snapLineFrame"]=-99;
+HM1uHIZZl0["CV_spearModeFrame"]=-99;
+HM1uHIZZl0["CV_cachedSpearMode"]= false HM1uHIZZl0["CV_ballisticFrame"]=-(-705+804);
+HM1uHIZZl0["CV_lastSolvedHeadPos"]= nil;
+HM1uHIZZl0["CV_lastSolvedDir"]= nil HM1uHIZZl0["CV_lastSolvedPredicted"]= nil;
+if(0*381)>(730) then
+    local HIwxZu1=381+730
+    local boHMwownU= HIwxZu1*2
+end HM1uHIZZl0["CV_lastSolvedTime"]= nil w_ZpoH0p1["bHopuzIW"](
+function() u0xpmq_WoUlm:UnbindFromRenderStep(HM1uHIZZl0["CV_RenderStepName"])
 end)
-for oUNoI, v_UMbvvnzpopql in ipairs(ESPState.CV_Connections) do
-pcall(
- function() v_UMbvvnzpopql:Disconnect()
+for oUNoI,v_UMbvvnzpopql in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["CV_Connections"]) do
+w_ZpoH0p1["bHopuzIW"](
+    function() v_UMbvvnzpopql:Disconnect()
 end)
-end
-ESPState.CV_Connections = {};
-ESPState.CV_HookedButtons = {} ESPState.CV_InputBeganConn = nil;
-ESPState.CV_InputEndedConn = nil;
-ESPState.CV_WatchConn = nil;
-ESPState.CV_VisualConn = nil
-end
-end
-local function func3(wxbXbI, QnvbX00QlovM, wUNI_u, BwM0wo)
-local gui5 = Instance.new("BillboardGui")
-gui5.AlwaysOnTop = true;
-gui5.Size = wUNI_u or UDim2.new(0, 40, 0, 40);
-gui5.StudsOffset = Vector3.new(0, 3.5, 0)
-local color1 = Instance.new("TextLabel")
-color1.Name = "Label";
-color1.Size = UDim2.new(1, 0, 1, 0);
-color1.BackgroundTransparency = 1 color1.Text = wxbXbI;
-color1.TextColor3 = QnvbX00QlovM;
-color1.TextStrokeTransparency = 0 _WHxwDXUx.TextStrokeColor3 = Color3.new(0, 0, 0);
-color1.TextSize = BwM0wo or 22 color1.Font = Enum.Font.GothamBold;
-color1.RichText = true;
-color1.Parent = gui5
-return gui5
-end
-local function func4()
-for uNpoqHmX, HasESP in pairs(ESPState.espObjects) do
- if HasESP and HasESP.billboard and HasESP.billboard.Parentthen
- local v1 = GetPlayerRole(uNpoqHmX);
- local v2 = v1=="killer" HasESP.nameLabel.Visible = (v2 and Settings.killerShowName) or(not v2 and Settings.survivorShowName)
-HasESP.nameLabel.Text = ESPState.pnameEnabled and(ESPState.pnameFakeNames[uNpoqHmX] or uNpoqHmX.Name) or uNpoqHmX.NameHasESP.billboard.MaxDistance = Settings.maxDistanceend
-end
-for bDZWWwpUHIOnM, HasOutline in pairs(ESPState.outlineObjects) do
- if HasOutline and HasOutline.Parentthen
- local v3 = GetPlayerRole(bDZWWwpUHIOnM);
- local v4 = v3=="killer"
- local v5 = v4 and Settings.killerColoror Settings.survivorColorlocal inst6 = (v4 and Settings.killerShowOutline) or(not v4 and Settings.survivorShowOutline)
- local inst7 = (v4 and Settings.killerOutlineOnly) or(not v4 and Settings.survivorOutlineOnly)
-HasOutline.FillColor = v5;
-HasOutline.OutlineColor = v5;
-HasOutline.Enabled = inst6 HasOutline.FillTransparency = inst7 and1 or Settings.fillTransparency
+end HM1uHIZZl0["CV_Connections"]={};
+HM1uHIZZl0["CV_HookedButtons"]={} HM1uHIZZl0["CV_InputBeganConn"]= nil;
+HM1uHIZZl0["CV_InputEndedConn"]= nil;
+HM1uHIZZl0["CV_WatchConn"]= nil;
+HM1uHIZZl0["CV_VisualConn"]= nil
 end
 end
+local function Q1wIOIZ0mONH(wxbXbI,QnvbX00QlovM,wUNI_u,BwM0wo)
+local uIn1xq= Instance["new"]("BillboardGui") uIn1xq["AlwaysOnTop"]= true;
+uIn1xq["Size"]= wUNI_u or UDim2["new"]((32-32),(-266+306),(871-871),40);
+uIn1xq["StudsOffset"]= Vector3["new"](0,3.5,0)
+local _WHxwDXUx= Instance["new"]("TextLabel") _WHxwDXUx["Name"]="Label";
+_WHxwDXUx["Size"]= UDim2["new"]((-760+761),0,1,(-893+893));
+_WHxwDXUx["BackgroundTransparency"]=1 _WHxwDXUx["Text"]= wxbXbI;
+_WHxwDXUx["TextColor3"]= QnvbX00QlovM;
+_WHxwDXUx["TextStrokeTransparency"]=(967-967) _WHxwDXUx["TextStrokeColor3"]= Color3["new"](0,0,0);
+_WHxwDXUx["TextSize"]= BwM0wo or 22 _WHxwDXUx["Font"]= Enum["Font"]["GothamBold"];
+_WHxwDXUx["RichText"]= true;
+_WHxwDXUx["Parent"]= uIn1xq
+return uIn1xq
 end
-local function func5(MQ00Dw1nI0bZml, WOQq_)
-local inst8 = ESPState.espObjects[MQ00Dw1nI0bZml]
-if not inst8 then
- return
+local function uQmbzH_zOzIX()
+for uNpoqHmX,DHnUvMIZXI_QW in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["espObjects"]) do
+    if DHnUvMIZXI_QW and DHnUvMIZXI_QW["billboard"] and DHnUvMIZXI_QW["billboard"]["Parent"] then
+        local oXwqO= vWlM1ZWQubmZp(uNpoqHmX);
+        local IqxzpuHXZn= oXwqO=="killer" DHnUvMIZXI_QW["nameLabel"]["Visible"]=(IqxzpuHXZn and Wv0HMNDowvn["killerShowName"]) or(not IqxzpuHXZn and Wv0HMNDowvn["survivorShowName"]) DHnUvMIZXI_QW["nameLabel"]["Text"]= HM1uHIZZl0["pnameEnabled"] and(HM1uHIZZl0["pnameFakeNames"][uNpoqHmX] or uNpoqHmX["Name"]) or uNpoqHmX["Name"] DHnUvMIZXI_QW["billboard"]["MaxDistance"]= Wv0HMNDowvn["maxDistance"]
+    end
 end
-if not WOQq_ or not WOQq_.Parentor MQ00Dw1nI0bZml.Character~= WOQq_ then
- return
+for bDZWWwpUHIOnM,bboZN1z_ in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["outlineObjects"]) do
+    if bboZN1z_ and bboZN1z_["Parent"] then
+        local pxxxOb= vWlM1ZWQubmZp(bDZWWwpUHIOnM);
+        local qQomm= pxxxOb=="killer"
+        local HOmQDIvDx= qQomm and Wv0HMNDowvn["killerColor"] or Wv0HMNDowvn["survivorColor"]
+        local u_ZmHpO=(qQomm and Wv0HMNDowvn["killerShowOutline"]) or(not qQomm and Wv0HMNDowvn["survivorShowOutline"])
+        local QOv1W1IU=(qQomm and Wv0HMNDowvn["killerOutlineOnly"]) or(not qQomm and Wv0HMNDowvn["survivorOutlineOnly"]) bboZN1z_["FillColor"]= HOmQDIvDx;
+bboZN1z_["OutlineColor"]= HOmQDIvDx;
+bboZN1z_["Enabled"]= u_ZmHpO bboZN1z_["FillTransparency"]= QOv1W1IU and(809-808) or Wv0HMNDowvn["fillTransparency"]
+    end
 end
-local char2 = WOQq_:FindFirstChild("HumanoidRootPart") or WOQq_:FindFirstChild("Torso") or WOQq_:FindFirstChild("UpperTorso") or WOQq_:FindFirstChild("Head")
-if not char2 then
-task.spawn(
- function()
- local QwbwpWpxwqXpW, _p0nO = pcall(
- function()
- return WOQq_:WaitForChild("HumanoidRootPart", 3)
+end
+local function ozoHvMX1wbMNu(MQ00Dw1nI0bZml,WOQq_)
+local WlZpwHHHqDDN= HM1uHIZZl0["espObjects"][MQ00Dw1nI0bZml]
+if not WlZpwHHHqDDN then
+    return
+end
+if not WOQq_ or not WOQq_["Parent"] or MQ00Dw1nI0bZml["Character"]~= WOQq_ then
+    return
+end
+local qZvwm= WOQq_["FindFirstChild"](WOQq_,"HumanoidRootPart") or WOQq_["FindFirstChild"](WOQq_,"Torso") or WOQq_["FindFirstChild"](WOQq_,"UpperTorso") or WOQq_["FindFirstChild"](WOQq_,"Head")
+if not qZvwm then
+task["spawn"](
+    function()
+    local QwbwpWpxwqXpW,_p0nO= w_ZpoH0p1["bHopuzIW"](
+    function()
+    return WOQq_["WaitForChild"](WOQq_,"HumanoidRootPart",(-612+615))
 end)
-if QwbwpWpxwqXpW and _p0nO and _p0nO.Parent and WOQq_.Parentand MQ00Dw1nI0bZml.Character== WOQq_ then
- if inst8.billboard then
-inst8.billboard.Adornee = _p0nO inst8.billboard.Enabled = true
- end
-if inst8.itemBillboardthen inst8.itemBillboard.Adornee = _p0nO inst8.itemBillboard.Enabled = true
-end
+if QwbwpWpxwqXpW and _p0nO and _p0nO["Parent"] and WOQq_["Parent"] and MQ00Dw1nI0bZml["Character"]== WOQq_ then
+    if WlZpwHHHqDDN["billboard"] then
+WlZpwHHHqDDN["billboard"]["Adornee"]= _p0nO WlZpwHHHqDDN["billboard"]["Enabled"]= true
+    end
+    if WlZpwHHHqDDN["itemBillboard"] then
+WlZpwHHHqDDN["itemBillboard"]["Adornee"]= _p0nO WlZpwHHHqDDN["itemBillboard"]["Enabled"]= true
+    end
 end
 end)
 return
 end
-if inst8.billboardthen inst8.billboard.Adornee = char2 inst8.billboard.Enabled = true
+if WlZpwHHHqDDN["billboard"] then
+WlZpwHHHqDDN["billboard"]["Adornee"]= qZvwm WlZpwHHHqDDN["billboard"]["Enabled"]= true
 end
-if inst8.itemBillboardthen inst8.itemBillboard.Adornee = char2 inst8.itemBillboard.Enabled = true
+if WlZpwHHHqDDN["itemBillboard"] then
+WlZpwHHHqDDN["itemBillboard"]["Adornee"]= qZvwm WlZpwHHHqDDN["itemBillboard"]["Enabled"]= true
 end
-local v6 = GetPlayerRole(MQ00Dw1nI0bZml);
-local v7 = v6=="killer" inst8.nameLabel.Visible = (v7 and Settings.killerShowName) or(not v7 and Settings.survivorShowName)
-inst8.nameLabel.Text = ESPState.pnameEnabled and(ESPState.pnameFakeNames[MQ00Dw1nI0bZml] or MQ00Dw1nI0bZml.Name) or MQ00Dw1nI0bZml.Nameend
-local function func6(HM0pbqmvOM)
-if ESPState.espObjects[HM0pbqmvOM] then
- if ESPState.espObjects[HM0pbqmvOM].billboardthen ESPState.espObjects[HM0pbqmvOM].billboard:Destroy()
+local bnnUxDM1= vWlM1ZWQubmZp(MQ00Dw1nI0bZml);
+local vZIXnl_lqw0nv= bnnUxDM1=="killer" WlZpwHHHqDDN["nameLabel"]["Visible"]=(vZIXnl_lqw0nv and Wv0HMNDowvn["killerShowName"]) or(not vZIXnl_lqw0nv and Wv0HMNDowvn["survivorShowName"]) WlZpwHHHqDDN["nameLabel"]["Text"]= HM1uHIZZl0["pnameEnabled"] and(HM1uHIZZl0["pnameFakeNames"][MQ00Dw1nI0bZml] or MQ00Dw1nI0bZml["Name"]) or MQ00Dw1nI0bZml["Name"]
 end
-if ESPState.espObjects[HM0pbqmvOM].itemBillboardthen ESPState.espObjects[HM0pbqmvOM].itemBillboard:Destroy()
+local function MXwU1D0(HM0pbqmvOM)
+if HM1uHIZZl0["espObjects"][HM0pbqmvOM] then
+    if HM1uHIZZl0["espObjects"][HM0pbqmvOM]["billboard"] then
+HM1uHIZZl0["espObjects"][HM0pbqmvOM]["billboard"]:Destroy()
+    end
+    if HM1uHIZZl0["espObjects"][HM0pbqmvOM]["itemBillboard"] then
+HM1uHIZZl0["espObjects"][HM0pbqmvOM]["itemBillboard"]:Destroy()
+    end HM1uHIZZl0["espObjects"][HM0pbqmvOM]= nil
 end
-ESPState.espObjects[HM0pbqmvOM]= nil
-end
-if ESPState.outlineObjects[HM0pbqmvOM] then
-ESPState.outlineObjects[HM0pbqmvOM]:Destroy();
-ESPState.outlineObjects[HM0pbqmvOM]= nil
-end
-ESPState.playerRoles[HM0pbqmvOM]= nil
-if ESPState.playerTeamConns[HM0pbqmvOM] then
-ESPState.playerTeamConns[HM0pbqmvOM]:Disconnect();
-ESPState.playerTeamConns[HM0pbqmvOM]= nil
-end
-end
-local function Oqpmb(DQvmwUI0, puNHplqx)
-local esp1 = ESPState.outlineObjects[DQvmwUI0]
-if not esp1 then
- return
-end
-if not puNHplqx or not puNHplqx.Parentor DQvmwUI0.Character~= puNHplqx then
- return
-end
-local esp2 = GetPlayerRole(DQvmwUI0);
-local v8 = esp2=="killer"
-local v9 = v8 and Settings.killerColoror Settings.survivorColorlocal char3 = (v8 and Settings.killerShowOutline) or(not v8 and Settings.survivorShowOutline)
-local char4 = (v8 and Settings.killerOutlineOnly) or(not v8 and Settings.survivorOutlineOnly)
-esp1.Adornee = puNHplqx esp1.FillColor = v9 esp1.OutlineColor = v9 esp1.FillTransparency = char4 and 1 or Settings.fillTransparency esp1.OutlineTransparency = 0 esp1.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop esp1.Enabled = char3
-end
-local function func7(v_xQlDHqM_)
-if v_xQlDHqM_== LocalPlayer then
- return
-end
-if not v_xQlDHqM_ or not v_xQlDHqM_.Parent then
- return
-end
-local flag1 = ESPState.espObjects[v_xQlDHqM_]
-local flag2 = ESPState.outlineObjects[v_xQlDHqM_]
-if not flag1 and not flag2 then
- return
-end
-local vlo_lu = v_xQlDHqM_.Character
-if not vlo_lu or not vlo_lu.Parentthen
-if flag1 and flag1.billboardthen flag1.billboard.Adornee = nil
-end
-if flag1 and flag1.itemBillboard then
-flag1.itemBillboard.Adornee = nil
-end
-if flag2 then
-flag2.Adornee = nil;
-flag2.Enabled = false
-end
-return
-end
-local v10 = vlo_lu:FindFirstChild("HumanoidRootPart") or vlo_lu:FindFirstChild("Torso") or vlo_lu:FindFirstChild("UpperTorso") or vlo_lu:FindFirstChild("Head")
-if not v10 then
- return
-end
-if flag1 and flag1.billboard then
- if flag1.billboard.Adornee~= v10 then
-flag1.billboard.Adornee = v10
- end
-if not flag1.billboard.Enabledthen flag1.billboard.Enabled = true
+if HM1uHIZZl0["outlineObjects"][HM0pbqmvOM] then
+HM1uHIZZl0["outlineObjects"][HM0pbqmvOM]:Destroy();
+HM1uHIZZl0["outlineObjects"][HM0pbqmvOM]= nil
+end HM1uHIZZl0["playerRoles"][HM0pbqmvOM]= nil
+if HM1uHIZZl0["playerTeamConns"][HM0pbqmvOM] then
+HM1uHIZZl0["playerTeamConns"][HM0pbqmvOM]:Disconnect();
+HM1uHIZZl0["playerTeamConns"][HM0pbqmvOM]= nil
 end
 end
-if flag1 and flag1.itemBillboard then
- if flag1.itemBillboard.Adornee~= v10 then
-flag1.itemBillboard.Adornee = v10
- end
-if not flag1.itemBillboard.Enabled then
-flag1.itemBillboard.Enabled = true
- end
+local function Oqpmb(DQvmwUI0,puNHplqx)
+local NnvMmbmNn1oDp= HM1uHIZZl0["outlineObjects"][DQvmwUI0]
+if not NnvMmbmNn1oDp then
+    return
 end
-if flag2 then
- if flag2.Adornee~= vlo_lu then
-Oqpmb(v_xQlDHqM_, vlo_lu)
- else
- if not flag2.Enabledthen
- local color2 = GetPlayerRole(v_xQlDHqM_);
- local color3 = color2=="killer"
- local v11 = (color3 and Settings.killerShowOutline) or(not color3 and Settings.survivorShowOutline)
-flag2.Enabled = v11
+if not puNHplqx or not puNHplqx["Parent"] or DQvmwUI0["Character"]~= puNHplqx then
+    return
+end
+local D_vDMoxHUWuvD= vWlM1ZWQubmZp(DQvmwUI0);
+local BOWXw= D_vDMoxHUWuvD=="killer"
+local lZnQmH0Mz= BOWXw and Wv0HMNDowvn["killerColor"] or Wv0HMNDowvn["survivorColor"]
+local vUDUZN=(BOWXw and Wv0HMNDowvn["killerShowOutline"]) or(not BOWXw and Wv0HMNDowvn["survivorShowOutline"])
+local pmUnNOobopbOW=(BOWXw and Wv0HMNDowvn["killerOutlineOnly"]) or(not BOWXw and Wv0HMNDowvn["survivorOutlineOnly"]) NnvMmbmNn1oDp["Adornee"]= puNHplqx NnvMmbmNn1oDp["FillColor"]= lZnQmH0Mz NnvMmbmNn1oDp["OutlineColor"]= lZnQmH0Mz NnvMmbmNn1oDp["FillTransparency"]= pmUnNOobopbOW and 1 or Wv0HMNDowvn["fillTransparency"] NnvMmbmNn1oDp["OutlineTransparency"]=0 NnvMmbmNn1oDp["DepthMode"]= Enum["HighlightDepthMode"]["AlwaysOnTop"] NnvMmbmNn1oDp["Enabled"]= vUDUZN
+end
+local function W1NH1ZnM_1m(v_xQlDHqM_)
+if v_xQlDHqM_== Hnv0Zw then
+    return
+end
+if not v_xQlDHqM_ or not v_xQlDHqM_["Parent"] then
+    return
+end
+local oQpWoU1zzo_q= HM1uHIZZl0["espObjects"][v_xQlDHqM_]
+local B_WUpUI= HM1uHIZZl0["outlineObjects"][v_xQlDHqM_]
+if not oQpWoU1zzo_q and not B_WUpUI then
+    return
+end
+local vlo_lu= v_xQlDHqM_["Character"]
+if not vlo_lu or not vlo_lu["Parent"] then
+    if oQpWoU1zzo_q and oQpWoU1zzo_q["billboard"] then
+oQpWoU1zzo_q["billboard"]["Adornee"]= nil
+    end
+    if oQpWoU1zzo_q and oQpWoU1zzo_q["itemBillboard"] then
+oQpWoU1zzo_q["itemBillboard"]["Adornee"]= nil
+    end
+    if B_WUpUI then
+B_WUpUI["Adornee"]= nil;
+B_WUpUI["Enabled"]= false
+    end
+    return
+end
+local uNWMMboxW1DvW= vlo_lu["FindFirstChild"](vlo_lu,"HumanoidRootPart") or vlo_lu["FindFirstChild"](vlo_lu,"Torso") or vlo_lu["FindFirstChild"](vlo_lu,"UpperTorso") or vlo_lu["FindFirstChild"](vlo_lu,"Head")
+if not uNWMMboxW1DvW then
+    return
+end
+if oQpWoU1zzo_q and oQpWoU1zzo_q["billboard"] then
+    if oQpWoU1zzo_q["billboard"]["Adornee"]~= uNWMMboxW1DvW then
+oQpWoU1zzo_q["billboard"]["Adornee"]= uNWMMboxW1DvW
+    end
+    if not oQpWoU1zzo_q["billboard"]["Enabled"] then
+oQpWoU1zzo_q["billboard"]["Enabled"]= true
+    end
+end
+if oQpWoU1zzo_q and oQpWoU1zzo_q["itemBillboard"] then
+    if oQpWoU1zzo_q["itemBillboard"]["Adornee"]~= uNWMMboxW1DvW then
+oQpWoU1zzo_q["itemBillboard"]["Adornee"]= uNWMMboxW1DvW
+    end
+    if not oQpWoU1zzo_q["itemBillboard"]["Enabled"] then
+oQpWoU1zzo_q["itemBillboard"]["Enabled"]= true
+    end
+end
+if B_WUpUI then
+    if B_WUpUI["Adornee"]~= vlo_lu then
+Oqpmb(v_xQlDHqM_,vlo_lu)
+    else
+    if not B_WUpUI["Enabled"] then
+        local uuNzvHb= vWlM1ZWQubmZp(v_xQlDHqM_);
+        local MuHWlq0nU1Z= uuNzvHb=="killer"
+        local qXDmlN0wxxZq=(MuHWlq0nU1Z and Wv0HMNDowvn["killerShowOutline"]) or(not MuHWlq0nU1Z and Wv0HMNDowvn["survivorShowOutline"]) B_WUpUI["Enabled"]= qXDmlN0wxxZq
+    end
 end
 end
 end
+local function HxW0NlvXwXHIqQ(M_qXM)
+if M_qXM== Hnv0Zw then
+    return
+end oHpnQZpOMIO0n(M_qXM)
+local v1nzqXmWXmIU_= vWlM1ZWQubmZp(M_qXM)
+local NZOnqO1= Instance["new"]("BillboardGui") NZOnqO1["Name"]="ESP_BB_".. M_qXM["Name"];
+NZOnqO1["AlwaysOnTop"]= true NZOnqO1["Size"]= UDim2["new"]((954-954),(1098-948),0,18) NZOnqO1["StudsOffset"]= Vector3["new"](0,3.5,(-778+778)) NZOnqO1["MaxDistance"]= Wv0HMNDowvn["maxDistance"];
+NZOnqO1["Parent"]= QwZOO1pHbl1_
+local M_nM_w= Instance["new"]("TextLabel") M_nM_w["Name"]="NameLabel";
+M_nM_w["Size"]= UDim2["new"](1,0,(994-993),0) M_nM_w["BackgroundTransparency"]=1 M_nM_w["TextColor3"]= Color3["fromRGB"]((836-581),(734-479),255);
+M_nM_w["TextStrokeTransparency"]=0 M_nM_w["TextStrokeColor3"]= Color3["new"](0,(375-375),(-613+613));
+M_nM_w["TextSize"]=12 M_nM_w["Font"]= Enum["Font"]["GothamBold"] M_nM_w["Text"]= HM1uHIZZl0["pnameEnabled"] and(HM1uHIZZl0["pnameFakeNames"][M_qXM] or M_qXM["Name"]) or M_qXM["Name"] M_nM_w["Visible"]=(v1nzqXmWXmIU_=="killer" and Wv0HMNDowvn["killerShowName"]) or(v1nzqXmWXmIU_~="killer" and Wv0HMNDowvn["survivorShowName"]) M_nM_w["Parent"]= NZOnqO1
+local vm_vUow= Instance["new"]("BillboardGui") vm_vUow["Name"]="ESP_Item_".. M_qXM["Name"] vm_vUow["AlwaysOnTop"]= true vm_vUow["Size"]= UDim2["new"](1.5,(732-732),1.5,0) vm_vUow["StudsOffset"]= Vector3["new"]((412-412),-5,(-348+348)) vm_vUow["MaxDistance"]= Wv0HMNDowvn["maxDistance"] vm_vUow["Parent"]= QwZOO1pHbl1_
+local _MxUNnNZuzM= Instance["new"]("ImageLabel") _MxUNnNZuzM["Name"]="ItemImage" _MxUNnNZuzM["Size"]= UDim2["new"]((-538+539),0,(710-709),0) _MxUNnNZuzM["BackgroundTransparency"]=(-772+773) _MxUNnNZuzM["Visible"]= false _MxUNnNZuzM["Parent"]= vm_vUow HM1uHIZZl0["espObjects"][M_qXM]={["billboard"]= NZOnqO1,["nameLabel"]= M_nM_w,["itemBillboard"]= vm_vUow,["itemImage"]= _MxUNnNZuzM}
+if M_qXM["Character"] then
+ozoHvMX1wbMNu(M_qXM,M_qXM["Character"])
 end
-local function func8(M_qXM)
-if M_qXM== LocalPlayer then
- return
-end
-IsPlayerAlive(M_qXM)
-local inst9 = GetPlayerRole(M_qXM)
-local inst10 = Instance.new("BillboardGui")
-inst10.Name = "ESP_BB_"..M_qXM.Name;
-inst10.AlwaysOnTop = true inst10.Size = UDim2.new(0, 150, 0, 18)
-inst10.StudsOffset = Vector3.new(0, 3.5, 0)
-inst10.MaxDistance = Settings.maxDistance;
-inst10.Parent = ESPFramesFolder
-local gui6 = Instance.new("TextLabel")
-gui6.Name = "NameLabel";
-gui6.Size = UDim2.new(1, 0, 1, 0)
-gui6.BackgroundTransparency = 1 gui6.TextColor3 = Color3.fromRGB(255, 255, 255);
-gui6.TextStrokeTransparency = 0 gui6.TextStrokeColor3 = Color3.new(0, 0, 0);
-gui6.TextSize = 12 gui6.Font = Enum.Font.GothamBoldM_nM_w.Text = ESPState.pnameEnabledand(ESPState.pnameFakeNames[M_qXM] or M_qXM.Name) or M_qXM.Name gui6.Visible = (inst9=="killer" and Settings.killerShowName) or(inst9~="killer" and Settings.survivorShowName)
-gui6.Parent = inst10
-local inst11 = Instance.new("BillboardGui")
-inst11.Name = "ESP_Item_"..M_qXM.Name inst11.AlwaysOnTop = true inst11.Size = UDim2.new(1.5, 0, 1.5, 0)
-inst11.StudsOffset = Vector3.new(0,- 5, 0)
-inst11.MaxDistance = Settings.maxDistance inst11.Parent = ESPFramesFolder
-local inst12 = Instance.new("ImageLabel")
-inst12.Name = "ItemImage" inst12.Size = UDim2.new(1, 0, 1, 0)
-inst12.BackgroundTransparency = 1 _MxUNnNZuzM.Visible = false inst12.Parent = inst11 ESPState.espObjects[M_qXM]={ billboard = inst10, nameLabel = gui6, itemBillboard = inst11, itemImage = inst12}
-if M_qXM.Character then
-func5(M_qXM, M_qXM.Character)
-end
-if not ESPState.playerTeamConns[M_qXM] then
-ESPState.playerTeamConns[M_qXM]= M_qXM:GetPropertyChangedSignal("Team"):Connect(
- function() IsPlayerAlive(M_qXM) func4()
-task.delay(0.5,
- function() func7(M_qXM)
-end)
-task.delay(2,
-function() func7(M_qXM)
+if not HM1uHIZZl0["playerTeamConns"][M_qXM] then
+HM1uHIZZl0["playerTeamConns"][M_qXM]= M_qXM["GetPropertyChangedSignal"](M_qXM,"Team"):Connect(
+    function() oHpnQZpOMIO0n(M_qXM) uQmbzH_zOzIX() task["delay"](0.5,
+    function() W1NH1ZnM_1m(M_qXM)
+end) task["delay"](2,
+function() W1NH1ZnM_1m(M_qXM)
 end)
 end)
 end
 end
 local function wxouub(qpuXO_xp1QqO_)
-if qpuXO_xp1QqO_== LocalPlayer then
- return
+if qpuXO_xp1QqO_== Hnv0Zw then
+    return
 end
-local flag3 = Instance.new("Highlight");
-flag3.Parent = ESPFramesFolder ESPState.outlineObjects[qpuXO_xp1QqO_]= flag3
-if qpuXO_xp1QqO_.Character then
-Oqpmb(qpuXO_xp1QqO_, qpuXO_xp1QqO_.Character)
+local wNmDv= Instance["new"]("Highlight");
+wNmDv["Parent"]= QwZOO1pHbl1_ HM1uHIZZl0["outlineObjects"][qpuXO_xp1QqO_]= wNmDv
+if qpuXO_xp1QqO_["Character"] then
+Oqpmb(qpuXO_xp1QqO_,qpuXO_xp1QqO_["Character"])
 end
 end
-local function func9(ValueToCheck, __DWvwowb)
-if typeof(ValueToCheck)~="Instance" then
- return nil
+local function wmbMHDw_(IbqwwuNomON1p,__DWvwowb)
+if w_ZpoH0p1["bHmuv"](IbqwwuNomON1p)~="Instance" then
+    return nil
 end
-local gen1 = ValueToCheck:GetAttribute(__DWvwowb)
-if gen1~= nil then
- return gen1
+local Bvb_Op= IbqwwuNomON1p["GetAttribute"](IbqwwuNomON1p,__DWvwowb)
+if Bvb_Op~= nil then
+    return Bvb_Op
 end
-local gen2 = ValueToCheck:FindFirstChild(__DWvwowb)
-if gen2 and gen2:IsA("ValueBase") then
- return gen2.Valueend
- return nil
-end
-local function func10(DUZuDNN, ubUlQIO0W_XuXz)
-if not DUZuDNN or not DUZuDNN.Parent then
- return
-end
-local inst13 = DUZuDNN:FindFirstChild("__BolongHL__")
-if not inst13 then
-inst13 = Instance.new("Highlight");
-inst13.Name = "__BolongHL__";
-inst13.Adornee = DUZuDNN inst13.FillTransparency = 1;
-inst13.OutlineTransparency = 0;
-inst13.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop inst13.FillColor = ubUlQIO0W_XuXz;
-inst13.OutlineColor = ubUlQIO0W_XuXz;
-inst13.Parent = DUZuDNN;
- return
-end
-if inst13.FillColor~= ubUlQIO0W_XuXz then
-inst13.FillColor = ubUlQIO0W_XuXz;
-inst13.OutlineColor = ubUlQIO0W_XuXz
-end
-if not inst13.Enabledthen inst13.Enabled = true
-end
-end
-local function func11(wMuuQUW)
-if not wMuuQUW then
- return
-end
-local gen3 = wMuuQUW:FindFirstChild("__BolongHL__")
-if gen3 then
-gen3.Destroy(gen3)
-end
-end
-local function func12(GeneratorPart)
-if not GeneratorPart or not GeneratorPart.Parentthen
-return true
-end
-if ESPState.completedGenerators[GeneratorPart] then
- return true
-end
-local Progress = GeneratorPart:GetAttribute("RepairProgress") or GeneratorPart:GetAttribute("Progress") or 0
-local gen4 = (Progress>= 100) or(GeneratorPart:GetAttribute("Completed")== true) or(GeneratorPart:GetAttribute("IsCompleted")== true) or(GeneratorPart:GetAttribute("Done")== true)
-local gen5 = GeneratorPart:FindFirstChild("__BolongGenProgress__")
-if gen4 then
- if gen5 then
-gen5.Destroy(gen5)
- end
-func11(GeneratorPart) GeneratorPart:SetAttribute("__BolongGenLastPct__", nil) GeneratorPart:SetAttribute("__BolongGenLastInfo__", nil)
-ESPState.completedGenerators[GeneratorPart]= true ESPState.genIndices[GeneratorPart]= nil
- return gen4
-end
-if Settings.espGeneratorEnabledthen func10(GeneratorPart, Settings.espGeneratorColor)
-else func11(GeneratorPart)
-end
-if Settings.espGeneratorProgressGen then
- local CoordY = GeneratorPart:GetAttribute("PlayersRepairingCount") or0
- local CoordZ = GeneratorPart:GetAttribute("kickcount") or 0 do
- local inst14 = 279*(0+ 1- 1)
- local inst15 = inst14+ 495- 495
- end
-local CoordX = math.floor(Progress+ 0.5)
- local GeneratorModel = GeneratorPart:GetAttribute("__BolongGenLastPct__")
- local MZ00U = GeneratorPart:GetAttribute("__BolongGenLastInfo__")
- local GenNum = ESPState.genIndices[GeneratorPart] or 1
- local v12 = string.format("%d_%d_%d_%s_%d", CoordX, CoordY, CoordZ, tostring(Settings.espGenShowPK), GenNum)
- if GeneratorModel== CoordX and MZ00U== v12 and gen5 then
- return false
- end
-GeneratorPart:SetAttribute("__BolongGenLastPct__", CoordX) GeneratorPart:SetAttribute("__BolongGenLastInfo__", v12)
- local inst16 = math.clamp(Progress, 0, 100)
- local gen6 = (inst16< 50) and Settings.espGeneratorColor:Lerp(Color3.fromRGB(255, 200, 0), inst16/ 50) or Color3.fromRGB(255, 200, 0):Lerp(Color3.fromRGB(100, 255, 80),(inst16- 50)/ 50)
- local gui7 = gen6.ToHex(gen6)
- local gui8 = string.format("GEN%d", GenNum)
- local gui9 = string.format("%d%%", CoordX)
- local color4 = GeneratorPart:FindFirstChild("GeneratorBody", true) or GeneratorPart:FindFirstChild("defaultMaterial", true) or(GeneratorPart:IsA("Model") and GeneratorPart.PrimaryPart) or GeneratorPart:FindFirstChildWhichIsA("BasePart", true)
- if not color4 then
- return false
- end
-local color5 = "F4D03F"
- local color6 = string.format("<font size = \"9\" color = \"#%s\">%s</font> <font color = \"#555555\">│</font> <font color = \"#%s\">%s</font>", color5, gui8, gui7, gui9)
- if Settings.espGenShowPKthen color6 = color6..string.format(" <font color = \"#555555\">│</font> <font color = \"#76D7C4\">P:%d</font> <font color = \"#555555\">│</font> <font color = \"#FF6B6B\">K:%d</font>", CoordY, CoordZ)
-end
-if not gen5 then
-gen5 = Instance.new("BillboardGui")
-gen5.Name = "__BolongGenProgress__" gen5.Adornee = color4 gen5.AlwaysOnTop = true gen5.LightInfluence = 0 gen5.ResetOnSpawn = false gen5.MaxDistance = 260 vu0MWq0nn.Size = UDim2.new(0, 100, 0, 14)
- local gen7 = (color4.Size.Y/ 2)+ 3.5 gen5.StudsOffset = Vector3.new(0, gen7, 0)
-gen5.Parent = GeneratorPart
- local conn1 = Instance.new("TextLabel")
-conn1.Name = "Label" conn1.BackgroundTransparency = 1 conn1.Size = UDim2.new(1, 0, 1, 0)
-conn1.Position = UDim2.new(0, 0, 0, 0)
-conn1.Font = Enum.Font.GothamBlack_1Xm1boDQ.TextSize = 11 conn1.RichText = true conn1.Text = color6 conn1.TextColor3 = Color3.fromRGB(255, 255, 255)
-conn1.TextXAlignment = Enum.TextXAlignment.Center conn1.Parent = gen5
- local pallet1 = Instance.new("UIStroke")
-pallet1.Thickness = 0.8 pallet1.Transparency = 0.4 pallet1.Color = Color3.new(0, 0, 0)
-pallet1.Parent = conn1
-else
-if gen5.Adornee~= color4 then
-gen5.Adornee = color4
-end
-local pallet2 = (color4.Size.Y/ 2)+ 3.5 gen5.StudsOffset = Vector3.new(0, pallet2, 0)
-local conn2 = gen5:FindFirstChild("Label")
-if conn2 then
-conn2.Text = color6
-end
-end
-else
-if gen5 then
-gen5.Destroy(gen5) GeneratorPart:SetAttribute("__BolongGenLastPct__", nil) GeneratorPart:SetAttribute("__BolongGenLastInfo__", nil)
-end
-end
-return false
-end
-local function func13(uQwnIWq)
-local function func14()
-if not Settings.espGeneratorEnabledand not Settings.espGeneratorProgressGenthen
-return
-end
-func12(uQwnIWq)
-end
-pcall(
-function() uQwnIWq:GetAttributeChangedSignal("RepairProgress"):Connect(func14) uQwnIWq:GetAttributeChangedSignal("Progress"):Connect(func14) uQwnIWq:GetAttributeChangedSignal("Completed"):Connect(func14) uQwnIWq:GetAttributeChangedSignal("IsCompleted"):Connect(func14) uQwnIWq:GetAttributeChangedSignal("PlayersRepairingCount"):Connect(func14) uQwnIWq:GetAttributeChangedSignal("kickcount"):Connect(func14)
-end)
-end
-local function func15(ollbxU, bmIvxUmw)
-local function wzxpnp()
-local flag4 = func9(ollbxU,"Dropped") or func9(ollbxU,"IsDropped")
-local gen8 = func9(ollbxU,"Broken") or func9(ollbxU,"IsBroken") or func9(ollbxU,"Destroyed")
-if flag4 or gen8 or bmIvxUmw.isFake then
-func11(ollbxU)
- for vZoIuz1ZMIbQv, _Xqln_ in ipairs(ESPState.cachedMapObjects.Pallets) do
- if _Xqln_== ollbxU then
-table.remove(ESPState.cachedMapObjects.Pallets, vZoIuz1ZMIbQv);
-break
- end
-end ESPState.cachedPalletMeta[ollbxU]= nil
-end
-end
-for qq1bWop, DMXux in ipairs({"Dropped","IsDropped","Broken","IsBroken","Destroyed"}) do
-ollbxU:GetAttributeChangedSignal(DMXux):Connect(wzxpnp)
-end
-ollbxU.ChildAdded:Connect(
-function(lwNxm0XbH)
-if lwNxm0XbH:IsA("ValueBase") and(lwNxm0XbH.Name=="Dropped" or lwNxm0XbH.Name=="IsDropped" or lwNxm0XbH.Name=="Broken" or lwNxm0XbH.Name=="IsBroken" or lwNxm0XbH.Name=="Destroyed") then
-lwNxm0XbH.Changed:Connect(wzxpnp)
-end
-end)
-end
-local function func16(_XUDb, ubWxl)
-if not _XUDb or not _XUDb.Parentthen
-return
-end
-local v13 = _XUDb:IsA("BasePart") and{ _XUDb} or _XUDb.GetDescendants(_XUDb)
-for NmwpxIuzZH, lpXboQo1 in ipairs(v13) do
- if lpXboQo1:IsA("BasePart") then
- if ubWxl then
- if not ESPState.ghostGateOriginals[lpXboQo1] then
-ESPState.ghostGateOriginals[lpXboQo1]={ CanCollide = lpXboQo1.CanCollide, Transparency = lpXboQo1.Transparency}
- end
-lpXboQo1.CanCollide = false lpXboQo1.Transparency = 0.6
- else
- if ESPState.ghostGateOriginals[lpXboQo1] then
-lpXboQo1.CanCollide = ESPState.ghostGateOriginals[lpXboQo1].CanCollidelpXboQo1.Transparency = ESPState.ghostGateOriginals[lpXboQo1].Transparency
- end
-end
-end
-end
-end
-local function func17(TargetModel)
-local inst17 = TargetModel.Name
-if inst17=="Generator" then
-table.insert(ESPState.cachedMapObjects.Generators, TargetModel)
- if not ESPState.genIndices[TargetModel] then
- if next(ESPState.genIndices)== nil then
-ESPState.nextGenIndex = 1
- end
-ESPState.genIndices[TargetModel]= ESPState.nextGenIndex ESPState.nextGenIndex = ESPState.nextGenIndex+ 1
- end
-if Settings.espGeneratorEnabledthen func12(TargetModel);
-func13(TargetModel)
-end
-elseif inst17=="Hook" then
-table.insert(ESPState.cachedMapObjects.Hooks, TargetModel)
- local MapParts = {}
- local ModelChild = TargetModel:FindFirstChild("Model")
- if ModelChild then
- for Idx, Child in ipairs(ModelChild.GetDescendants(ModelChild)) do
- if Child:IsA("MeshPart") then
-table.insert(MapParts, Child)
- end
-end
- end
-ESPState.cachedHookMeshParts[TargetModel]= MapParts
- if Settings.espHookEnabled then
- if#MapParts> 0 then
- for _HuHwZQ, wuqvv1bQ0X0 in ipairs(MapParts) do
-func10(wuqvv1bQ0X0, Settings.espHookColor)
- end
-else func10(TargetModel, Settings.espHookColor)
- end
-end
-elseif inst17=="Gate" then
-table.insert(ESPState.cachedMapObjects.Gates, TargetModel)
- if Settings.espGateEnabled then
-func10(TargetModel, Settings.espGateColor)
- end
-if ESPState.ghostGateEnabledthen func16(TargetModel, true)
-end
-elseif inst17=="Pallet" or inst17=="Palletwrong" then
-table.insert(ESPState.cachedMapObjects.Pallets, TargetModel)
- local v14 = inst17.lower(inst17)
- local PalletPart = (TargetModel:IsA("Model") and TargetModel.PrimaryPart) or TargetModel:FindFirstChildWhichIsA("BasePart", true) or(TargetModel:IsA("BasePart") and TargetModel)
- local IsFakePallet = v14:find("fake") or v14:find("broken") or v14:find("destroyed")
- local PalletMeta = { part = PalletPart, isFake = IsFakePallet and true or false} ESPState.cachedPalletMeta[TargetModel]= PalletMeta
- if Settings.espPalletEnabledand not PalletMeta.isFakethen func10(TargetModel, Settings.espPalletColor)
-end
-func15(TargetModel, PalletMeta)
-end
-end
-local function func18(Nl_mM)
-local gen9 = Nl_mM.Name
-if gen9=="Generator" then
- for _nmDHDuX1, uoooznUZz in ipairs(ESPState.cachedMapObjects.Generators) do
- if uoooznUZz== Nl_mM then
-table.remove(ESPState.cachedMapObjects.Generators, _nmDHDuX1);
-break
- end
-end ESPState.genIndices[Nl_mM]= nil ESPState.completedGenerators[Nl_mM]= nil func11(Nl_mM)
- local conn3 = Nl_mM:FindFirstChild("__BolongGenProgress__")
- if conn3 then
-conn3.Destroy(conn3)
- end
-if next(ESPState.genIndices)== nil then
-ESPState.nextGenIndex = 1
- end
-elseif gen9=="Hook" then
- for W1ovqUnu1D, lWuoDQ1 in ipairs(ESPState.cachedMapObjects.Hooks) do
- if lWuoDQ1== Nl_mM then
-table.remove(ESPState.cachedMapObjects.Hooks, W1ovqUnu1D);
-break
- end
-end
- local esp3 = ESPState.cachedHookMeshParts[Nl_mM]
- if esp3 then
- for ImbDbD, llu_UloD_1 in ipairs(esp3) do
-func11(llu_UloD_1)
- end
-else func11(Nl_mM)
-end
-ESPState.cachedHookMeshParts[Nl_mM]= nil
-elseif gen9=="Gate" then
- for OxqIZolbnpUIX, o1bo0wObZH1pb in ipairs(ESPState.cachedMapObjects.Gates) do
- if o1bo0wObZH1pb== Nl_mM then
-table.remove(ESPState.cachedMapObjects.Gates, OxqIZolbnpUIX);
-break
- end
-end func11(Nl_mM)
-elseif gen9=="Pallet" or gen9=="Palletwrong" then
- for qIw1vDn0W1bz1, vQIwx in ipairs(ESPState.cachedMapObjects.Pallets) do
- if vQIwx== Nl_mM then
-table.remove(ESPState.cachedMapObjects.Pallets, qIw1vDn0W1bz1);
-break
- end
-end func11(Nl_mM)
-ESPState.cachedPalletMeta[Nl_mM]= nil
-end
-end
-local function func19(bpZ1ZlIDDIUIw)
-if not bpZ1ZlIDDIUIw then
- return
-end
-ESPState.cachedMapObjects = { Generators = {}, Pallets = {}, Hooks = {}, Gates = {}} ESPState.cachedPalletMeta = {};
-ESPState.cachedHookMeshParts = {};
-ESPState.completedGenerators = {} ESPState.genIndices = {};
-ESPState.nextGenIndex = 1
-for lvwMZ1w1, WvDoZIbMW in ipairs(bpZ1ZlIDDIUIw.GetDescendants(bpZ1ZlIDDIUIw)) do
-func17(WvDoZIbMW)
-end
-end
-local function func20(bquDOpnb)
-if not bquDOpnb then
- return
-end
-func19(bquDOpnb)
-bquDOpnb.DescendantAdded:Connect(func17)
-bquDOpnb.DescendantRemoving:Connect(func18)
-ESPState.objEspInitialized = true
-end
-ESPState.windowEspObjects = {}
-local function func21(lwxXvqNU)
-if not lwxXvqNU or not lwxXvqNU.Parent or ESPState.windowEspObjects[lwxXvqNU] then
- return
-end
-local OzUwz = Settings.espWindowColorlocal v15 = Instance.new("BoxHandleAdornment")
-v15.Name = "WindowESP_Box" v15.Adornee = lwxXvqNU v15.Color3 = OzUwz v15.Transparency = 0.3 v15.Size = lwxXvqNU.Size v15.AlwaysOnTop = true v15.ZIndex = 10 v15.Parent = ESPFramesFolder ESPState.windowEspObjects[lwxXvqNU]= v15
-end
-local function func22(ObnHuZq)
-local gen10 = ESPState.windowEspObjects[ObnHuZq]
-if gen10 then
-pcall(
- function() gen10:Destroy()
-end)
-ESPState.windowEspObjects[ObnHuZq]= nil
-end
-end
-local function func23(wb1oq1)
-if typeof(wb1oq1)~="Instance" then
- return nil
-end
-local gen11 = string.lower(wb1oq1.Name)
-if gen11=="window" and wb1oq1:IsA("Model") then
- local inst18 = wb1oq1:FindFirstChild("Bottom", true)
- if inst18 and inst18:IsA("BasePart") then
- return inst18
- end
-return wb1oq1.PrimaryPartend
- if gen11=="bottom" and wb1oq1:IsA("BasePart") then
- if wb1oq1.Parentand string.lower(wb1oq1.Parent.Name)=="window" then
- return wb1oq1
- end
-end
- return nil
-end
-local function func24(IXUuzUWoDmXN)
-local pallet3 = func23(IXUuzUWoDmXN)
-if pallet3 then
- if Settings.espWindowEnabledand not ESPState.windowEspObjects[pallet3] then
-func21(pallet3)
- end
-end
-end
-Workspace.DescendantAdded:Connect(
-function(ImOQ0XH1m) func24(ImOQ0XH1m)
-end)
-Workspace.DescendantRemoving:Connect(
-function(Ov1pxpO1vlIbQ)
-local pallet4 = func23(Ov1pxpO1vlIbQ) or Ov1pxpO1vlIbQ
-if ESPState.windowEspObjects[pallet4] then
-func22(pallet4)
-end
-end)
-local function func25()
-for IzWqxqvHvlZ0N_, wvQovQ_UmZ in pairs(ESPState.windowEspObjects) do
- if not IzWqxqvHvlZ0N_ or not IzWqxqvHvlZ0N_.Parent then
-func22(IzWqxqvHvlZ0N_)
- end
-end
-if Settings.espWindowEnabled then
- for DHpolb, qZzX1UU in ipairs(Workspace.GetDescendants(Workspace)) do
-func24(qZzX1UU)
- end
-end
-end
-task.spawn(
-function()
-task.wait(3) func25()
-end)
-local function func26()
-if not ESPState.objEspInitialized then
- return
-end
-local v16 = Settings.espGeneratorEnabled or Settings.espGeneratorProgressGen
-if v16 then
- local v17 = {}
- for vnumNM0N, _UzWHvUnmIOMm in ipairs(ESPState.cachedMapObjects.Generators) do
- if _UzWHvUnmIOMm and _UzWHvUnmIOMm.Parentthen
- local v18 = func12(_UzWHvUnmIOMm)
- if not v18 then
-table.insert(v17, _UzWHvUnmIOMm)
- end
-end
-end
-ESPState.cachedMapObjects.Generators = v17
-else
-for MqunID, MbDUu1 in ipairs(ESPState.cachedMapObjects.Generators) do
- if MbDUu1 and MbDUu1.Parentthen func11(MbDUu1)
- local qnm1q = MbDUu1:FindFirstChild("__BolongGenProgress__")
- if qnm1q then
-qnm1q.Destroy(qnm1q)
- end
-MbDUu1:SetAttribute("__BolongGenLastPct__", nil)
-end
-end
-end
-if Settings.espPalletEnabled then
- for pDox0wQ__, HX1OUpNlDmxQl in ipairs(ESPState.cachedMapObjects.Pallets) do
- if HX1OUpNlDmxQl and HX1OUpNlDmxQl.Parent then
- local inst19 = ESPState.cachedPalletMeta[HX1OUpNlDmxQl]
- if inst19 and not inst19.isFakethen func10(HX1OUpNlDmxQl, Settings.espPalletColor)
- end
-end
-end
-else
-for bOHqqWIbxXDIX, WDpuWDZuwNv in ipairs(ESPState.cachedMapObjects.Pallets) do
- if WDpuWDZuwNv then
-func11(WDpuWDZuwNv)
- end
-end
-end
-if Settings.espHookEnabled then
- for v0WlDvl, bMmzqquHlp1u in ipairs(ESPState.cachedMapObjects.Hooks) do
- if bMmzqquHlp1u and bMmzqquHlp1u.Parentthen
- local tbl1 = ESPState.cachedHookMeshParts[bMmzqquHlp1u]
- if tbl1 then
- for D0HXHNZqZZ0I, oxwMo in ipairs(tbl1) do
-func10(oxwMo, Settings.espHookColor)
- end
-else func10(bMmzqquHlp1u, Settings.espHookColor)
- end
-end
-end
-else
-for D0NNI1OZ, _pIWI1pqn in ipairs(ESPState.cachedMapObjects.Hooks) do
- if _pIWI1pqn and _pIWI1pqn.Parent then
- local inst20 = ESPState.cachedHookMeshParts[_pIWI1pqn]
- if inst20 then
- for uHq1WmmODzU0, DDZpWH in ipairs(inst20) do
-func11(DDZpWH)
- end
-else func11(_pIWI1pqn)
- end
-end
-end
-end
-if Settings.espGateEnabledthen
-for qMWOo, MUDbQmnUUIUqZ in ipairs(ESPState.cachedMapObjects.Gates) do
- if MUDbQmnUUIUqZ and MUDbQmnUUIUqZ.Parent then
-func10(MUDbQmnUUIUqZ, Settings.espGateColor)
- end
-end
-else
-for QmuwobOow__N1, lz_XNIUz in ipairs(ESPState.cachedMapObjects.Gates) do
- if lz_XNIUz and lz_XNIUz.Parent then
-func11(lz_XNIUz)
- end
-end
-end
-if Settings.espWindowEnabledthen func25()
-for _qWD_1, _NnnN in pairs(ESPState.windowEspObjects) do
- if _qWD_1 and _qWD_1.Parentand _NnnN and _NnnN.Parent then
-pcall(
- function()
- local remote1 = Settings.espWindowColor_NnnN.Color3 = remote1 _NnnN.Size = _qWD_1.Size
- end)
-else func22(_qWD_1)
-end
-end
-else
-for H0zOZZuMN11, bmvQoqMx in pairs(ESPState.windowEspObjects) do
-func22(H0zOZZuMN11)
-end
-end
-end
-local function func27()
-local inst21 = {}
-local inst22 = workspace:FindFirstChild("Map")
-if inst22 then
- for WbXZIID, bpquZbWbm1QNn in ipairs(inst22.GetDescendants(inst22)) do
- if(bpquZbWbm1QNn.Name=="Window" or bpquZbWbm1QNn.Name=="VaultPoint" or string.find(bpquZbWbm1QNn.Name,"Window")) then
- if bpquZbWbm1QNn:IsA("BasePart") or bpquZbWbm1QNn:IsA("Model") then
-table.insert(inst21, bpquZbWbm1QNn)
- end
-end
- end
-end
-for HXonvQmoQvMDu, WoHDm in ipairs(CollectionService:GetTagged("VaultPoint")) do
-table.insert(inst21, WoHDm)
-end
-return inst21
-end
-local function func28()
-if not ESPState.antiLoopWindowEnabledthen
-return
-end
-local WwlXu = ReplicatedStorage:FindFirstChild("Remotes")
-if not WwlXu then
- return
-end
-local gen12 = WwlXu:FindFirstChild("Window")
-if not gen12 then
- return
-end
-local gen13 = gen12:FindFirstChild("VaultEvent")
-if not gen13 then
- return
-end
-task.spawn(
-function()
-task.wait(1)
-local gen14 = func27()
-for WMO0QDwO1, I0Qm1Z_ in ipairs(gen14) do
-task.spawn(
- function() pcall(
- function() gen13:FireServer(I0Qm1Z_, true)
-end)
-end)
-task.wait(0.05)
-end
-end)
-end
-local function func29()
-local inst23 = ReplicatedStorage:FindFirstChild("Remotes")
-if not inst23 then
- return
-end
-local inst24 = inst23:FindFirstChild("Window")
-if not inst24 then
- return
-end
-local pallet5 = inst24:FindFirstChild("VaultCompleteEvent")
-local pallet6 = inst24:FindFirstChild("VaultCompleteEventpart1")
-task.spawn(
-function()
-local pallet7 = func27()
-for MIHUbUuNWN0M, QwH0plnlq1pbZ in ipairs(pallet7) do
-task.spawn(
- function() pcall(
- function()
- if pallet5 then
-pallet5:FireServer(QwH0plnlq1pbZ, false)
- end
-if pallet6 then
-pallet6.FireServer(pallet6)
- end
-end)
-end)
-task.wait(0.05)
-end
-end)
-end
-do
- local pallet8 = workspace:FindFirstChild("Map")
- if pallet8 then
-func20(pallet8) func28()
- end
-workspace.ChildAdded:Connect(
- function(vmuxlQOU_bMz)
- if vmuxlQOU_bMz.Name=="Map" then
-task.wait(2) func20(vmuxlQOU_bMz) func28()
- end
-end)
-workspace.ChildRemoved:Connect(
-function(pMoQmlzpxvZ)
-if pMoQmlzpxvZ.Name=="Map" then
-ESPState.cachedMapObjects = { Generators = {}, Pallets = {}, Hooks = {}, Gates = {}} ESPState.cachedPalletMeta = {};
-ESPState.cachedHookMeshParts = {} ESPState.completedGenerators = {};
-ESPState.objEspInitialized = false ESPState.genIndices = {};
-ESPState.nextGenIndex = 1
-end
-end)
-end
-CreateESPEntry("GenESPUpdater", 0.2,
-function()
-if not Settings.espGeneratorEnabled and not Settings.espGeneratorProgressGenthen
-return
-end
-for lImD_QD_wnX0M, I_uWOH1lQMwD in ipairs(ESPState.cachedMapObjects.Generators) do
- if I_uWOH1lQMwD and I_uWOH1lQMwD.Parent and not ESPState.completedGenerators[I_uWOH1lQMwD] then
-func12(I_uWOH1lQMwD)
- end
-end
-end)
-local function func30()
-if not getnilinstances then
-ShowNotify("Error","Executor tidak support getnilinstances()", 2)
- return
-end
-task.spawn(
-function()
-local pallet9 = ReplicatedStorage:FindFirstChild("Remotes")
-if not pallet9 then
- return
-end
-local pallet10 = pallet9:FindFirstChild("Pallet")
-pallet10 = pallet10 and pallet10:FindFirstChild("PalletDropEvent")
-if not pallet10 then
- return
-end
-local pallet11 = {}
-local pallet12 = {}
-local oIzQXNnZ, b1HUvOU = pcall(getnilinstances)
-if oIzQXNnZ and type(b1HUvOU)=="table" then
- for poU0MQnUvvpw, BIvHI_OwoU1 in ipairs(b1HUvOU) do
- if typeof(BIvHI_OwoU1)=="Instance" then
- local tbl2 = BIvHI_OwoU1.Name
- if tbl2=="PalletPointSlide" or tbl2=="palletDropPoint" or tbl2=="PalletDropPoint" or tbl2=="PalletPoint" then
- if not pallet12[BIvHI_OwoU1] then
-table.insert(pallet11, BIvHI_OwoU1) pallet12[BIvHI_OwoU1]= true
- end
-end
- end
-end
-end
-for oqDXw, pXzWqqH0mH in ipairs(workspace.GetDescendants(workspace)) do
- local val3 = pXzWqqH0mH.Name
- if val3=="PalletPointSlide" or val3=="palletDropPoint" or val3=="PalletDropPoint" or val3=="PalletPoint" then
- if not pallet12[pXzWqqH0mH] then
-table.insert(pallet11, pXzWqqH0mH) pallet12[pXzWqqH0mH]= true
- end
-end
-end
-if#pallet11== 0 then
- return
-end
-for bO0DbZUn, WD1XvmuQHIIDUU in ipairs(pallet11) do
-pcall(
- function() pallet10:FireServer(WD1XvmuQHIIDUU)
-end)
-end
-end)
-end
-CreateESPEntry("AutoDropNearbyPallets", 0.2,
-function()
-if not ESPState.autoDropNearbyPallets then
- return
-end
-if ESPState.autoDropCooldown then
- return
-end
-local inst25 = LocalPlayer.Characterif not inst25 then
- return
-end
-local remote2 = inst25:FindFirstChild("HumanoidRootPart")
-if not remote2 then
- return
-end
-local remote3 = ReplicatedStorage:FindFirstChild("Remotes")
-if not remote3 then
- return
-end
-local remote4 = remote3:FindFirstChild("Pallet")
-remote4 = remote4 and remote4:FindFirstChild("PalletDropEvent")
-if not remote4 then
- return
-end
-local tbl3 = remote2.Positionif not ESPState.palletPointsCache or(tick()- ESPState.lastPalletPointScan> 5) then
-ESPState.lastPalletPointScan = tick()
-ESPState.palletPointsCache = {}
- local function func31(QzUxX)
- if typeof(QzUxX)~="Instance" then
- return false
- end
-local inst26 = QzUxX.Name
- if inst26=="PalletPointSlide" or inst26=="palletDropPoint" or inst26=="PalletDropPoint" or inst26=="PalletPoint" then
- return true
- end
-return false
-end
-if getnilinstances then
- local vHXMDQl, OmUlmql_ = pcall(getnilinstances)
- if vHXMDQl and type(OmUlmql_)=="table" then
- for opNlIXw1WmuX, umn0lXxwqn in ipairs(OmUlmql_) do
- if func31(umn0lXxwqn) then
-table.insert(ESPState.palletPointsCache, umn0lXxwqn)
- end
-end
- end
-end
-for MxDZnMQNxnDIH1, wMbNZIo0Ww0wu in ipairs(workspace.GetDescendants(workspace)) do
- if func31(wMbNZIo0Ww0wu) then
-table.insert(ESPState.palletPointsCache, wMbNZIo0Ww0wu)
- end
-end
-end
-local inst27 = nil
-local inst28 = math.huge
-for HNXqD = #ESPState.palletPointsCache, 1,- 1 do
- local inst29 = ESPState.palletPointsCache[HNXqD]
- if not inst29 or not inst29.Parentthen table.remove(ESPState.palletPointsCache, HNXqD)
-else
-local pcall1 = nil pcall(
-function()
-if inst29:IsA("BasePart") then
-pcall1 = inst29.Positionelseif inst29:IsA("Model") then
-pcall1 = inst29.GetPivot(inst29).Positionelseif inst29:IsA("Attachment") then
-pcall1 = inst29.WorldPositionend
- end)
- if not pcall1 then
- local char5 = inst29:FindFirstChildWhichIsA("BasePart", true)
- if char5 then
-pcall1 = char5.Positionend
- end
-if pcall1 then
- local inst30 = (pcall1- tbl3).Magnitude
- if inst30< inst28 then
-inst28 = inst30 inst27 = inst29
- end
-end
- end
-end
- if inst27 and inst28<= 4 then
-pcall(
- function() remote4:FireServer(inst27)
- end)
- for HqXHp, WpNv1W in ipairs(ESPState.palletPointsCache) do
- if WpNv1W== inst27 then
-table.remove(ESPState.palletPointsCache, HqXHp) break
- end
-end ESPState.autoDropCooldown = true task.delay(2,
- function()
-ESPState.autoDropCooldown = false
-end)
-end
-end)
-local function func32(ubvQnDlpZXm0pH, pn0UOxNHUzlD)
-if not Settings.hitboxEnabledthen
-return
-end
-if not pn0UOxNHUzlD then
- return
-end
-local gui10 = GetPlayerRole(ubvQnDlpZXm0pH)
-local gui11 = (gui10=="killer") and Settings.killerHitboxSize or Settings.survivorHitboxSize
-local gui12 = gui11/ 100
-local gui13 = pn0UOxNHUzlD:FindFirstChild("HumanoidRootPart")
-if gui13 and gui13:IsA("BasePart") then
- if not ESPState.hitboxOriginalSizes[gui13] then
-ESPState.hitboxOriginalSizes[gui13]= gui13.Sizeend
- local v19 = 2
- local v20 = Vector3.new(v19* gui12, v19* gui12, v19* gui12) pcall(
- function()
-gui13.Size = v20 gui13.Transparency = 1 gui13.CanCollide = false
- end)
-end
-end
-local function func33(Bo1Hp, I0WUnxn0Qb)
-if not I0WUnxn0Qb then
- return
-end
-local color7 = I0WUnxn0Qb:FindFirstChild("HumanoidRootPart")
-if color7 and color7:IsA("BasePart") then
- local char6 = ESPState.hitboxOriginalSizes[color7]
- if char6 then
-pcall(
- function()
-color7.Size = char6 color7.Transparency = 1
- end)
-ESPState.hitboxOriginalSizes[color7]= nil
-end
-end
-end
-local function func34()
-if not Settings.hitboxEnabled then
- return
-end
-for HowX_, wNW0I1Z in ipairs(Players.GetPlayers(Players)) do
- if wNW0I1Z~= LocalPlayer and wNW0I1Z.Characterthen func32(wNW0I1Z, wNW0I1Z.Character)
-end
-end
-end
-local function func35()
-for pMXunI, O0lzqwl in ipairs(Players.GetPlayers(Players)) do
- if O0lzqwl~= LocalPlayer and O0lzqwl.Character then
-func33(O0lzqwl, O0lzqwl.Character)
- end
-end
-end
-local function func36(N_lZDH, Dlm1b)
-if N_lZDH== LocalPlayer then
- return
-end
-local pcall2 = Dlm1b and Dlm1b:FindFirstChild("HumanoidRootPart")
-if not pcall2 then
- return
-end
-local v21 = ESPState.hitboxEspObjects[N_lZDH]
-if v21 and v21.Parentthen
-if v21.Adornee== pcall2 then
- return
-end
-v21.Destroy(v21)
-end
-local remote5 = GetPlayerRole(N_lZDH)
-local remote6 = (remote5=="killer") and Settings.hitboxEspKillerColor or Settings.hitboxEspSurvivorColorlocal remote7 = Instance.new("SelectionBox")
-remote7.Adornee = pcall2;
-remote7.Color3 = remote6;
-remote7.LineThickness = 0.10 remote7.SurfaceTransparency = Settings.hitboxEspOutlineOnlyand1or Settings.hitboxEspTransparency remote7.SurfaceColor3 = remote6;
-remote7.Parent = ESPFramesFolder ESPState.hitboxEspObjects[N_lZDH]= remote7
-end
-local function func37(W0D0OMWbUmvH)
-local conn4 = ESPState.hitboxEspObjects[W0D0OMWbUmvH]
-if conn4 then
-pcall(
- function() conn4:Destroy()
-end);
-ESPState.hitboxEspObjects[W0D0OMWbUmvH]= nil
-end
-end
-local function func38()
-for wQXOnI, qHHpZ1zv_1_HUb in pairs(ESPState.hitboxEspObjects) do
- if qHHpZ1zv_1_HUb and qHHpZ1zv_1_HUb.Parentthen
- local char7 = GetPlayerRole(wQXOnI)
- local char8 = (char7=="killer") and Settings.hitboxEspKillerColoror Settings.hitboxEspSurvivorColorqHHpZ1zv_1_HUb.Color3 = char8;
-qHHpZ1zv_1_HUb.SurfaceColor3 = char8 qHHpZ1zv_1_HUb.SurfaceTransparency = Settings.hitboxEspOutlineOnly and 1 or Settings.hitboxEspTransparency
-end
-end
-end
-local function func39()
-for BmMHwNzupXMq, vmwQM in ipairs(Players.GetPlayers(Players)) do
- if vmwQM~= LocalPlayer and vmwQM.Character then
-func36(vmwQM, vmwQM.Character)
- end
-end
-end
-local function func40()
-for WmzlpZ1NvQ_wl, u1vHO in pairs(ESPState.hitboxEspObjects) do
-func37(WmzlpZ1NvQ_wl)
-end
-end
-local function func41()
-if ESPState.SpeedBoostInit then
- local char9 = math.clamp(ESPState.BoostPercent, 0, 100)* 2
- return MagicConst*(1+ char9/ 100)
-end
-return MagicConst
-end
-local function func42(uDx1MUnXNv, pnHwb)
-if not uDx1MUnXNv or not uDx1MUnXNv.Parent then
- return
-end
-if math.abs(uDx1MUnXNv.WalkSpeed- pnHwb)> 0.05 then
-pcall(
- function()
-uDx1MUnXNv.WalkSpeed = pnHwb
-end)
-end
-end
-local function func43()
-task.spawn(
-function()
-local QqOnNDxpnx, DwMnmDwQ = pcall(
-function()
-return game:GetService("ReplicatedStorage"):WaitForChild("Remotes", 10):WaitForChild("Mechanics", 10):WaitForChild("Fall", 10)
-end)
-if not QqOnNDxpnx or not DwMnmDwQ then
- return
-end
-local qzwUuwzp qzwUuwzp = hookmetamethod(game,"__namecall",
-function(OXZXZZO0WHNov,..)
-local char10 = getnamecallmethod()
-if ESPState.AntiFallSlow and char10=="FireServer" and rawequal(OXZXZZO0WHNov, DwMnmDwQ) then
- return
-end
-return qzwUuwzp(OXZXZZO0WHNov,..)
-end)
-end)
-end
-local function func44(NvxQWH)
-if ESPState.movConns.antiFall then
-ESPState.movConns.antiFall:Disconnect()
-end
-func43()
-if not NvxQWH then
- return
-end
-pcall(
-function() NvxQWH:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-end)
-ESPState.movConns.antiFall = NvxQWH.StateChanged:Connect(
-function(lMW0UbWUM_q, Mu1uO__bXOnmwU)
-if not ESPState.AntiFallSlowthen
-return
-end
-if Mu1uO__bXOnmwU== Enum.HumanoidStateType.Landed or Mu1uO__bXOnmwU== Enum.HumanoidStateType.GettingUp or Mu1uO__bXOnmwU== Enum.HumanoidStateType.FallingDownthen pcall(
-function() NvxQWH:ChangeState(Enum.HumanoidStateType.Running)
-end) func42(NvxQWH, func41())
-end
-end)
-end
-local function func45(MlmIp0v)
-if ESPState.movConns.antiFall then
-ESPState.movConns.antiFall:Disconnect();
-ESPState.movConns.antiFall = nil
-end
-if MlmIp0v and MlmIp0v.Parentthen pcall(
-function() MlmIp0v:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
-end)
-end
-end
-local function func46(NXwX1OX)
-if ESPState.movConns.noSlow then
-ESPState.movConns.noSlow:Disconnect();
-ESPState.movConns.noSlow = nil
-end
-if not NXwX1OX then
- return
-end
-if GetPlayerRole(LocalPlayer)=="killer" then
- return
-end
-ESPState.movConns.noSlow = NXwX1OX:GetPropertyChangedSignal("WalkSpeed"):Connect(
-function()
-if not ESPState.NoSlowdownthen
-return
-end
-if GetPlayerRole(LocalPlayer)=="killer" then
- return
-end
-local gui14 = LocalPlayer.Character
-if ESPState.safeModeSpeedand gui14 and(gui14:GetAttribute("IsHooked") or gui14:GetAttribute("IsCarried") or NXwX1OX.Health<= 50) then
- return
-end
-local color8 = func41()
-if NXwX1OX.WalkSpeed< color8- 0.05 then
-pcall(
- function()
-NXwX1OX.WalkSpeed = color8
-end)
-end
-end)
-end
-local function func47(BlMboH)
-if not BlMboH then
- return
-end
-local conn5 = BlMboH:WaitForChild("Humanoid", 5)
-if not conn5 then
- return
-end
-if ESPState.AntiFallSlowthen func44(conn5)
-end
-if ESPState.NoSlowdownand GetPlayerRole(LocalPlayer)~="killer" then
-func46(conn5)
-end
-if ESPState.SpeedBoostInitthen
-local gui15 = func41()
-task.wait(0.15)
-if not ESPState.safeModeSpeedor(conn5.Health> 50 and not(BlMboH:GetAttribute("IsHooked") or BlMboH:GetAttribute("IsCarried"))) then
-func42(conn5, gui15)
-end
-end
-end
-local function func48(Duo0IW)
-if not Duo0IW then
- return
-end
-local gui16 = Duo0IW:WaitForChild("Humanoid", 5)
-if not gui16 then
- return
-end
-if ESPState.AntiFallSlowthen func44(gui16)
-end
-if ESPState.NoSlowdown and GetPlayerRole(LocalPlayer)~="killer" then
-func46(gui16)
-end
-if ESPState.SpeedBoostInit then
- local inst31 = func41()
-task.wait(0.15) func42(gui16, inst31)
-end
-end LocalPlayer:GetPropertyChangedSignal("Team"):Connect(
-function() IsPlayerAlive(LocalPlayer)
-if GetPlayerRole(LocalPlayer)=="killer" and ESPState.movConns.noSlow then
-ESPState.movConns.noSlow:Disconnect();
-ESPState.movConns.noSlow = nil
-end
-end)
-local function func49()
-if ESPState.moonwalkGuithen
-return
-end
-local inst32 = LocalPlayer:WaitForChild("PlayerGui")
-local inst33 = Instance.new("ScreenGui")
-inst33.Name = "BolongHubMoonwalk" inst33.ResetOnSpawn = false inst33.Enabled = false inst33.Parent = inst32
-local inst34 = Instance.new("Frame")
-inst34.Name = "MoonwalkBtns" inst34.AnchorPoint = Vector2.new(1, 1)
-inst34.Position = UDim2.new(1,- 18, 1,- 170)
-inst34.Size = UDim2.fromOffset(46, 96)
-inst34.BackgroundTransparency = 1 inst34.Parent = inst33
-local function func50(q_Uq__, unxuMXIw)
-local WnoWx = Instance.new("ImageButton")
-WnoWx.BackgroundTransparency = 1 WnoWx.BorderSizePixel = 0 WnoWx.AutoButtonColor = false WnoWx.AnchorPoint = Vector2.new(0.5, 0)
-WnoWx.Position = UDim2.new(0.5, 0, 0, unxuMXIw)
-WnoWx.Size = UDim2.fromOffset(42, 42)
-WnoWx.Image = "rbxassetid://125598796341580" WnoWx.ScaleType = Enum.ScaleType.SliceWnoWx.ImageColor3 = Color3.fromRGB(170, 170, 170)
-WnoWx.ImageTransparency = 0.25 WnoWx.Rotation = q_Uq__ WnoWx.Parent = inst34
-return WnoWx
-end
-local gui17 = func50(- 90, 0)
-local gui18 = func50(90, 50)
-local function func51(vovUMqlqwwQO, upHxIppzXMmDo)
-vovUMqlqwwQO.InputBegan:Connect(
-function(uUIwHuXlp)
-if uUIwHuXlp.UserInputType== Enum.UserInputType.Touch or uUIwHuXlp.UserInputType== Enum.UserInputType.MouseButton1 then
-ESPState.moonwalkMobileDir = upHxIppzXMmDo vovUMqlqwwQO.ImageColor3 = Color3.fromRGB(255, 255, 255)
-vovUMqlqwwQO.ImageTransparency = 0
-end
-end)
-vovUMqlqwwQO.InputEnded:Connect(
-function(D_zlDHMpM1Qm)
-if D_zlDHMpM1Qm.UserInputType== Enum.UserInputType.Touch or D_zlDHMpM1Qm.UserInputType== Enum.UserInputType.MouseButton1then ESPState.moonwalkMobileDir = 0 vovUMqlqwwQO.ImageColor3 = Color3.fromRGB(170, 170, 170)
-vovUMqlqwwQO.ImageTransparency = 0.25
-end
-end)
-end
-func51(gui17, 1) func51(gui18,- 1)
-ESPState.moonwalkGui = inst33
-end
-local function func52(M0QznbDpv)
-if M0QznbDpv:FindFirstChild("BolongMoonwalkAlign") then
- return M0QznbDpv:FindFirstChild("BolongMoonwalkAlign")
-end
-local char11 = Instance.new("Attachment")
-char11.Name = "BolongMoonwalkAtt" char11.Parent = M0QznbDpv
-local char12 = Instance.new("AlignOrientation")
-char12.Name = "BolongMoonwalkAlign" char12.Mode = Enum.OrientationAlignmentMode.OneAttachmentbXHIObpxqm0QO.Attachment0 = char11 char12.MaxTorque = 1000000 bXHIObpxqm0QO.Responsiveness = 15 char12.Parent = M0QznbDpv
-return char12
-end
-local function func53(QUopDNNZIznDu)
-local char13 = QUopDNNZIznDu:FindFirstChild("BolongMoonwalkAlign")
-local char14 = QUopDNNZIznDu:FindFirstChild("BolongMoonwalkAtt")
-if char13 then
-char13.Destroy(char13)
-end
-if char14 then
-char14.Destroy(char14)
-end
-end CreateESPEntry("MoonwalkLock", 0,
-function(uzvIm1Nbnq0HNn)
-if not Settings.moonwalkEnabledthen
-return
-end
-local char15 = LocalPlayer.Character
-local char16 = char15 and char15:FindFirstChildOfClass("Humanoid")
-local char17 = char15 and char15:FindFirstChild("HumanoidRootPart")
-local inst35 = Workspace.CurrentCameraif not char16 or not char17 or not inst35 then
- return
-end
-local inst36 = 0
-if ESPState.moonwalkPCForwardthen inst36 = 1
-end
-if ESPState.moonwalkPCBackwardthen inst36 = -1
-end
-if ESPState.moonwalkMobileDir~= 0 then
-inst36 = ESPState.moonwalkMobileDir
-end
-if inst36== 0 then
- if not char16.AutoRotate then
-char16.AutoRotate = true
- end
-func53(char17)
- return
-end
-char16.AutoRotate = false
-local inst37 = func52(char17)
-local inst38 = inst35.CFrame.LookVector
-local inst39 = Vector3.new(inst38.X, 0, inst38.Z)
-if inst39.Magnitude> 0.001 then
-inst39 = inst39.Unit
- local inst40 = (inst36== 1) and inst39 or- inst39
- local inst41 = CFrame.lookAt(Vector3.new(0, 0, 0), inst40)
-inst37.CFrame = inst41
-end
-end)
-local function func54()
-ESPState.godEnabled = true;
-ESPState.godLastHP = nil pcall(
-function()
-local inst42 = LocalPlayer.Character
-if inst42 then
- local inst43 = inst42:FindFirstChildOfClass("Humanoid")
- if inst43 then
-inst43:SetStateEnabled(Enum.HumanoidStateType.Dead, false) inst43:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false) inst43:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
- end
-end
-end)
-end
-local function func55()
-ESPState.godEnabled = false;
-ESPState.godLastHP = nil pcall(
-function()
-local gui19 = LocalPlayer.Character
-if not gui19 then
- return
-end
-local inst44 = gui19:FindFirstChildOfClass("Humanoid")
-if not inst44 then
- return
-end
-inst44:SetStateEnabled(Enum.HumanoidStateType.Dead, true) inst44:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true) inst44:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
-end)
-end
-CreateESPEntry("GodMode", 0.2,
-function()
-if not ESPState.godEnabledthen
-return
-end
-local gui20 = LocalPlayer.Characterif not gui20 then
- return
-end
-local gui21 = gui20:FindFirstChildOfClass("Humanoid")
-if not gui21 then
- return
-end
-local gui22 = gui21.MaxHealthlocal gui23 = gui21.Healthif ESPState.godLastHP~= nil and gui23< ESPState.godLastHPand gui23> 0 then
-pcall(
- function()
-gui21.Health = gui22
-end)
-end
-ESPState.godLastHP = gui21.Healthpcall(
-function()
-local gen15 = gui21.GetState(gui21)
-if gen15== Enum.HumanoidStateType.Deadthen gui21.Health = gui22;
-gui21:ChangeState(Enum.HumanoidStateType.Running);
-ESPState.godLastHP = gui22
-elseif gen15== Enum.HumanoidStateType.Ragdoll or gen15== Enum.HumanoidStateType.FallingDownthen gui21:ChangeState(Enum.HumanoidStateType.GettingUp)
-end
-end)
-end)
-local flag5 = { active = false, target = nil, generator = nil}
-local gen16 = ReplicatedStorage.Remotes.KillerPerks.kingscourge:WaitForChild("KingScourgeStart")
-local gen17 = ReplicatedStorage.Remotes.KillerPerks.kingscourge:WaitForChild("KingScourgeEnd")
-gen16.OnClientEvent:Connect(
-function(WOHbMonN, MOqXmo, _DzI0UblIDqXnU)
-flag5.active = true;
-flag5.target = MOqXmo;
-flag5.generator = WOHbMonN
-end)
-gen17.OnClientEvent:Connect(
-function()
-flag5.active = false;
-flag5.target = nil;
-flag5.generator = nil
-end)
-local function func56()
-for HDbNWQzIpQMvXl, QXuowX_bv in ipairs({"SkillCheckPromptGui","SkillCheckPromptGui-con"}) do
- local gen18 = PlayerGui:FindFirstChild(QXuowX_bv, true)
- if gen18 then
- local gen19 = gen18:FindFirstChild("Check", true)
- if gen19 and gen19.Visiblethen
- return gen19:FindFirstChild("Line", true), gen19:FindFirstChild("Goal", true)
- end
-end
-end
-end
-local gen20 = nil
-local function func57()
-if gen20 and gen20.Parentthen
-return gen20
-end
-local v22 = PlayerGui:FindFirstChild("Survivor-mob", true)
-if not v22 then
- return nil
-end
-local v23 = v22:FindFirstChild("Controls", true)
-if not v23 then
- return nil
-end
-local gen21 = v23:FindFirstChild("action")
-if gen21 and gen21:IsA("GuiButton") then
-gen20 = gen21;
- return gen21
-end
-gen21 = v23:FindFirstChild("Gui-mob")
-if gen21 and gen21:IsA("GuiButton") then
-gen20 = gen21;
- return gen21
+local vMZlzvx= IbqwwuNomON1p["FindFirstChild"](IbqwwuNomON1p,__DWvwowb)
+if vMZlzvx and vMZlzvx["IsA"](vMZlzvx,"ValueBase") then
+    return vMZlzvx["Value"]
 end
 return nil
 end
-local function func58()
-local char18 = func57()
-if char18 and type(firesignal)=="function" then
-firesignal(char18.MouseButton1Down)
-task.delay(0.05,
- function()
- if char18 and char18.Parentthen firesignal(char18.MouseButton1Up) firesignal(char18.MouseButton1Click)
+local function buHOpx0lv(DUZuDNN,ubUlQIO0W_XuXz)
+if not DUZuDNN or not DUZuDNN["Parent"] then
+    return
 end
-end)
-return
+local vDbNw= DUZuDNN["FindFirstChild"](DUZuDNN,"__BolongHL__")
+if not vDbNw then
+vDbNw= Instance["new"]("Highlight");
+vDbNw["Name"]="__BolongHL__";
+vDbNw["Adornee"]= DUZuDNN vDbNw["FillTransparency"]=(368-367);
+vDbNw["OutlineTransparency"]=0;
+vDbNw["DepthMode"]= Enum["HighlightDepthMode"]["AlwaysOnTop"] vDbNw["FillColor"]= ubUlQIO0W_XuXz;
+vDbNw["OutlineColor"]= ubUlQIO0W_XuXz;
+vDbNw["Parent"]= DUZuDNN;
+    return
 end
-local plplxbp = PlayerGui:FindFirstChild("check", true)
-if plplxbp and plplxbp:IsA("GuiObject") and plplxbp.Visible then
- local inst45 = plplxbp.AbsolutePosition;
- local inst46 = plplxbp.AbsoluteSize
- local inst47 = GuiService.GetGuiInset(GuiService)
- local inst48 = inst45.X+(inst46.X/ 2)+ inst47.X;
- local inst49 = inst45.Y+(inst46.Y/ 2)+ inst47.Ypcall(
- function() VirtualInputManager:SendMouseButtonEvent(inst48, inst49, 0, true, game, 1)
-task.wait(0.01) VirtualInputManager:SendMouseButtonEvent(inst48, inst49, 0, false, game, 1)
-end)
-else VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
-task.wait() VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+if vDbNw["FillColor"]~= ubUlQIO0W_XuXz then
+vDbNw["FillColor"]= ubUlQIO0W_XuXz;
+vDbNw["OutlineColor"]= ubUlQIO0W_XuXz
 end
-end CreateESPEntry("Generator", 0,
-function()
-if not Settings.autoGeneratorthen
-return
+if not vDbNw["Enabled"] then
+vDbNw["Enabled"]= true
 end
-local lOUpNUZWxo, bvq0NXowOHZO_ = func56()
-if not(lOUpNUZWxo and bvq0NXowOHZO_) then
-ESPState.instantLastVisible = false ESPState.lastGoalRot = nil ESPState.prevLr = nil
- return
 end
-local gui24 = bvq0NXowOHZO_.Rotationlocal gui25 = lOUpNUZWxo.Rotationlocal gui26 = tick()
-local gui27 = flag5.activeand 0.05 or 0.1
-if gui26- ESPState.lastPressTime< gui27 then
-ESPState.prevLr = gui25
- return
+local function onHbZx(wMuuQUW)
+if not wMuuQUW then
+    return
 end
-if Settings.autoGeneratorMode=="Instant" then
- if not ESPState.instantLastVisible or gui24~= ESPState.lastGoalRotthen lOUpNUZWxo.Rotation = gui24+ 109 ESPState.lastGoalRot = gui24 ESPState.instantLastVisible = true ESPState.lastPressTime = gui26 ESPState.lastSkillHit = gui26 func58()
+local OlIWZnXQxOHOZO= wMuuQUW["FindFirstChild"](wMuuQUW,"__BolongHL__")
+if OlIWZnXQxOHOZO then
+OlIWZnXQxOHOZO["Destroy"](OlIWZnXQxOHOZO)
+end
+end
+local function bp0wImow0Dm(pDHwxpwpHNZW)
+if not pDHwxpwpHNZW or not pDHwxpwpHNZW["Parent"] then
+    return true
+end
+if HM1uHIZZl0["completedGenerators"][pDHwxpwpHNZW] then
+    return true
+end
+local BZ0Z01DmoM= pDHwxpwpHNZW["GetAttribute"](pDHwxpwpHNZW,"RepairProgress") or pDHwxpwpHNZW["GetAttribute"](pDHwxpwpHNZW,"Progress") or(-132+132)
+local B0DZZ0UQo=(BZ0Z01DmoM>= 100) or(pDHwxpwpHNZW["GetAttribute"](pDHwxpwpHNZW,"Completed")== true) or(pDHwxpwpHNZW["GetAttribute"](pDHwxpwpHNZW,"IsCompleted")== true) or(pDHwxpwpHNZW["GetAttribute"](pDHwxpwpHNZW,"Done")== true)
+local vu0MWq0nn= pDHwxpwpHNZW["FindFirstChild"](pDHwxpwpHNZW,"__BolongGenProgress__")
+if B0DZZ0UQo then
+    if vu0MWq0nn then
+vu0MWq0nn["Destroy"](vu0MWq0nn)
+    end onHbZx(pDHwxpwpHNZW) pDHwxpwpHNZW:SetAttribute("__BolongGenLastPct__",nil) pDHwxpwpHNZW:SetAttribute("__BolongGenLastInfo__",nil) HM1uHIZZl0["completedGenerators"][pDHwxpwpHNZW]= true HM1uHIZZl0["genIndices"][pDHwxpwpHNZW]= nil
+    return B0DZZ0UQo
+end
+if Wv0HMNDowvn["espGeneratorEnabled"] then
+buHOpx0lv(pDHwxpwpHNZW,Wv0HMNDowvn["espGeneratorColor"])
+else onHbZx(pDHwxpwpHNZW)
+end
+if Wv0HMNDowvn["espGeneratorProgressGen"] then
+    local Nx_zuWb= pDHwxpwpHNZW["GetAttribute"](pDHwxpwpHNZW,"PlayersRepairingCount") or(196-196)
+    local BZI1MQnNWw0= pDHwxpwpHNZW["GetAttribute"](pDHwxpwpHNZW,"kickcount") or(-761+761) do
+        local qQIZX1vZlnO1=279*(0+1-1)
+        local q1bvIqU0D1Uw1= qQIZX1vZlnO1+495-495
+    end
+    local qbXxHWO0qXZvqH= w_ZpoH0p1["MQUq1oIZmD"](BZ0Z01DmoM+0.5)
+    local wUWHvwMN1pHq= pDHwxpwpHNZW["GetAttribute"](pDHwxpwpHNZW,"__BolongGenLastPct__")
+    local MZ00U= pDHwxpwpHNZW["GetAttribute"](pDHwxpwpHNZW,"__BolongGenLastInfo__")
+    local HuHqmn= HM1uHIZZl0["genIndices"][pDHwxpwpHNZW] or 1
+    local MzDH01zw0Qn= w_ZpoH0p1["qWxWwz"]("%d_%d_%d_%s_%d",qbXxHWO0qXZvqH,Nx_zuWb,BZI1MQnNWw0,w_ZpoH0p1["pQZnn0HWw"](Wv0HMNDowvn["espGenShowPK"]),HuHqmn)
+    if wUWHvwMN1pHq== qbXxHWO0qXZvqH and MZ00U== MzDH01zw0Qn and vu0MWq0nn then
+        return false
+    end pDHwxpwpHNZW["SetAttribute"](pDHwxpwpHNZW,"__BolongGenLastPct__",qbXxHWO0qXZvqH) pDHwxpwpHNZW:SetAttribute("__BolongGenLastInfo__",MzDH01zw0Qn)
+    local lnoUHpIOmDH= w_ZpoH0p1["_WXbbv_1_HnO"](BZ0Z01DmoM,(-362+362),100)
+    local wnqOuNwOnl=(lnoUHpIOmDH<50) and Wv0HMNDowvn["espGeneratorColor"]:Lerp(Color3["fromRGB"]((494-239),(-671+871),0),lnoUHpIOmDH/(611-561)) or Color3["fromRGB"]((1236-981),200,0):Lerp(Color3["fromRGB"](100,255,(376-296)),(lnoUHpIOmDH-(553-503))/50)
+    local pmb1M= wnqOuNwOnl["ToHex"](wnqOuNwOnl)
+    local pbUWvuz= w_ZpoH0p1["qWxWwz"]("GEN%d",HuHqmn)
+    local _IM1vxnv_0Ib= w_ZpoH0p1["qWxWwz"]("%d%%",qbXxHWO0qXZvqH)
+    local lQIInQnUH= pDHwxpwpHNZW["FindFirstChild"](pDHwxpwpHNZW,"GeneratorBody",true) or pDHwxpwpHNZW["FindFirstChild"](pDHwxpwpHNZW,"defaultMaterial",true) or(pDHwxpwpHNZW["IsA"](pDHwxpwpHNZW,"Model") and pDHwxpwpHNZW["PrimaryPart"]) or pDHwxpwpHNZW["FindFirstChildWhichIsA"](pDHwxpwpHNZW,"BasePart",true)
+    if not lQIInQnUH then
+        return false
+    end
+    local uvoUpD11WWMM="F4D03F"
+    local WXmn1vO= w_ZpoH0p1["qWxWwz"]("<font size=\"9\" color=\"#%s\">%s</font> <font color=\"#555555\">│</font> <font color=\"#%s\">%s</font>",uvoUpD11WWMM,pbUWvuz,pmb1M,_IM1vxnv_0Ib)
+    if Wv0HMNDowvn["espGenShowPK"] then
+WXmn1vO= WXmn1vO.. w_ZpoH0p1["qWxWwz"](" <font color=\"#555555\">│</font> <font color=\"#76D7C4\">P:%d</font> <font color=\"#555555\">│</font> <font color=\"#FF6B6B\">K:%d</font>",Nx_zuWb,BZI1MQnNWw0)
+    end
+    if not vu0MWq0nn then
+vu0MWq0nn= Instance["new"]("BillboardGui") vu0MWq0nn["Name"]="__BolongGenProgress__" vu0MWq0nn["Adornee"]= lQIInQnUH vu0MWq0nn["AlwaysOnTop"]= true vu0MWq0nn["LightInfluence"]=0 vu0MWq0nn["ResetOnSpawn"]= false vu0MWq0nn["MaxDistance"]=(72+188) vu0MWq0nn["Size"]= UDim2["new"](0,(243-143),(211-211),(-549+563))
+        local HmDNup_oMWN=(lQIInQnUH["Size"]["Y"]/2)+3.5 vu0MWq0nn["StudsOffset"]= Vector3["new"]((147-147),HmDNup_oMWN,0) vu0MWq0nn["Parent"]= pDHwxpwpHNZW
+        local _1Xm1boDQ= Instance["new"]("TextLabel") _1Xm1boDQ["Name"]="Label" _1Xm1boDQ["BackgroundTransparency"]=1 _1Xm1boDQ["Size"]= UDim2["new"]((956-955),0,(55-54),0) _1Xm1boDQ["Position"]= UDim2["new"](0,0,(509-509),0) _1Xm1boDQ["Font"]= Enum["Font"]["GothamBlack"] _1Xm1boDQ["TextSize"]=(262-251) _1Xm1boDQ["RichText"]= true _1Xm1boDQ["Text"]= WXmn1vO _1Xm1boDQ["TextColor3"]= Color3["fromRGB"](255,255,255) _1Xm1boDQ["TextXAlignment"]= Enum["TextXAlignment"]["Center"] _1Xm1boDQ["Parent"]= vu0MWq0nn
+        local lZzqZWppz= Instance["new"]("UIStroke") lZzqZWppz["Thickness"]=0.8 lZzqZWppz["Transparency"]=0.4 lZzqZWppz["Color"]= Color3["new"](0,0,(168-168)) lZzqZWppz["Parent"]= _1Xm1boDQ
+    else
+    if vu0MWq0nn["Adornee"]~= lQIInQnUH then
+vu0MWq0nn["Adornee"]= lQIInQnUH
+    end
+    local pXWM0ox=(lQIInQnUH["Size"]["Y"]/2)+3.5 vu0MWq0nn["StudsOffset"]= Vector3["new"](0,pXWM0ox,(-511+511))
+    local HHmboXDH1= vu0MWq0nn["FindFirstChild"](vu0MWq0nn,"Label")
+    if HHmboXDH1 then
+HHmboXDH1["Text"]= WXmn1vO
+    end
 end
 else
-local flag6 = (gui25- gui24)% 360
-local char19 = -1
-if ESPState.prevLrand ESPState.lastGoalRot== gui24 then
-char19 = (ESPState.prevLr- gui24)% 360
-end
-ESPState.lastGoalRot = gui24
-local pqxWvZp1Q, _lpIZ1OX
-if Settings.autoGeneratorMode=="Perfect" then
-pqxWvZp1Q = 102 _lpIZ1OX = 116
-elseif Settings.autoGeneratorMode=="Normal" then
-pqxWvZp1Q = 116 _lpIZ1OX = 159
-elseif Settings.autoGeneratorMode=="Random" then
- if not ESPState.randomIsNeutralthen pqxWvZp1Q = 102;
-_lpIZ1OX = 116
-else pqxWvZp1Q = 116;
-_lpIZ1OX = 159
-end
-else
-return
-end
-local char20 = flag6>= pqxWvZp1Q and flag6<= _lpIZ1OX
-local char21 = char19>= 0 and char19< pqxWvZp1Q and flag6> _lpIZ1OX
-if char20 or char21 then
- if char21 then
-lOUpNUZWxo.Rotation = gui24+(pqxWvZp1Q+ _lpIZ1OX)/ 2
- end
-ESPState.lastPressTime = gui26 ESPState.lastSkillHit = gui26 func58()
- if Settings.autoGeneratorMode=="Random" then
-ESPState.randomIsNeutral = not ESPState.randomIsNeutral
- end
+if vu0MWq0nn then
+vu0MWq0nn["Destroy"](vu0MWq0nn) pDHwxpwpHNZW:SetAttribute("__BolongGenLastPct__",nil) pDHwxpwpHNZW:SetAttribute("__BolongGenLastInfo__",nil)
 end
 end
-ESPState.prevLr = gui25
-end) CreateESPEntry("GenBtnRefresh", 2.0,
-function()
-if not Settings.autoGenerator then
- return
-end
-if not gen20 or not gen20.Parent then
-func57()
-end
-end) CreateESPEntry("KillerWarn", 0.1,
-function()
-if not Settings.warnEnabledthen
-local inst50 = LocalPlayer.Character
-local inst51 = inst50 and inst50:FindFirstChild("HumanoidRootPart")
-if inst51 then
- local inst52 = inst51:FindFirstChild("KillerWarn")
- if inst52 then
-inst52.Destroy(inst52)
- end
-end
-return
-end
-local val4 = LocalPlayer.Character
-local val5 = val4 and val4:FindFirstChild("HumanoidRootPart")
-if not val5 then
- return
-end
-local flag7 = math.huge
-for u01Mv, Q1ZWqnvWDm in pairs(ESPState.espObjects) do
- if u01Mv and u01Mv.Parentthen
- local flag8 = GetPlayerRole(u01Mv)
- if flag8=="killer" then
- local char22 = u01Mv.Character
- local inst53 = char22 and char22:FindFirstChild("HumanoidRootPart")
- if inst53 then
- local inst54 = (inst53.Position- val5.Position).Magnitude
- if inst54< flag7 then
-flag7 = inst54
- end
-end
- end
-end
-end
-local inst55 = val5:FindFirstChild("KillerWarn")
-if flag7<= Settings.warnDist1then
-local bODN0xqNUQ, Im1ZObOzIZO
-if flag7<= Settings.warnDist3then bODN0xqNUQ = "!!!";
-Im1ZObOzIZO = Color3.fromRGB(255, 0, 0)
-elseif flag7<= Settings.warnDist2then bODN0xqNUQ = "!!";
-Im1ZObOzIZO = Color3.fromRGB(255, 80, 0)
-else bODN0xqNUQ = "!";
-Im1ZObOzIZO = Color3.fromRGB(255, 160, 0)
-end
-if not inst55 then
-inst55 = func3(bODN0xqNUQ, Im1ZObOzIZO, UDim2.new(0, 40, 0, 40), 22)
-inst55.Name = "KillerWarn";
-inst55.Parent = val5
-else inst55.Label.Text = bODN0xqNUQ;
-inst55.Label.TextColor3 = Im1ZObOzIZO
-end
-elseif inst55 then
-inst55.Destroy(inst55)
-end
-end) CreateESPEntry("ESPValidator", 1,
-function()
-for IoO1qDW0, IZ1ZDvo_Z in pairs(ESPState.espObjects) do
-func7(IoO1qDW0)
-end
-for HwDwQDNNN1lwZ, onIwXWqmUM in pairs(ESPState.outlineObjects) do
- if not ESPState.espObjects[HwDwQDNNN1lwZ] then
-func7(HwDwQDNNN1lwZ)
- end
-end
-end) CreateESPEntry("ItemESP", 0.2,
-function()
-if not Settings.espItemEnabledthen
-for uWXIZMUXZbXb_z, WHpQlnxX1qN in pairs(ESPState.espObjects) do
- if WHpQlnxX1qN and WHpQlnxX1qN.itemImageand WHpQlnxX1qN.itemImage.Visiblethen WHpQlnxX1qN.itemImage.Visible = false
-end
-end
-return
-end
-local gui28 = LocalPlayer.Characterlocal gui29 = gui28 and gui28:FindFirstChild("HumanoidRootPart")
-for pNvDMOUUwD, Ol_HX0HwnQ in pairs(ESPState.espObjects) do
- if Ol_HX0HwnQ and Ol_HX0HwnQ.billboard and Ol_HX0HwnQ.billboard.Parent and Ol_HX0HwnQ.itemBillboardthen
- if GetPlayerRole(pNvDMOUUwD)=="killer" then
- if Ol_HX0HwnQ.itemImage.Visiblethen Ol_HX0HwnQ.itemImage.Visible = false
- end
-continue
-end
-local flag9 = pNvDMOUUwD.Characterlocal gui30 = nil
-if flag9 then
- local gui31 = flag9:GetAttribute("EquippedItem") or flag9:GetAttribute("Equippedltem")
- if type(gui31)=="string" then
-gui30 = gui31
- elseif typeof(gui31)=="Instance" then
-gui30 = gui31.Nameend
- end
-if not gui30 then
- local flag10 = pNvDMOUUwD:GetAttribute("EquippedItem") or pNvDMOUUwD:GetAttribute("Equippedltem")
- if type(flag10)=="string" then
-gui30 = flag10
- elseif typeof(flag10)=="Instance" then
-gui30 = flag10.Nameend
- end
-local conn6 = func1(gui30)
- if conn6 then
- if Ol_HX0HwnQ.itemImage.Image~= conn6 then
-Ol_HX0HwnQ.itemImage.Image = conn6
- end
-if gui29 and flag9 then
- local conn7 = flag9:FindFirstChild("HumanoidRootPart")
- if conn7 then
- local conn8 = (gui29.Position- conn7.Position).Magnitude
- local gui32 = 1.5+((conn8/ 200)* 2)
-gui32 = math.clamp(gui32, 1.5, 3.5)
-Ol_HX0HwnQ.itemBillboard.Size = UDim2.new(gui32, 0, gui32, 0)
- end
-end Ol_HX0HwnQ.itemImage.Visible = true
- else
- if Ol_HX0HwnQ.itemImage.Visible then
-Ol_HX0HwnQ.itemImage.Visible = false
- end
-end
-elseif Ol_HX0HwnQ and Ol_HX0HwnQ.itemImage then
- if Ol_HX0HwnQ.itemImage.Visible then
-Ol_HX0HwnQ.itemImage.Visible = false
- end
-end
-end
-end) CreateESPEntry("SpeedBoostInit", 0,
-function()
-if not ESPState.SpeedBoostInitthen
-return
-end
-local inst56 = LocalPlayer.Character
-if not inst56 then
- return
-end
-local inst57 = inst56:FindFirstChildOfClass("Humanoid")
-if not inst57 then
- return
-end
-if ESPState.safeModeSpeedand(inst56:GetAttribute("IsHooked") or inst56:GetAttribute("IsCarried") or inst57.Health<= 50) then
- return
-end
-local gui33 = func41()
-if gui33<= 0 then
- return
-end
-local gui34 = MagicConst*(math.clamp(ESPState.BoostPercent, 0, 100)/ 100)
-ESPState._jitterFlip = not ESPState._jitterFliplocal gui35 = ESPState._jitterFlipand(gui33+ gui34) or gui33
-if math.abs(inst57.WalkSpeed- gui35)> 0.1 then
-pcall(
- function()
-inst57.WalkSpeed = gui35
-end)
-end
-end)
-local function func59(lUzXI1W_MDzp, bM110)
-if not lUzXI1W_MDzp or not lUzXI1W_MDzp.Parentthen
 return false
 end
-local gui36 = lUzXI1W_MDzp.AbsolutePosition;
-local gui37 = lUzXI1W_MDzp.AbsoluteSize
-local RoleName = gui36.X+ gui37.X/ 2;
-local char23 = gui36.Y+ gui37.Y/ 2
-local inst58 = math.min(gui37.X, gui37.Y)/ 2* 0.8
-local inst59 = bM110.X- RoleName;
-local inst60 = bM110.Y- char23
-return(inst59* inst59+ inst60* inst60)<=(inst58* inst58)
+local function qnDOw(uQwnIWq)
+local function qvb__00MX()
+if not Wv0HMNDowvn["espGeneratorEnabled"] and not Wv0HMNDowvn["espGeneratorProgressGen"] then
+    return
+end bp0wImow0Dm(uQwnIWq)
+end w_ZpoH0p1["bHopuzIW"](
+function() uQwnIWq:GetAttributeChangedSignal("RepairProgress"):Connect(qvb__00MX) uQwnIWq:GetAttributeChangedSignal("Progress"):Connect(qvb__00MX) uQwnIWq:GetAttributeChangedSignal("Completed"):Connect(qvb__00MX) uQwnIWq:GetAttributeChangedSignal("IsCompleted"):Connect(qvb__00MX) uQwnIWq:GetAttributeChangedSignal("PlayersRepairingCount"):Connect(qvb__00MX) uQwnIWq:GetAttributeChangedSignal("kickcount"):Connect(qvb__00MX)
+end)
 end
-local function func60(MlnmUOplZvIu)
-if not MlnmUOplZvIu:IsA("ImageButton") then
- return
+local function HH1mn0WxUXD_Q(ollbxU,bmIvxUmw)
+local function wzxpnp()
+local llo0uI= wmbMHDw_(ollbxU,"Dropped") or wmbMHDw_(ollbxU,"IsDropped")
+local MQbm1zl1= wmbMHDw_(ollbxU,"Broken") or wmbMHDw_(ollbxU,"IsBroken") or wmbMHDw_(ollbxU,"Destroyed")
+if llo0uI or MQbm1zl1 or bmIvxUmw["isFake"] then
+onHbZx(ollbxU)
+    for vZoIuz1ZMIbQv,_Xqln_ in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Pallets"]) do
+        if _Xqln_== ollbxU then
+w_ZpoH0p1["w0QIN"](HM1uHIZZl0["cachedMapObjects"]["Pallets"],vZoIuz1ZMIbQv);
+break
+        end
+    end HM1uHIZZl0["cachedPalletMeta"][ollbxU]= nil
 end
-if MlnmUOplZvIu.Name~="Gui-mob" then
- return
 end
-if ESPState._hookedMobButtons[MlnmUOplZvIu] then
- return
+for qq1bWop,DMXux in w_ZpoH0p1["DZu1Dmvbw"]({"Dropped","IsDropped","Broken","IsBroken","Destroyed"}) do
+ollbxU["GetAttributeChangedSignal"](ollbxU,DMXux):Connect(wzxpnp)
+end ollbxU["ChildAdded"]:Connect(
+function(lwNxm0XbH)
+if lwNxm0XbH["IsA"](lwNxm0XbH,"ValueBase") and(lwNxm0XbH["Name"]=="Dropped" or lwNxm0XbH["Name"]=="IsDropped" or lwNxm0XbH["Name"]=="Broken" or lwNxm0XbH["Name"]=="IsBroken" or lwNxm0XbH["Name"]=="Destroyed") then
+lwNxm0XbH["Changed"]:Connect(wzxpnp)
 end
-ESPState._hookedMobButtons[MlnmUOplZvIu]= true UIS2.InputBegan:Connect(
-function(boZzNnz0zQ)
-if boZzNnz0zQ.UserInputType~= Enum.UserInputType.Touchthen
+end)
+end
+local function wz0qHHnO(_XUDb,ubWxl)
+if not _XUDb or not _XUDb["Parent"] then
+    return
+end
+local pnOmmozpNpz= _XUDb["IsA"](_XUDb,"BasePart") and{_XUDb} or _XUDb["GetDescendants"](_XUDb)
+for NmwpxIuzZH,lpXboQo1 in w_ZpoH0p1["DZu1Dmvbw"](pnOmmozpNpz) do
+    if lpXboQo1["IsA"](lpXboQo1,"BasePart") then
+        if ubWxl then
+            if not HM1uHIZZl0["ghostGateOriginals"][lpXboQo1] then
+HM1uHIZZl0["ghostGateOriginals"][lpXboQo1]={["CanCollide"]= lpXboQo1["CanCollide"],["Transparency"]= lpXboQo1["Transparency"]}
+            end lpXboQo1["CanCollide"]= false lpXboQo1["Transparency"]=0.6
+        else
+        if HM1uHIZZl0["ghostGateOriginals"][lpXboQo1] then
+lpXboQo1["CanCollide"]= HM1uHIZZl0["ghostGateOriginals"][lpXboQo1]["CanCollide"] lpXboQo1["Transparency"]= HM1uHIZZl0["ghostGateOriginals"][lpXboQo1]["Transparency"]
+        end
+    end
+end
+end
+end
+local function ppW0q(oHDvv)
+local OHbqD= oHDvv["Name"]
+if OHbqD=="Generator" then
+w_ZpoH0p1["I_plQ"](HM1uHIZZl0["cachedMapObjects"]["Generators"],oHDvv)
+    if not HM1uHIZZl0["genIndices"][oHDvv] then
+        if w_ZpoH0p1["WbzmnX"](HM1uHIZZl0["genIndices"])== nil then
+HM1uHIZZl0["nextGenIndex"]=(-680+681)
+        end HM1uHIZZl0["genIndices"][oHDvv]= HM1uHIZZl0["nextGenIndex"] HM1uHIZZl0["nextGenIndex"]= HM1uHIZZl0["nextGenIndex"]+(462-461)
+    end
+    if Wv0HMNDowvn["espGeneratorEnabled"] then
+bp0wImow0Dm(oHDvv);
+qnDOw(oHDvv)
+    end
+elseif OHbqD=="Hook" then
+w_ZpoH0p1["I_plQ"](HM1uHIZZl0["cachedMapObjects"]["Hooks"],oHDvv)
+    local MvDuv={}
+    local vQIzDWqobqIZ= oHDvv["FindFirstChild"](oHDvv,"Model")
+    if vQIzDWqobqIZ then
+        for pUXNxDMoUzvD_z,qHIo0muZx in w_ZpoH0p1["DZu1Dmvbw"](vQIzDWqobqIZ["GetDescendants"](vQIzDWqobqIZ)) do
+            if qHIo0muZx["IsA"](qHIo0muZx,"MeshPart") then
+w_ZpoH0p1["I_plQ"](MvDuv,qHIo0muZx)
+            end
+        end
+    end HM1uHIZZl0["cachedHookMeshParts"][oHDvv]= MvDuv
+    if Wv0HMNDowvn["espHookEnabled"] then
+        if#MvDuv>0 then
+            for _HuHwZQ,wuqvv1bQ0X0 in w_ZpoH0p1["DZu1Dmvbw"](MvDuv) do
+buHOpx0lv(wuqvv1bQ0X0,Wv0HMNDowvn["espHookColor"])
+            end
+        else buHOpx0lv(oHDvv,Wv0HMNDowvn["espHookColor"])
+    end
+end
+elseif OHbqD=="Gate" then
+w_ZpoH0p1["I_plQ"](HM1uHIZZl0["cachedMapObjects"]["Gates"],oHDvv)
+    if Wv0HMNDowvn["espGateEnabled"] then
+buHOpx0lv(oHDvv,Wv0HMNDowvn["espGateColor"])
+    end
+    if HM1uHIZZl0["ghostGateEnabled"] then
+wz0qHHnO(oHDvv,true)
+    end
+elseif OHbqD=="Pallet" or OHbqD=="Palletwrong" then
+w_ZpoH0p1["I_plQ"](HM1uHIZZl0["cachedMapObjects"]["Pallets"],oHDvv)
+    local Ib0XXw1mUuXHZI= OHbqD["lower"](OHbqD)
+    local oqHOQUQDI=(oHDvv["IsA"](oHDvv,"Model") and oHDvv["PrimaryPart"]) or oHDvv["FindFirstChildWhichIsA"](oHDvv,"BasePart",true) or(oHDvv["IsA"](oHDvv,"BasePart") and oHDvv)
+    local vOIbMnl1n0bm= Ib0XXw1mUuXHZI["find"](Ib0XXw1mUuXHZI,"fake") or Ib0XXw1mUuXHZI["find"](Ib0XXw1mUuXHZI,"broken") or Ib0XXw1mUuXHZI["find"](Ib0XXw1mUuXHZI,"destroyed")
+    local pNIuz={["part"]= oqHOQUQDI,["isFake"]= vOIbMnl1n0bm and true or false} HM1uHIZZl0["cachedPalletMeta"][oHDvv]= pNIuz
+    if Wv0HMNDowvn["espPalletEnabled"] and not pNIuz["isFake"] then
+buHOpx0lv(oHDvv,Wv0HMNDowvn["espPalletColor"])
+    end HH1mn0WxUXD_Q(oHDvv,pNIuz)
+end
+end
+local function HHmlDn_O(Nl_mM)
+local BvU1xlxp= Nl_mM["Name"]
+if BvU1xlxp=="Generator" then
+    for _nmDHDuX1,uoooznUZz in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Generators"]) do
+        if uoooznUZz== Nl_mM then
+w_ZpoH0p1["w0QIN"](HM1uHIZZl0["cachedMapObjects"]["Generators"],_nmDHDuX1);
+break
+        end
+    end HM1uHIZZl0["genIndices"][Nl_mM]= nil HM1uHIZZl0["completedGenerators"][Nl_mM]= nil onHbZx(Nl_mM)
+    local bWWwzWQxUo= Nl_mM["FindFirstChild"](Nl_mM,"__BolongGenProgress__")
+    if bWWwzWQxUo then
+bWWwzWQxUo["Destroy"](bWWwzWQxUo)
+    end
+    if w_ZpoH0p1["WbzmnX"](HM1uHIZZl0["genIndices"])== nil then
+HM1uHIZZl0["nextGenIndex"]=1
+    end
+elseif BvU1xlxp=="Hook" then
+    for W1ovqUnu1D,lWuoDQ1 in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Hooks"]) do
+        if lWuoDQ1== Nl_mM then
+w_ZpoH0p1["w0QIN"](HM1uHIZZl0["cachedMapObjects"]["Hooks"],W1ovqUnu1D);
+break
+        end
+    end
+    local NwOvHU= HM1uHIZZl0["cachedHookMeshParts"][Nl_mM]
+    if NwOvHU then
+        for ImbDbD,llu_UloD_1 in w_ZpoH0p1["DZu1Dmvbw"](NwOvHU) do
+onHbZx(llu_UloD_1)
+        end
+    else onHbZx(Nl_mM)
+end HM1uHIZZl0["cachedHookMeshParts"][Nl_mM]= nil
+elseif BvU1xlxp=="Gate" then
+    for OxqIZolbnpUIX,o1bo0wObZH1pb in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Gates"]) do
+        if o1bo0wObZH1pb== Nl_mM then
+w_ZpoH0p1["w0QIN"](HM1uHIZZl0["cachedMapObjects"]["Gates"],OxqIZolbnpUIX);
+break
+        end
+    end onHbZx(Nl_mM)
+elseif BvU1xlxp=="Pallet" or BvU1xlxp=="Palletwrong" then
+    for qIw1vDn0W1bz1,vQIwx in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Pallets"]) do
+        if vQIwx== Nl_mM then
+w_ZpoH0p1["w0QIN"](HM1uHIZZl0["cachedMapObjects"]["Pallets"],qIw1vDn0W1bz1);
+break
+        end
+    end onHbZx(Nl_mM) HM1uHIZZl0["cachedPalletMeta"][Nl_mM]= nil
+end
+end
+local function oQQXp00u1nHQ(bpZ1ZlIDDIUIw)
+if not bpZ1ZlIDDIUIw then
+    return
+end HM1uHIZZl0["cachedMapObjects"]={["Generators"]={},["Pallets"]={},["Hooks"]={},["Gates"]={}} HM1uHIZZl0["cachedPalletMeta"]={};
+HM1uHIZZl0["cachedHookMeshParts"]={};
+HM1uHIZZl0["completedGenerators"]={} HM1uHIZZl0["genIndices"]={};
+HM1uHIZZl0["nextGenIndex"]=(-187+188)
+for lvwMZ1w1,WvDoZIbMW in w_ZpoH0p1["DZu1Dmvbw"](bpZ1ZlIDDIUIw["GetDescendants"](bpZ1ZlIDDIUIw)) do
+ppW0q(WvDoZIbMW)
+end
+end
+local function ul0ZZMWZ(bquDOpnb)
+if not bquDOpnb then
+    return
+end oQQXp00u1nHQ(bquDOpnb) bquDOpnb["DescendantAdded"]:Connect(ppW0q) bquDOpnb["DescendantRemoving"]:Connect(HHmlDn_O) HM1uHIZZl0["objEspInitialized"]= true
+end HM1uHIZZl0["windowEspObjects"]={}
+local function vzZWmwZvppv(lwxXvqNU)
+if not lwxXvqNU or not lwxXvqNU["Parent"] or HM1uHIZZl0["windowEspObjects"][lwxXvqNU] then
+    return
+end
+local OzUwz= Wv0HMNDowvn["espWindowColor"]
+local Iwun1_zqluI= Instance["new"]("BoxHandleAdornment") Iwun1_zqluI["Name"]="WindowESP_Box" Iwun1_zqluI["Adornee"]= lwxXvqNU Iwun1_zqluI["Color3"]= OzUwz Iwun1_zqluI["Transparency"]=0.3 Iwun1_zqluI["Size"]= lwxXvqNU["Size"] Iwun1_zqluI["AlwaysOnTop"]= true Iwun1_zqluI["ZIndex"]=10 Iwun1_zqluI["Parent"]= QwZOO1pHbl1_ HM1uHIZZl0["windowEspObjects"][lwxXvqNU]= Iwun1_zqluI
+end
+local function DnqX_lbNxO(ObnHuZq)
+local IpXvwbuvbU= HM1uHIZZl0["windowEspObjects"][ObnHuZq]
+if IpXvwbuvbU then
+w_ZpoH0p1["bHopuzIW"](
+    function() IpXvwbuvbU:Destroy()
+end) HM1uHIZZl0["windowEspObjects"][ObnHuZq]= nil
+end
+end
+local function NIxZZvbqZwu(wb1oq1)
+if w_ZpoH0p1["bHmuv"](wb1oq1)~="Instance" then
+    return nil
+end
+local DNMZMn= string["lower"](wb1oq1["Name"])
+if DNMZMn=="window" and wb1oq1["IsA"](wb1oq1,"Model") then
+    local IDxpzWZQovu= wb1oq1["FindFirstChild"](wb1oq1,"Bottom",true)
+    if IDxpzWZQovu and IDxpzWZQovu["IsA"](IDxpzWZQovu,"BasePart") then
+        return IDxpzWZQovu
+    end
+    return wb1oq1["PrimaryPart"]
+end
+if DNMZMn=="bottom" and wb1oq1["IsA"](wb1oq1,"BasePart") then
+    if wb1oq1["Parent"] and string["lower"](wb1oq1["Parent"]["Name"])=="window" then
+        return wb1oq1
+    end
+end
+return nil
+end
+local function Mm1nMo_pQD(IXUuzUWoDmXN)
+local pHZUvZnvq= NIxZZvbqZwu(IXUuzUWoDmXN)
+if pHZUvZnvq then
+    if Wv0HMNDowvn["espWindowEnabled"] and not HM1uHIZZl0["windowEspObjects"][pHZUvZnvq] then
+vzZWmwZvppv(pHZUvZnvq)
+    end
+end
+end uvWUOOzvx1["DescendantAdded"]:Connect(
+function(ImOQ0XH1m) Mm1nMo_pQD(ImOQ0XH1m)
+end) uvWUOOzvx1["DescendantRemoving"]:Connect(
+function(Ov1pxpO1vlIbQ)
+local WIxqnZqmUv0z= NIxZZvbqZwu(Ov1pxpO1vlIbQ) or Ov1pxpO1vlIbQ
+if HM1uHIZZl0["windowEspObjects"][WIxqnZqmUv0z] then
+DnqX_lbNxO(WIxqnZqmUv0z)
+end
+end)
+local function uDUDl_()
+for IzWqxqvHvlZ0N_,wvQovQ_UmZ in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["windowEspObjects"]) do
+    if not IzWqxqvHvlZ0N_ or not IzWqxqvHvlZ0N_["Parent"] then
+DnqX_lbNxO(IzWqxqvHvlZ0N_)
+    end
+end
+if Wv0HMNDowvn["espWindowEnabled"] then
+    for DHpolb,qZzX1UU in w_ZpoH0p1["DZu1Dmvbw"](uvWUOOzvx1["GetDescendants"](uvWUOOzvx1)) do
+Mm1nMo_pQD(qZzX1UU)
+    end
+end
+end task["spawn"](
+function() task["wait"](3) uDUDl_()
+end)
+local function bbQbmv1MbH()
+if not HM1uHIZZl0["objEspInitialized"] then
+    return
+end
+local NlZXb= Wv0HMNDowvn["espGeneratorEnabled"] or Wv0HMNDowvn["espGeneratorProgressGen"]
+if NlZXb then
+    local IDZnlWm={}
+    for vnumNM0N,_UzWHvUnmIOMm in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Generators"]) do
+        if _UzWHvUnmIOMm and _UzWHvUnmIOMm["Parent"] then
+            local _mQQzQwNwo1v_= bp0wImow0Dm(_UzWHvUnmIOMm)
+            if not _mQQzQwNwo1v_ then
+w_ZpoH0p1["I_plQ"](IDZnlWm,_UzWHvUnmIOMm)
+            end
+        end
+    end HM1uHIZZl0["cachedMapObjects"]["Generators"]= IDZnlWm
+else
+for MqunID,MbDUu1 in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Generators"]) do
+    if MbDUu1 and MbDUu1["Parent"] then
+onHbZx(MbDUu1)
+        local qnm1q= MbDUu1["FindFirstChild"](MbDUu1,"__BolongGenProgress__")
+        if qnm1q then
+qnm1q["Destroy"](qnm1q)
+        end MbDUu1["SetAttribute"](MbDUu1,"__BolongGenLastPct__",nil)
+    end
+end
+end
+if Wv0HMNDowvn["espPalletEnabled"] then
+    for pDox0wQ__,HX1OUpNlDmxQl in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Pallets"]) do
+        if HX1OUpNlDmxQl and HX1OUpNlDmxQl["Parent"] then
+            local vzZnp0oQvbwZM= HM1uHIZZl0["cachedPalletMeta"][HX1OUpNlDmxQl]
+            if vzZnp0oQvbwZM and not vzZnp0oQvbwZM["isFake"] then
+buHOpx0lv(HX1OUpNlDmxQl,Wv0HMNDowvn["espPalletColor"])
+            end
+        end
+    end
+else
+for bOHqqWIbxXDIX,WDpuWDZuwNv in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Pallets"]) do
+    if WDpuWDZuwNv then
+onHbZx(WDpuWDZuwNv)
+    end
+end
+end
+if Wv0HMNDowvn["espHookEnabled"] then
+    for v0WlDvl,bMmzqquHlp1u in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Hooks"]) do
+        if bMmzqquHlp1u and bMmzqquHlp1u["Parent"] then
+            local WUvZuQoWmO= HM1uHIZZl0["cachedHookMeshParts"][bMmzqquHlp1u]
+            if WUvZuQoWmO then
+                for D0HXHNZqZZ0I,oxwMo in w_ZpoH0p1["DZu1Dmvbw"](WUvZuQoWmO) do
+buHOpx0lv(oxwMo,Wv0HMNDowvn["espHookColor"])
+                end
+            else buHOpx0lv(bMmzqquHlp1u,Wv0HMNDowvn["espHookColor"])
+        end
+    end
+end
+else
+for D0NNI1OZ,_pIWI1pqn in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Hooks"]) do
+    if _pIWI1pqn and _pIWI1pqn["Parent"] then
+        local wnmoHo= HM1uHIZZl0["cachedHookMeshParts"][_pIWI1pqn]
+        if wnmoHo then
+            for uHq1WmmODzU0,DDZpWH in w_ZpoH0p1["DZu1Dmvbw"](wnmoHo) do
+onHbZx(DDZpWH)
+            end
+        else onHbZx(_pIWI1pqn)
+    end
+end
+end
+end
+if Wv0HMNDowvn["espGateEnabled"] then
+    for qMWOo,MUDbQmnUUIUqZ in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Gates"]) do
+        if MUDbQmnUUIUqZ and MUDbQmnUUIUqZ["Parent"] then
+buHOpx0lv(MUDbQmnUUIUqZ,Wv0HMNDowvn["espGateColor"])
+        end
+    end
+else
+for QmuwobOow__N1,lz_XNIUz in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Gates"]) do
+    if lz_XNIUz and lz_XNIUz["Parent"] then
+onHbZx(lz_XNIUz)
+    end
+end
+end
+if Wv0HMNDowvn["espWindowEnabled"] then
+uDUDl_()
+    for _qWD_1,_NnnN in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["windowEspObjects"]) do
+        if _qWD_1 and _qWD_1["Parent"] and _NnnN and _NnnN["Parent"] then
+w_ZpoH0p1["bHopuzIW"](
+            function()
+            local H1Hbwo= Wv0HMNDowvn["espWindowColor"] _NnnN["Color3"]= H1Hbwo _NnnN["Size"]= _qWD_1["Size"]
+        end)
+    else DnqX_lbNxO(_qWD_1)
+end
+end
+else
+for H0zOZZuMN11,bmvQoqMx in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["windowEspObjects"]) do
+DnqX_lbNxO(H0zOZZuMN11)
+end
+end
+end
+local function OqMUXvUHHDu()
+local QzNX1nOq={}
+local MHbbQ1W0O1lQ= workspace["FindFirstChild"](workspace,"Map")
+if MHbbQ1W0O1lQ then
+    for WbXZIID,bpquZbWbm1QNn in w_ZpoH0p1["DZu1Dmvbw"](MHbbQ1W0O1lQ["GetDescendants"](MHbbQ1W0O1lQ)) do
+        if(bpquZbWbm1QNn["Name"]=="Window" or bpquZbWbm1QNn["Name"]=="VaultPoint" or w_ZpoH0p1["HbxXmooXu_wlZl"](bpquZbWbm1QNn["Name"],"Window")) then
+            if bpquZbWbm1QNn["IsA"](bpquZbWbm1QNn,"BasePart") or bpquZbWbm1QNn["IsA"](bpquZbWbm1QNn,"Model") then
+w_ZpoH0p1["I_plQ"](QzNX1nOq,bpquZbWbm1QNn)
+            end
+        end
+    end
+end
+for HXonvQmoQvMDu,WoHDm in w_ZpoH0p1["DZu1Dmvbw"](WoxXzobD["GetTagged"](WoxXzobD,"VaultPoint")) do
+w_ZpoH0p1["I_plQ"](QzNX1nOq,WoHDm)
+end
+return QzNX1nOq
+end
+local function vlmOH1_X()
+if not HM1uHIZZl0["antiLoopWindowEnabled"] then
+    return
+end
+local WwlXu= DMNlwumvQ0Mmvp["FindFirstChild"](DMNlwumvQ0Mmvp,"Remotes")
+if not WwlXu then
+    return
+end
+local uXlubH= WwlXu["FindFirstChild"](WwlXu,"Window")
+if not uXlubH then
+    return
+end
+local BNxUop= uXlubH["FindFirstChild"](uXlubH,"VaultEvent")
+if not BNxUop then
+    return
+end task["spawn"](
+function() task["wait"]((-828+829))
+local OpWnOlZ= OqMUXvUHHDu()
+for WMO0QDwO1,I0Qm1Z_ in w_ZpoH0p1["DZu1Dmvbw"](OpWnOlZ) do
+task["spawn"](
+    function() w_ZpoH0p1["bHopuzIW"](
+    function() BNxUop:FireServer(I0Qm1Z_,true)
+end)
+end) task["wait"](0.05)
+end
+end)
+end
+local function IM_WpzUx1nu()
+local _DlWvHZ0vz0MuM= DMNlwumvQ0Mmvp["FindFirstChild"](DMNlwumvQ0Mmvp,"Remotes")
+if not _DlWvHZ0vz0MuM then
+    return
+end
+local qQXNUMnXXbMq= _DlWvHZ0vz0MuM["FindFirstChild"](_DlWvHZ0vz0MuM,"Window")
+if not qQXNUMnXXbMq then
+    return
+end
+local lb1u0vOv= qQXNUMnXXbMq["FindFirstChild"](qQXNUMnXXbMq,"VaultCompleteEvent")
+local umWbnMxH_= qQXNUMnXXbMq["FindFirstChild"](qQXNUMnXXbMq,"VaultCompleteEventpart1") task["spawn"](
+function()
+local OUMOm0vxbvQm= OqMUXvUHHDu()
+for MIHUbUuNWN0M,QwH0plnlq1pbZ in w_ZpoH0p1["DZu1Dmvbw"](OUMOm0vxbvQm) do
+task["spawn"](
+    function() w_ZpoH0p1["bHopuzIW"](
+    function()
+    if lb1u0vOv then
+lb1u0vOv["FireServer"](lb1u0vOv,QwH0plnlq1pbZ,false)
+    end
+    if umWbnMxH_ then
+umWbnMxH_["FireServer"](umWbnMxH_)
+    end
+end)
+end) task["wait"](0.05)
+end
+end)
+end do
+    local oUZ1uwZI= workspace["FindFirstChild"](workspace,"Map")
+    if oUZ1uwZI then
+ul0ZZMWZ(oUZ1uwZI) vlmOH1_X()
+    end workspace["ChildAdded"]:Connect(
+    function(vmuxlQOU_bMz)
+    if vmuxlQOU_bMz["Name"]=="Map" then
+task["wait"](2) ul0ZZMWZ(vmuxlQOU_bMz) vlmOH1_X()
+    end
+end) workspace["ChildRemoved"]:Connect(
+function(pMoQmlzpxvZ)
+if pMoQmlzpxvZ["Name"]=="Map" then
+HM1uHIZZl0["cachedMapObjects"]={["Generators"]={},["Pallets"]={},["Hooks"]={},["Gates"]={}} HM1uHIZZl0["cachedPalletMeta"]={};
+HM1uHIZZl0["cachedHookMeshParts"]={} HM1uHIZZl0["completedGenerators"]={};
+HM1uHIZZl0["objEspInitialized"]= false HM1uHIZZl0["genIndices"]={};
+HM1uHIZZl0["nextGenIndex"]=1
+end
+end)
+end NpvQIDpz("GenESPUpdater",0.2,
+function()
+if not Wv0HMNDowvn["espGeneratorEnabled"] and not Wv0HMNDowvn["espGeneratorProgressGen"] then
+    return
+end
+for lImD_QD_wnX0M,I_uWOH1lQMwD in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Generators"]) do
+    if I_uWOH1lQMwD and I_uWOH1lQMwD["Parent"] and not HM1uHIZZl0["completedGenerators"][I_uWOH1lQMwD] then
+bp0wImow0Dm(I_uWOH1lQMwD)
+    end
+end
+end)
+local function w1mO_U1I_()
+if not getnilinstances then
+pUXUIwpIMmH("Error","Executor tidak support getnilinstances()",2)
+    return
+end task["spawn"](
+function()
+local O0QoO_Wzm= DMNlwumvQ0Mmvp["FindFirstChild"](DMNlwumvQ0Mmvp,"Remotes")
+if not O0QoO_Wzm then
+    return
+end
+local vQn0WDo= O0QoO_Wzm["FindFirstChild"](O0QoO_Wzm,"Pallet") vQn0WDo= vQn0WDo and vQn0WDo["FindFirstChild"](vQn0WDo,"PalletDropEvent")
+if not vQn0WDo then
+    return
+end
+local vuHxOW={}
+local vn_DuoM1MODzZ={}
+local oIzQXNnZ,b1HUvOU= w_ZpoH0p1["bHopuzIW"](getnilinstances)
+if oIzQXNnZ and w_ZpoH0p1["HmnU_lbWXHQX1I"](b1HUvOU)=="table" then
+    for poU0MQnUvvpw,BIvHI_OwoU1 in w_ZpoH0p1["DZu1Dmvbw"](b1HUvOU) do
+        if w_ZpoH0p1["bHmuv"](BIvHI_OwoU1)=="Instance" then
+            local Q0WQZZINxu_= BIvHI_OwoU1["Name"]
+            if Q0WQZZINxu_=="PalletPointSlide" or Q0WQZZINxu_=="palletDropPoint" or Q0WQZZINxu_=="PalletDropPoint" or Q0WQZZINxu_=="PalletPoint" then
+                if not vn_DuoM1MODzZ[BIvHI_OwoU1] then
+w_ZpoH0p1["I_plQ"](vuHxOW,BIvHI_OwoU1) vn_DuoM1MODzZ[BIvHI_OwoU1]= true
+                end
+            end
+        end
+    end
+end
+for oqDXw,pXzWqqH0mH in w_ZpoH0p1["DZu1Dmvbw"](workspace["GetDescendants"](workspace)) do
+    local BX_zp= pXzWqqH0mH["Name"]
+    if BX_zp=="PalletPointSlide" or BX_zp=="palletDropPoint" or BX_zp=="PalletDropPoint" or BX_zp=="PalletPoint" then
+        if not vn_DuoM1MODzZ[pXzWqqH0mH] then
+w_ZpoH0p1["I_plQ"](vuHxOW,pXzWqqH0mH) vn_DuoM1MODzZ[pXzWqqH0mH]= true
+        end
+    end
+end
+if#vuHxOW==(-341+341) then
+    return
+end
+for bO0DbZUn,WD1XvmuQHIIDUU in w_ZpoH0p1["DZu1Dmvbw"](vuHxOW) do
+w_ZpoH0p1["bHopuzIW"](
+    function() vQn0WDo:FireServer(WD1XvmuQHIIDUU)
+end)
+end
+end)
+end NpvQIDpz("AutoDropNearbyPallets",0.2,
+function()
+if not HM1uHIZZl0["autoDropNearbyPallets"] then
+    return
+end
+if HM1uHIZZl0["autoDropCooldown"] then
+    return
+end
+local qMObpUObNM= Hnv0Zw["Character"]
+if not qMObpUObNM then
+    return
+end
+local ulMZO= qMObpUObNM["FindFirstChild"](qMObpUObNM,"HumanoidRootPart")
+if not ulMZO then
+    return
+end
+local uWZH1= DMNlwumvQ0Mmvp["FindFirstChild"](DMNlwumvQ0Mmvp,"Remotes")
+if not uWZH1 then
+    return
+end
+local _Wxo_lMxWQ_mW= uWZH1["FindFirstChild"](uWZH1,"Pallet") _Wxo_lMxWQ_mW= _Wxo_lMxWQ_mW and _Wxo_lMxWQ_mW["FindFirstChild"](_Wxo_lMxWQ_mW,"PalletDropEvent")
+if not _Wxo_lMxWQ_mW then
+    return
+end
+local OxOZOpMuM= ulMZO["Position"]
+if not HM1uHIZZl0["palletPointsCache"] or(tick()- HM1uHIZZl0["lastPalletPointScan"]>(-922+927)) then
+HM1uHIZZl0["lastPalletPointScan"]= tick() HM1uHIZZl0["palletPointsCache"]={}
+    local function QNxOIbxDOz0Zw(QzUxX)
+    if w_ZpoH0p1["bHmuv"](QzUxX)~="Instance" then
+        return false
+    end
+    local ublNOzv= QzUxX["Name"]
+    if ublNOzv=="PalletPointSlide" or ublNOzv=="palletDropPoint" or ublNOzv=="PalletDropPoint" or ublNOzv=="PalletPoint" then
+        return true
+    end
+    return false
+end
+if getnilinstances then
+    local vHXMDQl,OmUlmql_= w_ZpoH0p1["bHopuzIW"](getnilinstances)
+    if vHXMDQl and w_ZpoH0p1["HmnU_lbWXHQX1I"](OmUlmql_)=="table" then
+        for opNlIXw1WmuX,umn0lXxwqn in w_ZpoH0p1["DZu1Dmvbw"](OmUlmql_) do
+            if QNxOIbxDOz0Zw(umn0lXxwqn) then
+w_ZpoH0p1["I_plQ"](HM1uHIZZl0["palletPointsCache"],umn0lXxwqn)
+            end
+        end
+    end
+end
+for MxDZnMQNxnDIH1,wMbNZIo0Ww0wu in w_ZpoH0p1["DZu1Dmvbw"](workspace["GetDescendants"](workspace)) do
+    if QNxOIbxDOz0Zw(wMbNZIo0Ww0wu) then
+w_ZpoH0p1["I_plQ"](HM1uHIZZl0["palletPointsCache"],wMbNZIo0Ww0wu)
+    end
+end
+end
+local D0OWzwW0bHpU= nil
+local vZxvn= math["huge"]
+for HNXqD=#HM1uHIZZl0["palletPointsCache"],(-825+826),-(-750+751) do
+    local IDu1WQz= HM1uHIZZl0["palletPointsCache"][HNXqD]
+    if not IDu1WQz or not IDu1WQz["Parent"] then
+w_ZpoH0p1["w0QIN"](HM1uHIZZl0["palletPointsCache"],HNXqD)
+    else
+    local QWNxpHqDXmW= nil w_ZpoH0p1["bHopuzIW"](
+    function()
+    if IDu1WQz["IsA"](IDu1WQz,"BasePart") then
+QWNxpHqDXmW= IDu1WQz["Position"]
+    elseif IDu1WQz["IsA"](IDu1WQz,"Model") then
+QWNxpHqDXmW= IDu1WQz["GetPivot"](IDu1WQz)["Position"]
+    elseif IDu1WQz["IsA"](IDu1WQz,"Attachment") then
+QWNxpHqDXmW= IDu1WQz["WorldPosition"]
+    end
+end)
+if not QWNxpHqDXmW then
+    local IowlHuH= IDu1WQz["FindFirstChildWhichIsA"](IDu1WQz,"BasePart",true)
+    if IowlHuH then
+QWNxpHqDXmW= IowlHuH["Position"]
+    end
+end
+if QWNxpHqDXmW then
+    local QubDlvUz_lvMZp=(QWNxpHqDXmW- OxOZOpMuM)["Magnitude"]
+    if QubDlvUz_lvMZp< vZxvn then
+vZxvn= QubDlvUz_lvMZp D0OWzwW0bHpU= IDu1WQz
+    end
+end
+end
+end
+if D0OWzwW0bHpU and vZxvn<=(928-924) then
+w_ZpoH0p1["bHopuzIW"](
+    function() _Wxo_lMxWQ_mW:FireServer(D0OWzwW0bHpU)
+end)
+for HqXHp,WpNv1W in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["palletPointsCache"]) do
+    if WpNv1W== D0OWzwW0bHpU then
+w_ZpoH0p1["w0QIN"](HM1uHIZZl0["palletPointsCache"],HqXHp) break
+    end
+end HM1uHIZZl0["autoDropCooldown"]= true task["delay"]((-979+981),
+function() HM1uHIZZl0["autoDropCooldown"]= false
+end)
+end
+end)
+local function WpblbNNwxMIv(ubvQnDlpZXm0pH,pn0UOxNHUzlD)
+if not Wv0HMNDowvn["hitboxEnabled"] then
+    return
+end
+if not pn0UOxNHUzlD then
+    return
+end
+local MmNNHW= vWlM1ZWQubmZp(ubvQnDlpZXm0pH)
+local DQnuNppl=(MmNNHW=="killer") and Wv0HMNDowvn["killerHitboxSize"] or Wv0HMNDowvn["survivorHitboxSize"]
+local _ZUUNWvwqXD0= DQnuNppl/(-206+306)
+local QpX1WnZv= pn0UOxNHUzlD["FindFirstChild"](pn0UOxNHUzlD,"HumanoidRootPart")
+if QpX1WnZv and QpX1WnZv["IsA"](QpX1WnZv,"BasePart") then
+    if not HM1uHIZZl0["hitboxOriginalSizes"][QpX1WnZv] then
+HM1uHIZZl0["hitboxOriginalSizes"][QpX1WnZv]= QpX1WnZv["Size"]
+    end
+    local MwpMnqqv0=(44-42)
+    local _WvUXNNvx= Vector3["new"](MwpMnqqv0* _ZUUNWvwqXD0,MwpMnqqv0* _ZUUNWvwqXD0,MwpMnqqv0* _ZUUNWvwqXD0) w_ZpoH0p1["bHopuzIW"](
+    function() QpX1WnZv["Size"]= _WvUXNNvx QpX1WnZv["Transparency"]=1 QpX1WnZv["CanCollide"]= false
+end)
+end
+end
+local function NnnxXDbZqlOwxv(Bo1Hp,I0WUnxn0Qb)
+if not I0WUnxn0Qb then
+    return
+end
+local ODDoHNIUQzqnum= I0WUnxn0Qb["FindFirstChild"](I0WUnxn0Qb,"HumanoidRootPart")
+if ODDoHNIUQzqnum and ODDoHNIUQzqnum["IsA"](ODDoHNIUQzqnum,"BasePart") then
+    local BQOuObvwUbw= HM1uHIZZl0["hitboxOriginalSizes"][ODDoHNIUQzqnum]
+    if BQOuObvwUbw then
+w_ZpoH0p1["bHopuzIW"](
+        function() ODDoHNIUQzqnum["Size"]= BQOuObvwUbw ODDoHNIUQzqnum["Transparency"]=1
+    end) HM1uHIZZl0["hitboxOriginalSizes"][ODDoHNIUQzqnum]= nil
+end
+end
+end
+local function pIWIOMWp()
+if not Wv0HMNDowvn["hitboxEnabled"] then
+    return
+end
+for HowX_,wNW0I1Z in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if wNW0I1Z~= Hnv0Zw and wNW0I1Z["Character"] then
+WpblbNNwxMIv(wNW0I1Z,wNW0I1Z["Character"])
+    end
+end
+end
+local function vXQHOzmuNXl()
+for pMXunI,O0lzqwl in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if O0lzqwl~= Hnv0Zw and O0lzqwl["Character"] then
+NnnxXDbZqlOwxv(O0lzqwl,O0lzqwl["Character"])
+    end
+end
+end
+local function _zWMxWbmXoUxzU(N_lZDH,Dlm1b)
+if N_lZDH== Hnv0Zw then
+    return
+end
+local uO_1b= Dlm1b and Dlm1b["FindFirstChild"](Dlm1b,"HumanoidRootPart")
+if not uO_1b then
+    return
+end
+local OlHHDzUlN= HM1uHIZZl0["hitboxEspObjects"][N_lZDH]
+if OlHHDzUlN and OlHHDzUlN["Parent"] then
+    if OlHHDzUlN["Adornee"]== uO_1b then
+        return
+    end OlHHDzUlN["Destroy"](OlHHDzUlN)
+end
+local NHqDUM0n= vWlM1ZWQubmZp(N_lZDH)
+local IobmwNW=(NHqDUM0n=="killer") and Wv0HMNDowvn["hitboxEspKillerColor"] or Wv0HMNDowvn["hitboxEspSurvivorColor"]
+local IHMnWWzx= Instance["new"]("SelectionBox") IHMnWWzx["Adornee"]= uO_1b;
+IHMnWWzx["Color3"]= IobmwNW;
+IHMnWWzx["LineThickness"]=0.10 IHMnWWzx["SurfaceTransparency"]= Wv0HMNDowvn["hitboxEspOutlineOnly"] and(427-426) or Wv0HMNDowvn["hitboxEspTransparency"] IHMnWWzx["SurfaceColor3"]= IobmwNW;
+IHMnWWzx["Parent"]= QwZOO1pHbl1_ HM1uHIZZl0["hitboxEspObjects"][N_lZDH]= IHMnWWzx
+end
+local function QNnzOW0mu(W0D0OMWbUmvH)
+local _M_UMln1wQuuZ= HM1uHIZZl0["hitboxEspObjects"][W0D0OMWbUmvH]
+if _M_UMln1wQuuZ then
+w_ZpoH0p1["bHopuzIW"](
+    function() _M_UMln1wQuuZ:Destroy()
+end);
+HM1uHIZZl0["hitboxEspObjects"][W0D0OMWbUmvH]= nil
+end
+end
+local function WxWMzlH()
+for wQXOnI,qHHpZ1zv_1_HUb in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["hitboxEspObjects"]) do
+    if qHHpZ1zv_1_HUb and qHHpZ1zv_1_HUb["Parent"] then
+        local l_0uXIm= vWlM1ZWQubmZp(wQXOnI)
+        local INpwHoHvl=(l_0uXIm=="killer") and Wv0HMNDowvn["hitboxEspKillerColor"] or Wv0HMNDowvn["hitboxEspSurvivorColor"] qHHpZ1zv_1_HUb["Color3"]= INpwHoHvl;
+qHHpZ1zv_1_HUb["SurfaceColor3"]= INpwHoHvl qHHpZ1zv_1_HUb["SurfaceTransparency"]= Wv0HMNDowvn["hitboxEspOutlineOnly"] and 1 or Wv0HMNDowvn["hitboxEspTransparency"]
+    end
+end
+end
+local function pNzHND()
+for BmMHwNzupXMq,vmwQM in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if vmwQM~= Hnv0Zw and vmwQM["Character"] then
+_zWMxWbmXoUxzU(vmwQM,vmwQM["Character"])
+    end
+end
+end
+local function o1II1HWx0HbZ()
+for WmzlpZ1NvQ_wl,u1vHO in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["hitboxEspObjects"]) do
+QNnzOW0mu(WmzlpZ1NvQ_wl)
+end
+end
+local function WwOu1ZXou0Z()
+if HM1uHIZZl0["SpeedBoost"] then
+    local MIqo0wXzxnox= w_ZpoH0p1["_WXbbv_1_HnO"](HM1uHIZZl0["BoostPercent"],(-877+877),100)*2
+    return ulUmWDQmqmmv*((557-556)+ MIqo0wXzxnox/(1020-920))
+end
+return ulUmWDQmqmmv
+end
+local function qNMQXII(uDx1MUnXNv,pnHwb)
+if not uDx1MUnXNv or not uDx1MUnXNv["Parent"] then
+    return
+end
+if w_ZpoH0p1["lqWzNNmZIlpXZ"](uDx1MUnXNv["WalkSpeed"]- pnHwb)>0.05 then
+w_ZpoH0p1["bHopuzIW"](
+    function() uDx1MUnXNv["WalkSpeed"]= pnHwb
+end)
+end
+end
+local function uXupvXZzOImon() task["spawn"](
+function()
+local QqOnNDxpnx,DwMnmDwQ= w_ZpoH0p1["bHopuzIW"](
+function()
+return game["GetService"](game,"ReplicatedStorage"):WaitForChild("Remotes",(-165+175)):WaitForChild("Mechanics",(-143+153)):WaitForChild("Fall",10)
+end)
+if not QqOnNDxpnx or not DwMnmDwQ then
+    return
+end
+local qzwUuwzp qzwUuwzp= hookmetamethod(game,"__namecall",
+function(OXZXZZO0WHNov,...)
+local vUzlloUbUI= getnamecallmethod()
+if HM1uHIZZl0["AntiFallSlow"] and vUzlloUbUI=="FireServer" and w_ZpoH0p1["vumZ11WpXWw"](OXZXZZO0WHNov,DwMnmDwQ) then
+    return
+end
+return qzwUuwzp(OXZXZZO0WHNov,...)
+end)
+end)
+end
+local function Nvw0ZDnxoImoH(NvxQWH)
+if HM1uHIZZl0["movConns"]["antiFall"] then
+HM1uHIZZl0["movConns"]["antiFall"]:Disconnect()
+end uXupvXZzOImon()
+if not NvxQWH then
+    return
+end w_ZpoH0p1["bHopuzIW"](
+function() NvxQWH:SetStateEnabled(Enum["HumanoidStateType"]["FallingDown"],false)
+end) HM1uHIZZl0["movConns"]["antiFall"]= NvxQWH["StateChanged"]:Connect(
+function(lMW0UbWUM_q,Mu1uO__bXOnmwU)
+if not HM1uHIZZl0["AntiFallSlow"] then
+    return
+end
+if Mu1uO__bXOnmwU== Enum["HumanoidStateType"]["Landed"] or Mu1uO__bXOnmwU== Enum["HumanoidStateType"]["GettingUp"] or Mu1uO__bXOnmwU== Enum["HumanoidStateType"]["FallingDown"] then
+w_ZpoH0p1["bHopuzIW"](
+    function() NvxQWH:ChangeState(Enum["HumanoidStateType"]["Running"])
+end) qNMQXII(NvxQWH,WwOu1ZXou0Z())
+end
+end)
+end
+local function vZW11Xq1xZD_(MlmIp0v)
+if HM1uHIZZl0["movConns"]["antiFall"] then
+HM1uHIZZl0["movConns"]["antiFall"]:Disconnect();
+HM1uHIZZl0["movConns"]["antiFall"]= nil
+end
+if MlmIp0v and MlmIp0v["Parent"] then
+w_ZpoH0p1["bHopuzIW"](
+    function() MlmIp0v:SetStateEnabled(Enum["HumanoidStateType"]["FallingDown"],true)
+end)
+end
+end
+local function vqQoXU(NXwX1OX)
+if HM1uHIZZl0["movConns"]["noSlow"] then
+HM1uHIZZl0["movConns"]["noSlow"]:Disconnect();
+HM1uHIZZl0["movConns"]["noSlow"]= nil
+end
+if not NXwX1OX then
+    return
+end
+if vWlM1ZWQubmZp(Hnv0Zw)=="killer" then
+    return
+end HM1uHIZZl0["movConns"]["noSlow"]= NXwX1OX["GetPropertyChangedSignal"](NXwX1OX,"WalkSpeed"):Connect(
+function()
+if not HM1uHIZZl0["NoSlowdown"] then
+    return
+end
+if vWlM1ZWQubmZp(Hnv0Zw)=="killer" then
+    return
+end
+local B1WH0pv1bND= Hnv0Zw["Character"]
+if HM1uHIZZl0["safeModeSpeed"] and B1WH0pv1bND and(B1WH0pv1bND["GetAttribute"](B1WH0pv1bND,"IsHooked") or B1WH0pv1bND["GetAttribute"](B1WH0pv1bND,"IsCarried") or NXwX1OX["Health"]<=(-491+541)) then
+    return
+end
+local _NDbOZMUmmz= WwOu1ZXou0Z()
+if NXwX1OX["WalkSpeed"]< _NDbOZMUmmz-0.05 then
+w_ZpoH0p1["bHopuzIW"](
+    function() NXwX1OX["WalkSpeed"]= _NDbOZMUmmz
+end)
+end
+end)
+end
+local function INoz_NoZH(BlMboH)
+if not BlMboH then
+    return
+end
+local BWUmzWu= BlMboH["WaitForChild"](BlMboH,"Humanoid",(-656+661))
+if not BWUmzWu then
+    return
+end
+if HM1uHIZZl0["AntiFallSlow"] then
+Nvw0ZDnxoImoH(BWUmzWu)
+end
+if HM1uHIZZl0["NoSlowdown"] and vWlM1ZWQubmZp(Hnv0Zw)~="killer" then
+vqQoXU(BWUmzWu)
+end
+if HM1uHIZZl0["SpeedBoost"] then
+    local _HmxMq0n= WwOu1ZXou0Z() task["wait"](0.15)
+    if not HM1uHIZZl0["safeModeSpeed"] or(BWUmzWu["Health"]>50 and not(BlMboH["GetAttribute"](BlMboH,"IsHooked") or BlMboH["GetAttribute"](BlMboH,"IsCarried"))) then
+qNMQXII(BWUmzWu,_HmxMq0n)
+    end
+end
+end
+local function ox0Np(Duo0IW)
+if not Duo0IW then
+    return
+end
+local WHQz000HHmxx= Duo0IW["WaitForChild"](Duo0IW,"Humanoid",5)
+if not WHQz000HHmxx then
+    return
+end
+if HM1uHIZZl0["AntiFallSlow"] then
+Nvw0ZDnxoImoH(WHQz000HHmxx)
+end
+if HM1uHIZZl0["NoSlowdown"] and vWlM1ZWQubmZp(Hnv0Zw)~="killer" then
+vqQoXU(WHQz000HHmxx)
+end
+if HM1uHIZZl0["SpeedBoost"] then
+    local WMNoWO= WwOu1ZXou0Z() task["wait"](0.15) qNMQXII(WHQz000HHmxx,WMNoWO)
+end
+end Hnv0Zw["GetPropertyChangedSignal"](Hnv0Zw,"Team"):Connect(
+function() oHpnQZpOMIO0n(Hnv0Zw)
+if vWlM1ZWQubmZp(Hnv0Zw)=="killer" and HM1uHIZZl0["movConns"]["noSlow"] then
+HM1uHIZZl0["movConns"]["noSlow"]:Disconnect();
+HM1uHIZZl0["movConns"]["noSlow"]= nil
+end
+end)
+local function NubHIl()
+if HM1uHIZZl0["moonwalkGui"] then
+    return
+end
+local qHbxuWDvpmqN= Hnv0Zw["WaitForChild"](Hnv0Zw,"PlayerGui")
+local IWNXqUnODxM= Instance["new"]("ScreenGui") IWNXqUnODxM["Name"]="BolongHubMoonwalk" IWNXqUnODxM["ResetOnSpawn"]= false IWNXqUnODxM["Enabled"]= false IWNXqUnODxM["Parent"]= qHbxuWDvpmqN
+local WpXmOIzQMMbzQ= Instance["new"]("Frame") WpXmOIzQMMbzQ["Name"]="MoonwalkBtns" WpXmOIzQMMbzQ["AnchorPoint"]= Vector2["new"]((-40+41),1) WpXmOIzQMMbzQ["Position"]= UDim2["new"]((782-781),-18,1,-170) WpXmOIzQMMbzQ["Size"]= UDim2["fromOffset"](46,96) WpXmOIzQMMbzQ["BackgroundTransparency"]=1 WpXmOIzQMMbzQ["Parent"]= IWNXqUnODxM
+local function DZlqz_UlMU_DZ(q_Uq__,unxuMXIw)
+local WnoWx= Instance["new"]("ImageButton") WnoWx["BackgroundTransparency"]=1 WnoWx["BorderSizePixel"]=0 WnoWx["AutoButtonColor"]= false WnoWx["AnchorPoint"]= Vector2["new"](0.5,0) WnoWx["Position"]= UDim2["new"](0.5,0,(-202+202),unxuMXIw) WnoWx["Size"]= UDim2["fromOffset"]((-477+519),42) WnoWx["Image"]="rbxassetid://125598796341580" WnoWx["ScaleType"]= Enum["ScaleType"]["Slice"] WnoWx["ImageColor3"]= Color3["fromRGB"](170,170,(-16+186)) WnoWx["ImageTransparency"]=0.25 WnoWx["Rotation"]= q_Uq__ WnoWx["Parent"]= WpXmOIzQMMbzQ
+return WnoWx
+end
+local Iqnpl_= DZlqz_UlMU_DZ(-90,0)
+local bpXvx1pWwmN0v= DZlqz_UlMU_DZ((913-823),50)
+local function uvZ0wUnuzOz(vovUMqlqwwQO,upHxIppzXMmDo) vovUMqlqwwQO["InputBegan"]:Connect(
+function(uUIwHuXlp)
+if uUIwHuXlp["UserInputType"]== Enum["UserInputType"]["Touch"] or uUIwHuXlp["UserInputType"]== Enum["UserInputType"]["MouseButton1"] then
+HM1uHIZZl0["moonwalkMobileDir"]= upHxIppzXMmDo vovUMqlqwwQO["ImageColor3"]= Color3["fromRGB"](255,(-34+289),255) vovUMqlqwwQO["ImageTransparency"]=(-619+619)
+end
+end) vovUMqlqwwQO["InputEnded"]:Connect(
+function(D_zlDHMpM1Qm)
+if D_zlDHMpM1Qm["UserInputType"]== Enum["UserInputType"]["Touch"] or D_zlDHMpM1Qm["UserInputType"]== Enum["UserInputType"]["MouseButton1"] then
+HM1uHIZZl0["moonwalkMobileDir"]=(413-413) vovUMqlqwwQO["ImageColor3"]= Color3["fromRGB"]((97+73),(523-353),170) vovUMqlqwwQO["ImageTransparency"]=0.25
+end
+end)
+end uvZ0wUnuzOz(Iqnpl_,1) uvZ0wUnuzOz(bpXvx1pWwmN0v,-1) HM1uHIZZl0["moonwalkGui"]= IWNXqUnODxM
+end
+local function _ZxmxZqIZ(M0QznbDpv)
+if M0QznbDpv["FindFirstChild"](M0QznbDpv,"BolongMoonwalkAlign") then
+    return M0QznbDpv["FindFirstChild"](M0QznbDpv,"BolongMoonwalkAlign")
+end
+local uWIQwoQ= Instance["new"]("Attachment") uWIQwoQ["Name"]="BolongMoonwalkAtt" uWIQwoQ["Parent"]= M0QznbDpv
+local bXHIObpxqm0QO= Instance["new"]("AlignOrientation") bXHIObpxqm0QO["Name"]="BolongMoonwalkAlign" bXHIObpxqm0QO["Mode"]= Enum["OrientationAlignmentMode"]["OneAttachment"] bXHIObpxqm0QO["Attachment0"]= uWIQwoQ bXHIObpxqm0QO["MaxTorque"]=(1000274-274) bXHIObpxqm0QO["Responsiveness"]=15 bXHIObpxqm0QO["Parent"]= M0QznbDpv
+return bXHIObpxqm0QO
+end
+local function NmlZX(QUopDNNZIznDu)
+local OpUWQOmlI11= QUopDNNZIznDu["FindFirstChild"](QUopDNNZIznDu,"BolongMoonwalkAlign")
+local QID01oWbvpQxX= QUopDNNZIznDu["FindFirstChild"](QUopDNNZIznDu,"BolongMoonwalkAtt")
+if OpUWQOmlI11 then
+OpUWQOmlI11["Destroy"](OpUWQOmlI11)
+end
+if QID01oWbvpQxX then
+QID01oWbvpQxX["Destroy"](QID01oWbvpQxX)
+end
+end NpvQIDpz("MoonwalkLock",0,
+function(uzvIm1Nbnq0HNn)
+if not Wv0HMNDowvn["moonwalkEnabled"] then
+    return
+end
+local MvIH1MXQw= Hnv0Zw["Character"]
+local Nl1Oo= MvIH1MXQw and MvIH1MXQw["FindFirstChildOfClass"](MvIH1MXQw,"Humanoid")
+local WvompqNqHNN= MvIH1MXQw and MvIH1MXQw["FindFirstChild"](MvIH1MXQw,"HumanoidRootPart")
+local IpHNulHmMqxQv= uvWUOOzvx1["CurrentCamera"]
+if not Nl1Oo or not WvompqNqHNN or not IpHNulHmMqxQv then
+    return
+end
+local uM1InOuMN1w=0
+if HM1uHIZZl0["moonwalkPCForward"] then
+uM1InOuMN1w=(125-124)
+end
+if HM1uHIZZl0["moonwalkPCBackward"] then
+uM1InOuMN1w=-1
+end
+if HM1uHIZZl0["moonwalkMobileDir"]~=(-379+379) then
+uM1InOuMN1w= HM1uHIZZl0["moonwalkMobileDir"]
+end
+if uM1InOuMN1w==(188-188) then
+    if not Nl1Oo["AutoRotate"] then
+Nl1Oo["AutoRotate"]= true
+    end NmlZX(WvompqNqHNN)
+    return
+end Nl1Oo["AutoRotate"]= false
+local _qZXDux= _ZxmxZqIZ(WvompqNqHNN)
+local lNwom= IpHNulHmMqxQv["CFrame"]["LookVector"]
+local vwxXW= Vector3["new"](lNwom["X"],(27-27),lNwom["Z"])
+if vwxXW["Magnitude"]>0.001 then
+vwxXW= vwxXW["Unit"]
+    local _MNvOMo=(uM1InOuMN1w== 1) and vwxXW or- vwxXW
+    local MM1WOzbQWIuI= CFrame["lookAt"](Vector3["new"](0,0,(717-717)),_MNvOMo) _qZXDux["CFrame"]= MM1WOzbQWIuI
+end
+end)
+local function D_wqpNMI1MUvm() HM1uHIZZl0["godEnabled"]= true;
+HM1uHIZZl0["godLastHP"]= nil w_ZpoH0p1["bHopuzIW"](
+function()
+local _OqZZIn= Hnv0Zw["Character"]
+if _OqZZIn then
+    local _MnzOx= _OqZZIn["FindFirstChildOfClass"](_OqZZIn,"Humanoid")
+    if _MnzOx then
+_MnzOx["SetStateEnabled"](_MnzOx,Enum["HumanoidStateType"]["Dead"],false) _MnzOx:SetStateEnabled(Enum["HumanoidStateType"]["Ragdoll"],false) _MnzOx:SetStateEnabled(Enum["HumanoidStateType"]["FallingDown"],false)
+    end
+end
+end)
+end
+local function HoHNI0HlooDU() HM1uHIZZl0["godEnabled"]= false;
+HM1uHIZZl0["godLastHP"]= nil w_ZpoH0p1["bHopuzIW"](
+function()
+local oumzbxbNXwOpvz= Hnv0Zw["Character"]
+if not oumzbxbNXwOpvz then
+    return
+end
+local pxxvOv1zxMwun_= oumzbxbNXwOpvz["FindFirstChildOfClass"](oumzbxbNXwOpvz,"Humanoid")
+if not pxxvOv1zxMwun_ then
+    return
+end pxxvOv1zxMwun_["SetStateEnabled"](pxxvOv1zxMwun_,Enum["HumanoidStateType"]["Dead"],true) pxxvOv1zxMwun_:SetStateEnabled(Enum["HumanoidStateType"]["Ragdoll"],true) pxxvOv1zxMwun_:SetStateEnabled(Enum["HumanoidStateType"]["FallingDown"],true)
+end)
+end NpvQIDpz("GodMode",0.2,
+function()
+if not HM1uHIZZl0["godEnabled"] then
+    return
+end
+local woWXz= Hnv0Zw["Character"]
+if not woWXz then
+    return
+end
+local Hn0ZX= woWXz["FindFirstChildOfClass"](woWXz,"Humanoid")
+if not Hn0ZX then
+    return
+end
+local _vUQMwUvo= Hn0ZX["MaxHealth"]
+local qq1UI1ND= Hn0ZX["Health"]
+if HM1uHIZZl0["godLastHP"]~= nil and qq1UI1ND< HM1uHIZZl0["godLastHP"] and qq1UI1ND>(-760+760) then
+w_ZpoH0p1["bHopuzIW"](
+    function() Hn0ZX["Health"]= _vUQMwUvo
+end)
+end HM1uHIZZl0["godLastHP"]= Hn0ZX["Health"] w_ZpoH0p1["bHopuzIW"](
+function()
+local Hml1MvIo= Hn0ZX["GetState"](Hn0ZX)
+if Hml1MvIo== Enum["HumanoidStateType"]["Dead"] then
+Hn0ZX["Health"]= _vUQMwUvo;
+Hn0ZX["ChangeState"](Hn0ZX,Enum["HumanoidStateType"]["Running"]);
+HM1uHIZZl0["godLastHP"]= _vUQMwUvo
+elseif Hml1MvIo== Enum["HumanoidStateType"]["Ragdoll"] or Hml1MvIo== Enum["HumanoidStateType"]["FallingDown"] then
+Hn0ZX["ChangeState"](Hn0ZX,Enum["HumanoidStateType"]["GettingUp"])
+end
+end)
+end)
+local l_up0NM={["active"]= false,["target"]= nil,["generator"]= nil}
+local _qx1XlDlWOQQ0H= DMNlwumvQ0Mmvp["Remotes"]["KillerPerks"]["kingscourge"]:WaitForChild("KingScourgeStart")
+local uOOb1NUXpNnUWv= DMNlwumvQ0Mmvp["Remotes"]["KillerPerks"]["kingscourge"]:WaitForChild("KingScourgeEnd") _qx1XlDlWOQQ0H["OnClientEvent"]:Connect(
+function(WOHbMonN,MOqXmo,_DzI0UblIDqXnU) l_up0NM["active"]= true;
+l_up0NM["target"]= MOqXmo;
+l_up0NM["generator"]= WOHbMonN
+end) uOOb1NUXpNnUWv["OnClientEvent"]:Connect(
+function() l_up0NM["active"]= false;
+l_up0NM["target"]= nil;
+l_up0NM["generator"]= nil
+end)
+local function NWqzXnq_bXuMWN()
+for HDbNWQzIpQMvXl,QXuowX_bv in w_ZpoH0p1["DZu1Dmvbw"]({"SkillCheckPromptGui","SkillCheckPromptGui-con"}) do
+    local blvqQzXZ= lXUHZ["FindFirstChild"](lXUHZ,QXuowX_bv,true)
+    if blvqQzXZ then
+        local QIpONN01= blvqQzXZ["FindFirstChild"](blvqQzXZ,"Check",true)
+        if QIpONN01 and QIpONN01["Visible"] then
+            return QIpONN01["FindFirstChild"](QIpONN01,"Line",true),QIpONN01["FindFirstChild"](QIpONN01,"Goal",true)
+        end
+    end
+end
+end
+local vQwIl= nil
+local function IXXqZQbU()
+if vQwIl and vQwIl["Parent"] then
+    return vQwIl
+end
+local p_QNlu= lXUHZ["FindFirstChild"](lXUHZ,"Survivor-mob",true)
+if not p_QNlu then
+    return nil
+end
+local w_mmNZD_zzm= p_QNlu["FindFirstChild"](p_QNlu,"Controls",true)
+if not w_mmNZD_zzm then
+    return nil
+end
+local Hp_lD= w_mmNZD_zzm["FindFirstChild"](w_mmNZD_zzm,"action")
+if Hp_lD and Hp_lD["IsA"](Hp_lD,"GuiButton") then
+vQwIl= Hp_lD;
+    return Hp_lD
+end Hp_lD= w_mmNZD_zzm["FindFirstChild"](w_mmNZD_zzm,"Gui-mob")
+if Hp_lD and Hp_lD["IsA"](Hp_lD,"GuiButton") then
+vQwIl= Hp_lD;
+    return Hp_lD
+end
+return nil
+end
+local function WvzWHbWO0NQbwm()
+local uz_lHwI= IXXqZQbU()
+if uz_lHwI and w_ZpoH0p1["HmnU_lbWXHQX1I"](firesignal)=="function" then
+firesignal(uz_lHwI["MouseButton1Down"]) task["delay"](0.05,
+    function()
+    if uz_lHwI and uz_lHwI["Parent"] then
+firesignal(uz_lHwI["MouseButton1Up"]) firesignal(uz_lHwI["MouseButton1Click"])
+    end
+end)
 return
 end
-if not func59(MlnmUOplZvIu, boZzNnz0zQ.Position) then
- return
+local plplxbp= lXUHZ["FindFirstChild"](lXUHZ,"check",true)
+if plplxbp and plplxbp["IsA"](plplxbp,"GuiObject") and plplxbp["Visible"] then
+    local WqplvX1nDUpXq= plplxbp["AbsolutePosition"];
+    local lQqnH1XlvzQU_X= plplxbp["AbsoluteSize"]
+    local u0wOIZmMzb= D1xooONpx["GetGuiInset"](D1xooONpx)
+    local vpMMpNu= WqplvX1nDUpXq["X"]+(lQqnH1XlvzQU_X["X"]/(15-13))+ u0wOIZmMzb["X"];
+    local QDp0Hv= WqplvX1nDUpXq["Y"]+(lQqnH1XlvzQU_X["Y"]/2)+ u0wOIZmMzb["Y"] w_ZpoH0p1["bHopuzIW"](
+    function() HWvNq:SendMouseButtonEvent(vpMMpNu,QDp0Hv,0,true,game,(-637+638)) task["wait"](0.01) HWvNq:SendMouseButtonEvent(vpMMpNu,QDp0Hv,0,false,game,1)
+end)
+else HWvNq["SendKeyEvent"](HWvNq,true,Enum["KeyCode"]["Space"],false,game) task["wait"]() HWvNq:SendKeyEvent(false,Enum["KeyCode"]["Space"],false,game)
 end
-ESPState.HoldLockActive = true
-local pHqMIqnwv pHqMIqnwv = UIS2.InputEnded:Connect(
+end NpvQIDpz("Generator",0,
+function()
+if not Wv0HMNDowvn["autoGenerator"] then
+    return
+end
+local lOUpNUZWxo,bvq0NXowOHZO_= NWqzXnq_bXuMWN()
+if not(lOUpNUZWxo and bvq0NXowOHZO_) then
+HM1uHIZZl0["instantLastVisible"]= false HM1uHIZZl0["lastGoalRot"]= nil HM1uHIZZl0["prevLr"]= nil
+    return
+end
+local NQowW1ppUUIQX= bvq0NXowOHZO_["Rotation"]
+local vDDZl= lOUpNUZWxo["Rotation"]
+local uOlbZMnZO_D= tick()
+local OwQwHQXNo0O= l_up0NM["active"] and 0.05 or 0.1
+if uOlbZMnZO_D- HM1uHIZZl0["lastPressTime"]< OwQwHQXNo0O then
+HM1uHIZZl0["prevLr"]= vDDZl
+    return
+end
+if Wv0HMNDowvn["autoGeneratorMode"]=="Instant" then
+    if not HM1uHIZZl0["instantLastVisible"] or NQowW1ppUUIQX~= HM1uHIZZl0["lastGoalRot"] then
+lOUpNUZWxo["Rotation"]= NQowW1ppUUIQX+109 HM1uHIZZl0["lastGoalRot"]= NQowW1ppUUIQX HM1uHIZZl0["instantLastVisible"]= true HM1uHIZZl0["lastPressTime"]= uOlbZMnZO_D HM1uHIZZl0["lastSkillHit"]= uOlbZMnZO_D WvzWHbWO0NQbwm()
+    end
+else
+local NqplumI=(vDDZl- NQowW1ppUUIQX)%(668-308)
+local pvQNXq=-(-659+660)
+if HM1uHIZZl0["prevLr"] and HM1uHIZZl0["lastGoalRot"]== NQowW1ppUUIQX then
+pvQNXq=(HM1uHIZZl0["prevLr"]- NQowW1ppUUIQX)%360
+end HM1uHIZZl0["lastGoalRot"]= NQowW1ppUUIQX
+local pqxWvZp1Q,_lpIZ1OX
+if Wv0HMNDowvn["autoGeneratorMode"]=="Perfect" then
+pqxWvZp1Q=(458-356) _lpIZ1OX=(-502+618)
+elseif Wv0HMNDowvn["autoGeneratorMode"]=="Normal" then
+pqxWvZp1Q=(525-409) _lpIZ1OX=159
+elseif Wv0HMNDowvn["autoGeneratorMode"]=="Random" then
+    if not HM1uHIZZl0["randomIsNeutral"] then
+pqxWvZp1Q=(858-756);
+_lpIZ1OX=(-517+633)
+    else pqxWvZp1Q=116;
+_lpIZ1OX=(995-836)
+end
+else
+return
+end
+local NQqNZx_l1MqInm= NqplumI>= pqxWvZp1Q and NqplumI<= _lpIZ1OX
+local HUWmxQ= pvQNXq>=(-291+291) and pvQNXq< pqxWvZp1Q and NqplumI> _lpIZ1OX
+if NQqNZx_l1MqInm or HUWmxQ then
+    if HUWmxQ then
+lOUpNUZWxo["Rotation"]= NQowW1ppUUIQX+(pqxWvZp1Q+ _lpIZ1OX)/(-978+980)
+    end HM1uHIZZl0["lastPressTime"]= uOlbZMnZO_D HM1uHIZZl0["lastSkillHit"]= uOlbZMnZO_D WvzWHbWO0NQbwm()
+    if Wv0HMNDowvn["autoGeneratorMode"]=="Random" then
+HM1uHIZZl0["randomIsNeutral"]= not HM1uHIZZl0["randomIsNeutral"]
+    end
+end
+end HM1uHIZZl0["prevLr"]= vDDZl
+end) NpvQIDpz("GenBtnRefresh",2.0,
+function()
+if not Wv0HMNDowvn["autoGenerator"] then
+    return
+end
+if not vQwIl or not vQwIl["Parent"] then
+IXXqZQbU()
+end
+end) NpvQIDpz("KillerWarn",0.1,
+function()
+if not Wv0HMNDowvn["warnEnabled"] then
+    local M1pQX= Hnv0Zw["Character"]
+    local WuwwMl0ZwnOW= M1pQX and M1pQX["FindFirstChild"](M1pQX,"HumanoidRootPart")
+    if WuwwMl0ZwnOW then
+        local HXUxmzH_lZo_Nw= WuwwMl0ZwnOW["FindFirstChild"](WuwwMl0ZwnOW,"KillerWarn")
+        if HXUxmzH_lZo_Nw then
+HXUxmzH_lZo_Nw["Destroy"](HXUxmzH_lZo_Nw)
+        end
+    end
+    return
+end
+local D0zOoIlMOMoOu= Hnv0Zw["Character"]
+local uuzNxwU1= D0zOoIlMOMoOu and D0zOoIlMOMoOu["FindFirstChild"](D0zOoIlMOMoOu,"HumanoidRootPart")
+if not uuzNxwU1 then
+    return
+end
+local vDXUMOp_= math["huge"]
+for u01Mv,Q1ZWqnvWDm in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["espObjects"]) do
+    if u01Mv and u01Mv["Parent"] then
+        local u00WwQqZnD= vWlM1ZWQubmZp(u01Mv)
+        if u00WwQqZnD=="killer" then
+            local MuW1ubbDIWX= u01Mv["Character"]
+            local IHH0IOWu= MuW1ubbDIWX and MuW1ubbDIWX["FindFirstChild"](MuW1ubbDIWX,"HumanoidRootPart")
+            if IHH0IOWu then
+                local DmvwUODDXx=(IHH0IOWu["Position"]- uuzNxwU1["Position"])["Magnitude"]
+                if DmvwUODDXx< vDXUMOp_ then
+vDXUMOp_= DmvwUODDXx
+                end
+            end
+        end
+    end
+end
+local wpWHInXz= uuzNxwU1["FindFirstChild"](uuzNxwU1,"KillerWarn")
+if vDXUMOp_<= Wv0HMNDowvn["warnDist1"] then
+    local bODN0xqNUQ,Im1ZObOzIZO
+    if vDXUMOp_<= Wv0HMNDowvn["warnDist3"] then
+bODN0xqNUQ="!!!";
+Im1ZObOzIZO= Color3["fromRGB"]((-308+563),(-86+86),(-472+472))
+    elseif vDXUMOp_<= Wv0HMNDowvn["warnDist2"] then
+bODN0xqNUQ="!!";
+Im1ZObOzIZO= Color3["fromRGB"]((302-47),80,0)
+    else bODN0xqNUQ="!";
+Im1ZObOzIZO= Color3["fromRGB"]((-386+641),(-335+495),0)
+end
+if not wpWHInXz then
+wpWHInXz= Q1wIOIZ0mONH(bODN0xqNUQ,Im1ZObOzIZO,UDim2["new"]((572-572),40,0,(963-923)),(-737+759)) wpWHInXz["Name"]="KillerWarn";
+wpWHInXz["Parent"]= uuzNxwU1
+else wpWHInXz["Label"]["Text"]= bODN0xqNUQ;
+wpWHInXz["Label"]["TextColor3"]= Im1ZObOzIZO
+end
+elseif wpWHInXz then
+wpWHInXz["Destroy"](wpWHInXz)
+end
+end) NpvQIDpz("ESPValidator",1,
+function()
+for IoO1qDW0,IZ1ZDvo_Z in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["espObjects"]) do
+W1NH1ZnM_1m(IoO1qDW0)
+end
+for HwDwQDNNN1lwZ,onIwXWqmUM in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["outlineObjects"]) do
+    if not HM1uHIZZl0["espObjects"][HwDwQDNNN1lwZ] then
+W1NH1ZnM_1m(HwDwQDNNN1lwZ)
+    end
+end
+end) NpvQIDpz("ItemESP",0.2,
+function()
+if not Wv0HMNDowvn["espItemEnabled"] then
+    for uWXIZMUXZbXb_z,WHpQlnxX1qN in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["espObjects"]) do
+        if WHpQlnxX1qN and WHpQlnxX1qN["itemImage"] and WHpQlnxX1qN["itemImage"]["Visible"] then
+WHpQlnxX1qN["itemImage"]["Visible"]= false
+        end
+    end
+    return
+end
+local u1_0_Wm= Hnv0Zw["Character"]
+local O1HoQQQ= u1_0_Wm and u1_0_Wm["FindFirstChild"](u1_0_Wm,"HumanoidRootPart")
+for pNvDMOUUwD,Ol_HX0HwnQ in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["espObjects"]) do
+    if Ol_HX0HwnQ and Ol_HX0HwnQ["billboard"] and Ol_HX0HwnQ["billboard"]["Parent"] and Ol_HX0HwnQ["itemBillboard"] then
+        if vWlM1ZWQubmZp(pNvDMOUUwD)=="killer" then
+            if Ol_HX0HwnQ["itemImage"]["Visible"] then
+Ol_HX0HwnQ["itemImage"]["Visible"]= false
+            end continue
+        end
+        local DpoQZuMN= pNvDMOUUwD["Character"]
+        local HwMMXoQn_N_Zz= nil
+        if DpoQZuMN then
+            local qUbOQmW0Zqv= DpoQZuMN["GetAttribute"](DpoQZuMN,"EquippedItem") or DpoQZuMN["GetAttribute"](DpoQZuMN,"Equippedltem")
+            if w_ZpoH0p1["HmnU_lbWXHQX1I"](qUbOQmW0Zqv)=="string" then
+HwMMXoQn_N_Zz= qUbOQmW0Zqv
+            elseif w_ZpoH0p1["bHmuv"](qUbOQmW0Zqv)=="Instance" then
+HwMMXoQn_N_Zz= qUbOQmW0Zqv["Name"]
+            end
+        end
+        if not HwMMXoQn_N_Zz then
+            local oUlOXOxN11qq= pNvDMOUUwD["GetAttribute"](pNvDMOUUwD,"EquippedItem") or pNvDMOUUwD["GetAttribute"](pNvDMOUUwD,"Equippedltem")
+            if w_ZpoH0p1["HmnU_lbWXHQX1I"](oUlOXOxN11qq)=="string" then
+HwMMXoQn_N_Zz= oUlOXOxN11qq
+            elseif w_ZpoH0p1["bHmuv"](oUlOXOxN11qq)=="Instance" then
+HwMMXoQn_N_Zz= oUlOXOxN11qq["Name"]
+            end
+        end
+        local bvDwpuqzxz0xMb= poOUloUDHH(HwMMXoQn_N_Zz)
+        if bvDwpuqzxz0xMb then
+            if Ol_HX0HwnQ["itemImage"]["Image"]~= bvDwpuqzxz0xMb then
+Ol_HX0HwnQ["itemImage"]["Image"]= bvDwpuqzxz0xMb
+            end
+            if O1HoQQQ and DpoQZuMN then
+                local I_ppnMqlzw1M= DpoQZuMN["FindFirstChild"](DpoQZuMN,"HumanoidRootPart")
+                if I_ppnMqlzw1M then
+                    local wQQMNzwZu0NUv=(O1HoQQQ["Position"]- I_ppnMqlzw1M["Position"])["Magnitude"]
+                    local QqpMlD0n=1.5+((wQQMNzwZu0NUv/(565-365))*2) QqpMlD0n= w_ZpoH0p1["_WXbbv_1_HnO"](QqpMlD0n,1.5,3.5) Ol_HX0HwnQ["itemBillboard"]["Size"]= UDim2["new"](QqpMlD0n,(294-294),QqpMlD0n,0)
+                end
+            end Ol_HX0HwnQ["itemImage"]["Visible"]= true
+        else
+        if Ol_HX0HwnQ["itemImage"]["Visible"] then
+Ol_HX0HwnQ["itemImage"]["Visible"]= false
+        end
+    end
+elseif Ol_HX0HwnQ and Ol_HX0HwnQ["itemImage"] then
+    if Ol_HX0HwnQ["itemImage"]["Visible"] then
+Ol_HX0HwnQ["itemImage"]["Visible"]= false
+    end
+end
+end
+end) NpvQIDpz("SpeedBoost",0,
+function()
+if not HM1uHIZZl0["SpeedBoost"] then
+    return
+end
+local u1XmoDuomOW= Hnv0Zw["Character"]
+if not u1XmoDuomOW then
+    return
+end
+local w1HxqnZuI_= u1XmoDuomOW["FindFirstChildOfClass"](u1XmoDuomOW,"Humanoid")
+if not w1HxqnZuI_ then
+    return
+end
+if HM1uHIZZl0["safeModeSpeed"] and(u1XmoDuomOW["GetAttribute"](u1XmoDuomOW,"IsHooked") or u1XmoDuomOW["GetAttribute"](u1XmoDuomOW,"IsCarried") or w1HxqnZuI_["Health"]<= 50) then
+    return
+end
+local Q_XQouQz0nbDn= WwOu1ZXou0Z()
+if Q_XQouQz0nbDn<= 0 then
+    return
+end
+local MmbNnoxZMDzQlO= ulUmWDQmqmmv*(w_ZpoH0p1["_WXbbv_1_HnO"](HM1uHIZZl0["BoostPercent"],(532-532),(-109+209))/100) HM1uHIZZl0["_jitterFlip"]= not HM1uHIZZl0["_jitterFlip"]
+local I_uq0bZxpXnHl0= HM1uHIZZl0["_jitterFlip"] and(Q_XQouQz0nbDn+ MmbNnoxZMDzQlO) or Q_XQouQz0nbDn
+if w_ZpoH0p1["lqWzNNmZIlpXZ"](w1HxqnZuI_["WalkSpeed"]- I_uq0bZxpXnHl0)>0.1 then
+w_ZpoH0p1["bHopuzIW"](
+    function() w1HxqnZuI_["WalkSpeed"]= I_uq0bZxpXnHl0
+end)
+end
+end)
+local function vIMwU(lUzXI1W_MDzp,bM110)
+if not lUzXI1W_MDzp or not lUzXI1W_MDzp["Parent"] then
+    return false
+end
+local bmQH0WuXXIXp= lUzXI1W_MDzp["AbsolutePosition"];
+local qOZDlHpZbwmOIp= lUzXI1W_MDzp["AbsoluteSize"]
+local BvnuDUN011nunW= bmQH0WuXXIXp["X"]+ qOZDlHpZbwmOIp["X"]/(586-584);
+local vxOvnDnnn_= bmQH0WuXXIXp["Y"]+ qOZDlHpZbwmOIp["Y"]/2
+local M_zIooIwOWx= w_ZpoH0p1["pUpM0XUbWv"](qOZDlHpZbwmOIp["X"],qOZDlHpZbwmOIp["Y"])/(-787+789)*0.8
+local ppNZvOQv1_uvnM= bM110["X"]- BvnuDUN011nunW;
+local Nbqpm1= bM110["Y"]- vxOvnDnnn_
+return(ppNZvOQv1_uvnM* ppNZvOQv1_uvnM+ Nbqpm1* Nbqpm1)<=(M_zIooIwOWx* M_zIooIwOWx)
+end
+local function _OXuNQQUXO(MlnmUOplZvIu)
+if not MlnmUOplZvIu["IsA"](MlnmUOplZvIu,"ImageButton") then
+    return
+end
+if MlnmUOplZvIu["Name"]~="Gui-mob" then
+    return
+end
+if HM1uHIZZl0["_hookedMobButtons"][MlnmUOplZvIu] then
+    return
+end HM1uHIZZl0["_hookedMobButtons"][MlnmUOplZvIu]= true OqbbHwQNoU["InputBegan"]:Connect(
+function(boZzNnz0zQ)
+if boZzNnz0zQ["UserInputType"]~= Enum["UserInputType"]["Touch"] then
+    return
+end
+if not vIMwU(MlnmUOplZvIu,boZzNnz0zQ["Position"]) then
+    return
+end HM1uHIZZl0["HoldLockActive"]= true
+local pHqMIqnwv pHqMIqnwv= OqbbHwQNoU["InputEnded"]:Connect(
 function(u1X0Dp)
 if u1X0Dp== boZzNnz0zQ then
-ESPState.HoldLockActive = false pHqMIqnwv.Disconnect(pHqMIqnwv)
+HM1uHIZZl0["HoldLockActive"]= false pHqMIqnwv["Disconnect"](pHqMIqnwv)
 end
 end)
 end)
 end
-local char24 = {["Slasher-mob"]= true,["Masked-mob"]= true,["Hidden-mob"]= true,["Killer-mob"]= true,}
-local function func61(O_vMx_)
-if not(O_vMx_ and O_vMx_:IsA("GuiButton")) then
- return false
+local WlZOm1={["Slasher-mob"]= true,["Masked-mob"]= true,["Hidden-mob"]= true,["Killer-mob"]= true,}
+local function qZlwNbxo1mqQbp(O_vMx_)
+if not(O_vMx_ and O_vMx_["IsA"](O_vMx_,"GuiButton")) then
+    return false
 end
-if O_vMx_.Name~="attack" then
- return false
+if O_vMx_["Name"]~="attack" then
+    return false
 end
-local NXQnN, bHWbl = false, false
-local inst61 = O_vMx_.Parent
-while inst61 do
- if char24[inst61.Name] then
-NXQnN = true
- end
-if inst61.Name=="Controls" or inst61.Name=="Control" then
-bHWbl = true
- end
-inst61 = inst61.Parent
+local NXQnN,bHWbl= false,false
+local _0mDHl_x1= O_vMx_["Parent"]
+while _0mDHl_x1 do
+    if WlZOm1[_0mDHl_x1["Name"]] then
+NXQnN= true
+    end
+    if _0mDHl_x1["Name"]=="Controls" or _0mDHl_x1["Name"]=="Control" then
+bHWbl= true
+    end _0mDHl_x1= _0mDHl_x1["Parent"]
 end
 return NXQnN and bHWbl
 end
-local function func62(uuo1Iq1IOz)
-if ESPState._hookedSlasherButtons[uuo1Iq1IOz] then
- return
-end
-ESPState._hookedSlasherButtons[uuo1Iq1IOz]= true uuo1Iq1IOz.InputBegan:Connect(
+local function QbpzUuNN(uuo1Iq1IOz)
+if HM1uHIZZl0["_hookedSlasherButtons"][uuo1Iq1IOz] then
+    return
+end HM1uHIZZl0["_hookedSlasherButtons"][uuo1Iq1IOz]= true uuo1Iq1IOz["InputBegan"]:Connect(
 function(Mn0wNOv1)
-if Mn0wNOv1.UserInputType== Enum.UserInputType.Touchor Mn0wNOv1.UserInputType== Enum.UserInputType.MouseButton1 then
-ESPState.HoldLockActive = true
+if Mn0wNOv1["UserInputType"]== Enum["UserInputType"]["Touch"] or Mn0wNOv1["UserInputType"]== Enum["UserInputType"]["MouseButton1"] then
+HM1uHIZZl0["HoldLockActive"]= true
 end
-end)
-uuo1Iq1IOz.InputEnded:Connect(
+end) uuo1Iq1IOz["InputEnded"]:Connect(
 function(DmDlQ01zoQ0pMm)
-if DmDlQ01zoQ0pMm.UserInputType== Enum.UserInputType.Touchor DmDlQ01zoQ0pMm.UserInputType== Enum.UserInputType.MouseButton1 then
-ESPState.HoldLockActive = false
+if DmDlQ01zoQ0pMm["UserInputType"]== Enum["UserInputType"]["Touch"] or DmDlQ01zoQ0pMm["UserInputType"]== Enum["UserInputType"]["MouseButton1"] then
+HM1uHIZZl0["HoldLockActive"]= false
 end
 end)
 end
 local function BlmXw(qq1OIDUm0WUZ)
-for MwqUbIb, wbHHUMmu0 in ipairs(qq1OIDUm0WUZ.GetDescendants(qq1OIDUm0WUZ)) do
- if wbHHUMmu0:IsA("ImageButton") and wbHHUMmu0.Name=="Gui-mob" then
-func60(wbHHUMmu0)
- end
-if func61(wbHHUMmu0) then
-func62(wbHHUMmu0)
- end
-end qq1OIDUm0WUZ.DescendantAdded:Connect(
+for MwqUbIb,wbHHUMmu0 in w_ZpoH0p1["DZu1Dmvbw"](qq1OIDUm0WUZ["GetDescendants"](qq1OIDUm0WUZ)) do
+    if wbHHUMmu0["IsA"](wbHHUMmu0,"ImageButton") and wbHHUMmu0["Name"]=="Gui-mob" then
+_OXuNQQUXO(wbHHUMmu0)
+    end
+    if qZlwNbxo1mqQbp(wbHHUMmu0) then
+QbpzUuNN(wbHHUMmu0)
+    end
+end qq1OIDUm0WUZ["DescendantAdded"]:Connect(
 function(NvuuxwIw11)
-if NvuuxwIw11:IsA("ImageButton") and NvuuxwIw11.Name=="Gui-mob" then
-func60(NvuuxwIw11)
+if NvuuxwIw11["IsA"](NvuuxwIw11,"ImageButton") and NvuuxwIw11["Name"]=="Gui-mob" then
+_OXuNQQUXO(NvuuxwIw11)
 end
-if func61(NvuuxwIw11) then
-func62(NvuuxwIw11)
+if qZlwNbxo1mqQbp(NvuuxwIw11) then
+QbpzUuNN(NvuuxwIw11)
 end
 end)
-end
-task.spawn(
+end task["spawn"](
 function()
-local val6 = LocalPlayer:WaitForChild("PlayerGui") BlmXw(val6)
-end)
-UIS2.InputBegan:Connect(
-function(D1bHZDoOp, Nw_OOvII)
-local val7 = GetPlayerRole(LocalPlayer)=="killer"
-if val7 then
- if D1bHZDoOp.UserInputType== Enum.UserInputType.MouseButton1 then
-ESPState.HoldLockActive = true
- end
+local WbOqvlDHzqMo1= Hnv0Zw["WaitForChild"](Hnv0Zw,"PlayerGui") BlmXw(WbOqvlDHzqMo1)
+end) OqbbHwQNoU["InputBegan"]:Connect(
+function(D1bHZDoOp,Nw_OOvII)
+local NvvvXoOoWO= vWlM1ZWQubmZp(Hnv0Zw)=="killer"
+if NvvvXoOoWO then
+    if D1bHZDoOp["UserInputType"]== Enum["UserInputType"]["MouseButton1"] then
+HM1uHIZZl0["HoldLockActive"]= true
+    end
 else
-if not Nw_OOvII and D1bHZDoOp.UserInputType== Enum.UserInputType.MouseButton2then ESPState.HoldLockActive = true
+if not Nw_OOvII and D1bHZDoOp["UserInputType"]== Enum["UserInputType"]["MouseButton2"] then
+HM1uHIZZl0["HoldLockActive"]= true
 end
 end
-if not Nw_OOvII and D1bHZDoOp.UserInputType== Enum.UserInputType.Gamepad1and D1bHZDoOp.KeyCode== Enum.KeyCode.ButtonL2then ESPState.HoldLockActive = true
+if not Nw_OOvII and D1bHZDoOp["UserInputType"]== Enum["UserInputType"]["Gamepad1"] and D1bHZDoOp["KeyCode"]== Enum["KeyCode"]["ButtonL2"] then
+HM1uHIZZl0["HoldLockActive"]= true
 end
-end)
-UIS2.InputEnded:Connect(
+end) OqbbHwQNoU["InputEnded"]:Connect(
 function(qq1nlXWlMxvWqv)
-if qq1nlXWlMxvWqv.UserInputType== Enum.UserInputType.MouseButton1or qq1nlXWlMxvWqv.UserInputType== Enum.UserInputType.MouseButton2then ESPState.HoldLockActive = false
+if qq1nlXWlMxvWqv["UserInputType"]== Enum["UserInputType"]["MouseButton1"] or qq1nlXWlMxvWqv["UserInputType"]== Enum["UserInputType"]["MouseButton2"] then
+HM1uHIZZl0["HoldLockActive"]= false
 end
-if qq1nlXWlMxvWqv.UserInputType== Enum.UserInputType.Gamepad1 and qq1nlXWlMxvWqv.KeyCode== Enum.KeyCode.ButtonL2then ESPState.HoldLockActive = false
+if qq1nlXWlMxvWqv["UserInputType"]== Enum["UserInputType"]["Gamepad1"] and qq1nlXWlMxvWqv["KeyCode"]== Enum["KeyCode"]["ButtonL2"] then
+HM1uHIZZl0["HoldLockActive"]= false
 end
-end) CreateESPEntry("HoldLock", 0.2,
+end) NpvQIDpz("HoldLock",0.2,
 function()
-if not Settings.cameralockEnabledthen
-return
+if not Wv0HMNDowvn["cameralockEnabled"] then
+    return
 end
-if ESPState.HoldLockActivethen
-return
+if HM1uHIZZl0["HoldLockActive"] then
+    return
 end
-local inst62 = LocalPlayer.Characterif inst62 and inst62:GetAttribute("Aiming")== true then
-ESPState.HoldLockActive = true
+local ux_uqIIxu0qI= Hnv0Zw["Character"]
+if ux_uqIIxu0qI and ux_uqIIxu0qI["GetAttribute"](ux_uqIIxu0qI,"Aiming")== true then
+HM1uHIZZl0["HoldLockActive"]= true
 end
 end)
-local function func63(pZZlXw_W)
+local function pnZ0u(pZZlXw_W)
 if not pZZlXw_W then
- return nil
+    return nil
 end
-if Settings.cameralockAimPart=="Head" then
- local inst63 = pZZlXw_W:FindFirstChild("Head")
- if inst63 then
- return inst63.Position
- end
+if Wv0HMNDowvn["cameralockAimPart"]=="Head" then
+    local bpxnqNZDMUwD= pZZlXw_W["FindFirstChild"](pZZlXw_W,"Head")
+    if bpxnqNZDMUwD then
+        return bpxnqNZDMUwD["Position"]
+    end
 end
-local gui38 = pZZlXw_W:FindFirstChild("UpperTorso")
-if gui38 then
- return gui38.Positionend
- local gui39 = pZZlXw_W:FindFirstChild("Torso")
- if gui39 then
- return gui39.Position
- end
-local gui40 = pZZlXw_W:FindFirstChild("HumanoidRootPart")
- if gui40 then
- return gui40.Position+(Settings.cameralockAimPart=="Head" and Vector3.new(0, 2.5, 0) or Vector3.new(0, 1.2, 0))
- end
+local vUN_1Mmwq= pZZlXw_W["FindFirstChild"](pZZlXw_W,"UpperTorso")
+if vUN_1Mmwq then
+    return vUN_1Mmwq["Position"]
+end
+local HDvUQHzWqbW= pZZlXw_W["FindFirstChild"](pZZlXw_W,"Torso")
+if HDvUQHzWqbW then
+    return HDvUQHzWqbW["Position"]
+end
+local WNXXWwx_IDWQv= pZZlXw_W["FindFirstChild"](pZZlXw_W,"HumanoidRootPart")
+if WNXXWwx_IDWQv then
+    return WNXXWwx_IDWQv["Position"]+(Wv0HMNDowvn["cameralockAimPart"]=="Head" and Vector3["new"]((721-721),2.5,(607-607)) or Vector3["new"](0,1.2,(-696+696)))
+end
 return nil
 end
-function MainState.IxWX0_XNwuzw(oUXqlDUX, HNmZDb, MZ_wIn)
-if not HNmZDb or not MZ_wIn or MZ_wIn.Health<= 0 then
- return false
+function b0W0wpHoxmHDWX.IxWX0_XNwuzw(oUXqlDUX,HNmZDb,MZ_wIn)
+if not HNmZDb or not MZ_wIn or MZ_wIn["Health"]<= 0 then
+    return false
 end
-if MZ_wIn.Health< 50 then
- return false
+if MZ_wIn["Health"]<50 then
+    return false
 end
-if HNmZDb:GetAttribute("IsHooked") then
- return false
+if HNmZDb["GetAttribute"](HNmZDb,"IsHooked") then
+    return false
 end
-if HNmZDb:GetAttribute("IsCarried") then
- return false
+if HNmZDb["GetAttribute"](HNmZDb,"IsCarried") then
+    return false
 end
-if oUXqlDUX:GetAttribute("IsHooked") then
- return false
+if oUXqlDUX["GetAttribute"](oUXqlDUX,"IsHooked") then
+    return false
 end
-if oUXqlDUX:GetAttribute("IsCarried") then
- return false
+if oUXqlDUX["GetAttribute"](oUXqlDUX,"IsCarried") then
+    return false
 end
-local inst64 = MZ_wIn.GetState(MZ_wIn)
-if inst64== Enum.HumanoidStateType.PlatformStanding then
- return false
+local MOnWUQ= MZ_wIn["GetState"](MZ_wIn)
+if MOnWUQ== Enum["HumanoidStateType"]["PlatformStanding"] then
+    return false
 end
-if inst64== Enum.HumanoidStateType.Physicsand MZ_wIn.PlatformStandthen
-return false
+if MOnWUQ== Enum["HumanoidStateType"]["Physics"] and MZ_wIn["PlatformStand"] then
+    return false
 end
-local gui41 = HNmZDb:FindFirstChild("HumanoidRootPart")
-if gui41 and gui41.Anchoredthen
-return false
+local WQ_v10Uw= HNmZDb["FindFirstChild"](HNmZDb,"HumanoidRootPart")
+if WQ_v10Uw and WQ_v10Uw["Anchored"] then
+    return false
 end
 return true
 end
-function MainState._I_mHX_DbX(wZHX1lquluQ)
-local gui42 = LocalPlayer.Characterlocal gui43 = gui42 and gui42:FindFirstChild("HumanoidRootPart")
-if not gui43 then
- return nil
+function b0W0wpHoxmHDWX._I_mHX_DbX(wZHX1lquluQ)
+local unmxOunH= Hnv0Zw["Character"]
+local IvIXI= unmxOunH and unmxOunH["FindFirstChild"](unmxOunH,"HumanoidRootPart")
+if not IvIXI then
+    return nil
 end
-local gui44 = gui43.Positionlocal gui45 = 0.1
-local gui46 = nil
-local gui47 = Settings.cameralockMaxDistance
-if wZHX1lquluQ and wZHX1lquluQ.Characterthen
-local gui48 = wZHX1lquluQ.Character
-local v24 = gui48:FindFirstChildOfClass("Humanoid")
-local cam4 = func63(gui48)
-if MainState.IxWX0_XNwuzw(wZHX1lquluQ, gui48, v24) and cam4 then
-gui46 = wZHX1lquluQ gui47 = (cam4- gui44).Magnitude- gui45
+local NHHz_Np_I= IvIXI["Position"]
+local IOzl10mHXIwZD=0.1
+local luWoxQW= nil
+local IqlObXU1Um= Wv0HMNDowvn["cameralockMaxDistance"]
+if wZHX1lquluQ and wZHX1lquluQ["Character"] then
+    local ObWNNHU_nqxW1= wZHX1lquluQ["Character"]
+    local DqpZbUUNNpn= ObWNNHU_nqxW1["FindFirstChildOfClass"](ObWNNHU_nqxW1,"Humanoid")
+    local H1wmWqzp_zp= pnZ0u(ObWNNHU_nqxW1)
+    if b0W0wpHoxmHDWX.IxWX0_XNwuzw(wZHX1lquluQ,ObWNNHU_nqxW1,DqpZbUUNNpn) and H1wmWqzp_zp then
+luWoxQW= wZHX1lquluQ IqlObXU1Um=(H1wmWqzp_zp- NHHz_Np_I)["Magnitude"]- IOzl10mHXIwZD
+    end
 end
+for WXwlQDm0DpqNq,BDODNH_X in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if BDODNH_X== Hnv0Zw then
+continue
+    end
+    local HOHZqwuXmHZ= BDODNH_X["Character"]
+    if not HOHZqwuXmHZ then
+continue
+    end
+    local pQzoIHNHxMzm= HOHZqwuXmHZ["FindFirstChildOfClass"](HOHZqwuXmHZ,"Humanoid")
+    if not b0W0wpHoxmHDWX.IxWX0_XNwuzw(BDODNH_X,HOHZqwuXmHZ,pQzoIHNHxMzm) then
+continue
+    end
+    local MDQ00mQQ= pnZ0u(HOHZqwuXmHZ)
+    if not MDQ00mQQ then
+continue
+    end
+    local D0vZlxQ= vWlM1ZWQubmZp(BDODNH_X)
+    if Wv0HMNDowvn["cameralockTargetType"]=="Killer" and D0vZlxQ~="killer" then
+continue
+    end
+    if Wv0HMNDowvn["cameralockTargetType"]=="Survivor" and D0vZlxQ~="survivor" then
+continue
+    end
+    local uZuxvuzMmHU1=(MDQ00mQQ- NHHz_Np_I)["Magnitude"]
+    if uZuxvuzMmHU1< IqlObXU1Um then
+IqlObXU1Um= uZuxvuzMmHU1;
+luWoxQW= BDODNH_X
+    end
 end
-for WXwlQDm0DpqNq, BDODNH_X in ipairs(Players.GetPlayers(Players)) do
- if BDODNH_X== LocalPlayer then
-continue
- end
-local cam5 = BDODNH_X.Characterif not cam5 then
-continue
- end
-local cam6 = cam5:FindFirstChildOfClass("Humanoid")
- if not MainState.IxWX0_XNwuzw(BDODNH_X, cam5, cam6) then
-continue
- end
-local cam7 = func63(cam5)
- if not cam7 then
-continue
- end
-local cam8 = GetPlayerRole(BDODNH_X)
- if Settings.cameralockTargetType=="Killer" and cam8~="killer" then
-continue
- end
-if Settings.cameralockTargetType=="Survivor" and cam8~="survivor" then
-continue
- end
-local cam9 = (cam7- gui44).Magnitude
- if cam9< gui47 then
-gui47 = cam9;
-gui46 = BDODNH_X
- end
+return luWoxQW
 end
-return gui46
-end
-function MainState.vMvvZ()
-if ESPState.aimConnthen ESPState.aimConn:Disconnect()
-end
-ESPState.aimTargetCache = nil;
-ESPState.aimTargetT = 0;
-ESPState.aimLastStableDir = nil ESPState.aimConn = RunService.RenderStepped:Connect(
+function b0W0wpHoxmHDWX.vMvvZ()
+if HM1uHIZZl0["aimConn"] then
+HM1uHIZZl0["aimConn"]:Disconnect()
+end HM1uHIZZl0["aimTargetCache"]= nil;
+HM1uHIZZl0["aimTargetT"]=0;
+HM1uHIZZl0["aimLastStableDir"]= nil HM1uHIZZl0["aimConn"]= u0xpmq_WoUlm["RenderStepped"]:Connect(
 function(o1ZuNZqQvU)
-if not Settings.cameralockEnabled then
- return
+if not Wv0HMNDowvn["cameralockEnabled"] then
+    return
 end
-if Settings.cameralockLockMode=="Hold to Lock" and not ESPState.HoldLockActive then
-ESPState.aimTargetCache = nil;
-ESPState.aimLastStableDir = nil;
- return
+if Wv0HMNDowvn["cameralockLockMode"]=="Hold to Lock" and not HM1uHIZZl0["HoldLockActive"] then
+HM1uHIZZl0["aimTargetCache"]= nil;
+HM1uHIZZl0["aimLastStableDir"]= nil;
+    return
 end
-local flag11 = LocalPlayer.Character
-if not flag11 then
- return
+local obMOmmun= Hnv0Zw["Character"]
+if not obMOmmun then
+    return
 end
-local flag12 = flag11:FindFirstChild("HumanoidRootPart")
-if not flag12 then
- return
+local bMbUmX= obMOmmun["FindFirstChild"](obMOmmun,"HumanoidRootPart")
+if not bMbUmX then
+    return
+end HM1uHIZZl0["aimTargetT"]= HM1uHIZZl0["aimTargetT"]+ o1ZuNZqQvU
+if HM1uHIZZl0["aimTargetT"]>= 0.15 then
+HM1uHIZZl0["aimTargetT"]=0 HM1uHIZZl0["aimTargetCache"]= b0W0wpHoxmHDWX._I_mHX_DbX(HM1uHIZZl0["aimTargetCache"])
 end
-ESPState.aimTargetT = ESPState.aimTargetT+ o1ZuNZqQvU
-if ESPState.aimTargetT>= 0.15 then
-ESPState.aimTargetT = 0 ESPState.aimTargetCache = MainState._I_mHX_DbX(ESPState.aimTargetCache)
+local u1nbUvNIpxHHn= HM1uHIZZl0["aimTargetCache"]
+if not u1nbUvNIpxHHn then
+HM1uHIZZl0["aimLastStableDir"]= nil;
+    return
 end
-local conn9 = ESPState.aimTargetCache
-if not conn9 then
-ESPState.aimLastStableDir = nil;
- return
+local H0X0OqN= u1nbUvNIpxHHn["Character"]
+if not H0X0OqN then
+HM1uHIZZl0["aimTargetCache"]= nil;
+HM1uHIZZl0["aimLastStableDir"]= nil;
+    return
 end
-local conn10 = conn9.Characterif not conn10 then
-ESPState.aimTargetCache = nil;
-ESPState.aimLastStableDir = nil;
- return
+local pHwDQp0mp= H0X0OqN["FindFirstChildOfClass"](H0X0OqN,"Humanoid")
+if not b0W0wpHoxmHDWX.IxWX0_XNwuzw(u1nbUvNIpxHHn,H0X0OqN,pHwDQp0mp) then
+HM1uHIZZl0["aimTargetCache"]= nil;
+HM1uHIZZl0["aimLastStableDir"]= nil;
+    return
 end
-local conn11 = conn10:FindFirstChildOfClass("Humanoid")
-if not MainState.IxWX0_XNwuzw(conn9, conn10, conn11) then
-ESPState.aimTargetCache = nil;
-ESPState.aimLastStableDir = nil;
- return
+local oXbDwUZz= pnZ0u(H0X0OqN)
+if not oXbDwUZz then
+HM1uHIZZl0["aimTargetCache"]= nil;
+HM1uHIZZl0["aimLastStableDir"]= nil;
+    return
 end
-local v25 = func63(conn10)
-if not v25 then
-ESPState.aimTargetCache = nil;
-ESPState.aimLastStableDir = nil;
- return
+local qwvuWzWzD= workspace["CurrentCamera"]
+if not qwvuWzWzD then
+    return
 end
-local v26 = workspace.CurrentCameraif not v26 then
- return
-end
-local v27 = v26.CFrame
-local v28 = v27.Positionlocal v29 = v27.LookVectorlocal flag13 = Settings.cameralockSmoothness
-local vo_pz = v25- v28
-local flag14 = vo_pz.Magnitude
-local inst65 = (v25- flag12.Position).Magnitude
-local inst66 = 4.0
+local uqXmwpqzouHv= qwvuWzWzD["CFrame"]
+local upWop0lIopWHqX= uqXmwpqzouHv["Position"]
+local QbbXvlw0NNX_Q= uqXmwpqzouHv["LookVector"]
+local oIoux1mMXN= Wv0HMNDowvn["cameralockSmoothness"]
+local vo_pz= oXbDwUZz- upWop0lIopWHqX
+local HxxzQNO= vo_pz["Magnitude"]
+local qqIzwHv=(oXbDwUZz- bMbUmX["Position"])["Magnitude"]
+local BHzUnN0=4.0
 local vOWnw1
-if flag14>= inst66 and inst65>= 1.5 then
-vOWnw1 = vo_pz.Unit;
-ESPState.aimLastStableDir = vOWnw1
-elseif ESPState.aimLastStableDir then
-vOWnw1 = ESPState.aimLastStableDirelse vOWnw1 = v29
+if HxxzQNO>= BHzUnN0 and qqIzwHv>= 1.5 then
+vOWnw1= vo_pz["Unit"];
+HM1uHIZZl0["aimLastStableDir"]= vOWnw1
+elseif HM1uHIZZl0["aimLastStableDir"] then
+vOWnw1= HM1uHIZZl0["aimLastStableDir"]
+else vOWnw1= QbbXvlw0NNX_Q
 end
-local gui49 = v29:Lerp(vOWnw1, flag13)
-if gui49.Magnitude< 0.001 then
- return
-end
-v26.CFrame = CFrame.new(v28, v28+ gui49)
-local inst67 = flag11:FindFirstChildOfClass("Humanoid")
-if inst67 and not inst67.AutoRotate then
- local inst68 = v26.CFrame.LookVector
- local inst69 = flag12.Positionlocal DlDqmwXux = Vector3.new(inst68.X, 0, inst68.Z)
- if DlDqmwXux.Magnitude> 0.001 then
- local inst70 = math.atan2(flag12.CFrame.LookVector.X, flag12.CFrame.LookVector.Z)
- local gui50 = math.atan2(DlDqmwXux.X, DlDqmwXux.Z)
- local color9 = gui50- inst70 color9 = ((color9+ math.pi)%(2* math.pi))- math.pilocal color10 = inst70+ color9* 0.15
- local flag15 = math.sin(color10)
- local flag16 = math.cos(color10)
- local flag17 = inst69+ Vector3.new(flag15, 0, flag16)* 900 flag12.CFrame = CFrame.new(inst69, Vector3.new(flag17.X, inst69.Y, flag17.Z))
- end
+local uOwnb1bpwpz= QbbXvlw0NNX_Q["Lerp"](QbbXvlw0NNX_Q,vOWnw1,oIoux1mMXN)
+if uOwnb1bpwpz["Magnitude"]<0.001 then
+    return
+end qwvuWzWzD["CFrame"]= CFrame["new"](upWop0lIopWHqX,upWop0lIopWHqX+ uOwnb1bpwpz)
+local vbMN1DqZz1= obMOmmun["FindFirstChildOfClass"](obMOmmun,"Humanoid")
+if vbMN1DqZz1 and not vbMN1DqZz1["AutoRotate"] then
+    local b1oOQZlzWoO= qwvuWzWzD["CFrame"]["LookVector"]
+    local DDvDDoD= bMbUmX["Position"]
+    local DlDqmwXux= Vector3["new"](b1oOQZlzWoO["X"],0,b1oOQZlzWoO["Z"])
+    if DlDqmwXux["Magnitude"]>0.001 then
+        local wpxU_ZXq= math["atan2"](bMbUmX["CFrame"]["LookVector"]["X"],bMbUmX["CFrame"]["LookVector"]["Z"])
+        local D0nqDpM= math["atan2"](DlDqmwXux["X"],DlDqmwXux["Z"])
+        local O0mNz= D0nqDpM- wpxU_ZXq O0mNz=((O0mNz+ math["pi"])%((-72+74)* math["pi"]))- math["pi"]
+        local WD0UHQmUxpMln= wpxU_ZXq+ O0mNz*0.15
+        local B_NHbZ= math["sin"](WD0UHQmUxpMln)
+        local HwnWuwbmz1IU= math["cos"](WD0UHQmUxpMln)
+        local NDM1ZwIoNpwz1= DDvDDoD+ Vector3["new"](B_NHbZ,(544-544),HwnWuwbmz1IU)*900 bMbUmX["CFrame"]= CFrame["new"](DDvDDoD,Vector3["new"](NDM1ZwIoNpwz1["X"],DDvDDoD["Y"],NDM1ZwIoNpwz1["Z"]))
+    end
 end
 end)
 end
-function MainState.Hq1wbQvMzoz()
-if ESPState.aimConn then
-ESPState.aimConn:Disconnect();
-ESPState.aimConn = nil
+function b0W0wpHoxmHDWX.Hq1wbQvMzoz()
+if HM1uHIZZl0["aimConn"] then
+HM1uHIZZl0["aimConn"]:Disconnect();
+HM1uHIZZl0["aimConn"]= nil
+end HM1uHIZZl0["aimTargetCache"]= nil;
+HM1uHIZZl0["aimLastStableDir"]= nil
 end
-ESPState.aimTargetCache = nil;
-ESPState.aimLastStableDir = nil
+function b0W0wpHoxmHDWX.w_vnXUZ(wnMNU0bQnlX1)
+if HM1uHIZZl0["originalMaxZoom"]== nil then
+HM1uHIZZl0["originalMaxZoom"]= Hnv0Zw["CameraMaxZoomDistance"]
+end Hnv0Zw["CameraMaxZoomDistance"]= wnMNU0bQnlX1
 end
-function MainState.w_vnXUZ(wnMNU0bQnlX1)
-if ESPState.originalMaxZoom== nil then
-ESPState.originalMaxZoom = LocalPlayer.CameraMaxZoomDistance
+function b0W0wpHoxmHDWX.Ww1z_Ob0vX()
+if HM1uHIZZl0["originalMaxZoom"]~= nil then
+Hnv0Zw["CameraMaxZoomDistance"]= HM1uHIZZl0["originalMaxZoom"]
+end HM1uHIZZl0["originalMaxZoom"]= nil
 end
-LocalPlayer.CameraMaxZoomDistance = wnMNU0bQnlX1
+function b0W0wpHoxmHDWX.BWQoHbUwlp0MZb(QQXuQ)
+local qI1Uo0IW_o_0= workspace["CurrentCamera"]
+if not qI1Uo0IW_o_0 then
+    return
 end
-function MainState.Ww1z_Ob0vX()
-if ESPState.originalMaxZoom~= nil then
-LocalPlayer.CameraMaxZoomDistance = ESPState.originalMaxZoom
+if HM1uHIZZl0["originalFOV"]== nil then
+HM1uHIZZl0["originalFOV"]= qI1Uo0IW_o_0["FieldOfView"]
+end qI1Uo0IW_o_0["FieldOfView"]= QQXuQ
 end
-ESPState.originalMaxZoom = nil
-end
-function MainState.BWQoHbUwlp0MZb(QQXuQ)
-local v30 = workspace.CurrentCameraif not v30 then
- return
-end
-if ESPState.originalFOV== nil then
-ESPState.originalFOV = v30.FieldOfView
-end
-v30.FieldOfView = QQXuQ
-end
-function MainState.bxOlDXWlooNM()
-local gui51 = workspace.CurrentCameraif gui51 and ESPState.originalFOV then
-gui51.FieldOfView = ESPState.originalFOV
-end
-ESPState.originalFOV = nil
-end
-LocalPlayer:GetPropertyChangedSignal("CameraMaxZoomDistance"):Connect(
+function b0W0wpHoxmHDWX.bxOlDXWlooNM()
+local D__zvW= workspace["CurrentCamera"]
+if D__zvW and HM1uHIZZl0["originalFOV"] then
+D__zvW["FieldOfView"]= HM1uHIZZl0["originalFOV"]
+end HM1uHIZZl0["originalFOV"]= nil
+end Hnv0Zw["GetPropertyChangedSignal"](Hnv0Zw,"CameraMaxZoomDistance"):Connect(
 function()
-if Settings.cameraZoomEnabledand LocalPlayer.CameraMaxZoomDistance~= Settings.cameraZoomValuethen LocalPlayer.CameraMaxZoomDistance = Settings.cameraZoomValueend
-end)
-function MainState.v_NpDbxz()
-local inst71 = workspace.CurrentCamera
-if not inst71 then
- return
+if Wv0HMNDowvn["cameraZoomEnabled"] and Hnv0Zw["CameraMaxZoomDistance"]~= Wv0HMNDowvn["cameraZoomValue"] then
+Hnv0Zw["CameraMaxZoomDistance"]= Wv0HMNDowvn["cameraZoomValue"]
 end
-inst71:GetPropertyChangedSignal("FieldOfView"):Connect(
+end)
+function b0W0wpHoxmHDWX.v_NpDbxz()
+local QqpXnqqD_IwDI= workspace["CurrentCamera"]
+if not QqpXnqqD_IwDI then
+    return
+end QqpXnqqD_IwDI["GetPropertyChangedSignal"](QqpXnqqD_IwDI,"FieldOfView"):Connect(
 function()
-if Settings.lockFovEnabled and inst71.FieldOfView~= Settings.customFovValue then
-inst71.FieldOfView = Settings.customFovValue
+if Wv0HMNDowvn["lockFovEnabled"] and QqpXnqqD_IwDI["FieldOfView"]~= Wv0HMNDowvn["customFovValue"] then
+QqpXnqqD_IwDI["FieldOfView"]= Wv0HMNDowvn["customFovValue"]
 end
 end)
+end b0W0wpHoxmHDWX.v_NpDbxz()
+function b0W0wpHoxmHDWX.vvw0v_lDxx()
+if OqbbHwQNoU["TouchEnabled"] and not OqbbHwQNoU["KeyboardEnabled"] then
+    return
+end HM1uHIZZl0["originalMouseIconEnabled"]= OqbbHwQNoU["MouseIconEnabled"] HM1uHIZZl0["originalMouseBehavior"]= OqbbHwQNoU["MouseBehavior"] OqbbHwQNoU["MouseIconEnabled"]= true OqbbHwQNoU["MouseBehavior"]= Enum["MouseBehavior"]["Default"]
+if HM1uHIZZl0["forceCursorConn1"] then
+HM1uHIZZl0["forceCursorConn1"]:Disconnect()
 end
-MainState.v_NpDbxz()
-function MainState.vvw0v_lDxx()
-if UIS2.TouchEnabledand not UIS2.KeyboardEnabled then
- return
-end
-ESPState.originalMouseIconEnabled = UIS2.MouseIconEnabledESPState.originalMouseBehavior = UIS2.MouseBehaviorUIS2.MouseIconEnabled = true UIS2.MouseBehavior = Enum.MouseBehavior.Defaultif ESPState.forceCursorConn1 then
-ESPState.forceCursorConn1:Disconnect()
-end
-if ESPState.forceCursorConn2 then
-ESPState.forceCursorConn2:Disconnect()
-end
-ESPState.forceCursorConn1 = UIS2:GetPropertyChangedSignal("MouseIconEnabled"):Connect(
+if HM1uHIZZl0["forceCursorConn2"] then
+HM1uHIZZl0["forceCursorConn2"]:Disconnect()
+end HM1uHIZZl0["forceCursorConn1"]= OqbbHwQNoU["GetPropertyChangedSignal"](OqbbHwQNoU,"MouseIconEnabled"):Connect(
 function()
-if Settings.forceCursorEnabled and not UIS2.MouseIconEnabledthen UIS2.MouseIconEnabled = true
+if Wv0HMNDowvn["forceCursorEnabled"] and not OqbbHwQNoU["MouseIconEnabled"] then
+OqbbHwQNoU["MouseIconEnabled"]= true
 end
-end)
-ESPState.forceCursorConn2 = UIS2:GetPropertyChangedSignal("MouseBehavior"):Connect(
+end) HM1uHIZZl0["forceCursorConn2"]= OqbbHwQNoU["GetPropertyChangedSignal"](OqbbHwQNoU,"MouseBehavior"):Connect(
 function()
-if Settings.forceCursorEnabledand UIS2.MouseBehavior== Enum.MouseBehavior.LockCenter then
-UIS2.MouseBehavior = Enum.MouseBehavior.Defaultend
+if Wv0HMNDowvn["forceCursorEnabled"] and OqbbHwQNoU["MouseBehavior"]== Enum["MouseBehavior"]["LockCenter"] then
+OqbbHwQNoU["MouseBehavior"]= Enum["MouseBehavior"]["Default"]
+end
 end)
 end
-function MainState.Bu0oXoOlbI()
-if ESPState.forceCursorConn1 then
-ESPState.forceCursorConn1:Disconnect()
-ESPState.forceCursorConn1 = nil
+function b0W0wpHoxmHDWX.Bu0oXoOlbI()
+if HM1uHIZZl0["forceCursorConn1"] then
+HM1uHIZZl0["forceCursorConn1"]:Disconnect() HM1uHIZZl0["forceCursorConn1"]= nil
 end
-if ESPState.forceCursorConn2then ESPState.forceCursorConn2:Disconnect()
-ESPState.forceCursorConn2 = nil
+if HM1uHIZZl0["forceCursorConn2"] then
+HM1uHIZZl0["forceCursorConn2"]:Disconnect() HM1uHIZZl0["forceCursorConn2"]= nil
 end
-if ESPState.originalMouseIconEnabled~= nil then
-UIS2.MouseIconEnabled = ESPState.originalMouseIconEnabledESPState.originalMouseIconEnabled = nil
+if HM1uHIZZl0["originalMouseIconEnabled"]~= nil then
+OqbbHwQNoU["MouseIconEnabled"]= HM1uHIZZl0["originalMouseIconEnabled"] HM1uHIZZl0["originalMouseIconEnabled"]= nil
 end
-if ESPState.originalMouseBehavior~= nil then
-UIS2.MouseBehavior = ESPState.originalMouseBehaviorESPState.originalMouseBehavior = nil
+if HM1uHIZZl0["originalMouseBehavior"]~= nil then
+OqbbHwQNoU["MouseBehavior"]= HM1uHIZZl0["originalMouseBehavior"] HM1uHIZZl0["originalMouseBehavior"]= nil
 end
 end
-function MainState.lpZNv1HZpDo()
-local inst72 = Instance.new("ScreenGui")
-inst72.Name = "BolongPerfMon";
-inst72.ResetOnSpawn = false inst72.ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
-inst72.IgnoreGuiInset = false;
-inst72.Parent = PlayerGui
-local v31 = Instance.new("Frame")
-v31.Name = "PerfFrame";
-v31.Size = UDim2.fromOffset(160, 28)
-v31.AnchorPoint = Vector2.new(1, 0);
-v31.Position = UDim2.new(1,- 10, 0, 10)
-v31.BackgroundColor3 = Color3.fromRGB(10, 10, 14);
-v31.BorderSizePixel = 0 v31.Active = true;
-v31.Parent = inst72
-local MunOnDvpolHq = Instance.new("UICorner");
-MunOnDvpolHq.CornerRadius = UDim.new(0, 8);
-MunOnDvpolHq.Parent = v31
-local color11 = Instance.new("UIStroke");
-color11.Color = Color3.fromRGB(60, 60, 75)
-color11.Thickness = 1;
-color11.Parent = v31
-local conn12 = Instance.new("TextLabel")
-conn12.Name = "InfoLabel";
-conn12.Size = UDim2.new(1, 0, 1, 0)
-conn12.BackgroundTransparency = 1;
-conn12.Text = "FPS — | PING —" conn12.TextColor3 = Color3.fromRGB(200, 200, 210);
-conn12.TextSize = 12 conn12.Font = Enum.Font.GothamBold;
-conn12.TextXAlignment = Enum.TextXAlignment.Center conn12.TextYAlignment = Enum.TextYAlignment.Center;
-conn12.RichText = true;
-conn12.Parent = v31
-local oDpwnX_M0, pZMUWX0vIvo, WZQxOWUppWIN_ v31.InputBegan:Connect(
+function b0W0wpHoxmHDWX.lpZNv1HZpDo()
+local _zwU1= Instance["new"]("ScreenGui") _zwU1["Name"]="BolongPerfMon";
+_zwU1["ResetOnSpawn"]= false _zwU1["ZIndexBehavior"]= Enum["ZIndexBehavior"]["Sibling"];
+_zwU1["IgnoreGuiInset"]= false;
+_zwU1["Parent"]= lXUHZ
+local wuUN10n= Instance["new"]("Frame") wuUN10n["Name"]="PerfFrame";
+wuUN10n["Size"]= UDim2["fromOffset"](160,28) wuUN10n["AnchorPoint"]= Vector2["new"]((-220+221),0);
+wuUN10n["Position"]= UDim2["new"](1,-(391-381),0,10) wuUN10n["BackgroundColor3"]= Color3["fromRGB"](10,(-11+21),14);
+wuUN10n["BorderSizePixel"]=0 wuUN10n["Active"]= true;
+wuUN10n["Parent"]= _zwU1
+local MunOnDvpolHq= Instance["new"]("UICorner");
+MunOnDvpolHq["CornerRadius"]= UDim["new"](0,(-115+123));
+MunOnDvpolHq["Parent"]= wuUN10n
+local WvqHmqIq0_olI= Instance["new"]("UIStroke");
+WvqHmqIq0_olI["Color"]= Color3["fromRGB"](60,(308-248),(916-841)) WvqHmqIq0_olI["Thickness"]=1;
+WvqHmqIq0_olI["Parent"]= wuUN10n
+local w_MnQ1HX_ZWp= Instance["new"]("TextLabel") w_MnQ1HX_ZWp["Name"]="InfoLabel";
+w_MnQ1HX_ZWp["Size"]= UDim2["new"]((-451+452),0,1,(-665+665)) w_MnQ1HX_ZWp["BackgroundTransparency"]=(-925+926);
+w_MnQ1HX_ZWp["Text"]="FPS — | PING —" w_MnQ1HX_ZWp["TextColor3"]= Color3["fromRGB"]((-503+703),(-724+924),210);
+w_MnQ1HX_ZWp["TextSize"]=12 w_MnQ1HX_ZWp["Font"]= Enum["Font"]["GothamBold"];
+w_MnQ1HX_ZWp["TextXAlignment"]= Enum["TextXAlignment"]["Center"] w_MnQ1HX_ZWp["TextYAlignment"]= Enum["TextYAlignment"]["Center"];
+w_MnQ1HX_ZWp["RichText"]= true;
+w_MnQ1HX_ZWp["Parent"]= wuUN10n
+local oDpwnX_M0,pZMUWX0vIvo,WZQxOWUppWIN_ wuUN10n["InputBegan"]:Connect(
 function(MW1pNmnNNnzH_Z)
-if MW1pNmnNNnzH_Z.UserInputType== Enum.UserInputType.MouseButton1or MW1pNmnNNnzH_Z.UserInputType== Enum.UserInputType.Touchthen oDpwnX_M0 = true;
-pZMUWX0vIvo = MW1pNmnNNnzH_Z.Position;
-WZQxOWUppWIN_ = v31.Position
+if MW1pNmnNNnzH_Z["UserInputType"]== Enum["UserInputType"]["MouseButton1"] or MW1pNmnNNnzH_Z["UserInputType"]== Enum["UserInputType"]["Touch"] then
+oDpwnX_M0= true;
+pZMUWX0vIvo= MW1pNmnNNnzH_Z["Position"];
+WZQxOWUppWIN_= wuUN10n["Position"]
 end
-end)
-v31.InputEnded:Connect(
+end) wuUN10n["InputEnded"]:Connect(
 function(oQvqXq_ZHQwq0m)
-if oQvqXq_ZHQwq0m.UserInputType== Enum.UserInputType.MouseButton1 or oQvqXq_ZHQwq0m.UserInputType== Enum.UserInputType.Touchthen oDpwnX_M0 = false
+if oQvqXq_ZHQwq0m["UserInputType"]== Enum["UserInputType"]["MouseButton1"] or oQvqXq_ZHQwq0m["UserInputType"]== Enum["UserInputType"]["Touch"] then
+oDpwnX_M0= false
 end
-end)
-UIS2.InputChanged:Connect(
+end) OqbbHwQNoU["InputChanged"]:Connect(
 function(pD0wWUNNxNw1nl)
-if oDpwnX_M0 and(pD0wWUNNxNw1nl.UserInputType== Enum.UserInputType.MouseMovement or pD0wWUNNxNw1nl.UserInputType== Enum.UserInputType.Touch) then
- local inst73 = pD0wWUNNxNw1nl.Position- pZMUWX0vIvo v31.Position = UDim2.new(1, WZQxOWUppWIN_.X.Offset+ inst73.X, 0, WZQxOWUppWIN_.Y.Offset+ inst73.Y)
+if oDpwnX_M0 and(pD0wWUNNxNw1nl["UserInputType"]== Enum["UserInputType"]["MouseMovement"] or pD0wWUNNxNw1nl["UserInputType"]== Enum["UserInputType"]["Touch"]) then
+    local p_WuU= pD0wWUNNxNw1nl["Position"]- pZMUWX0vIvo wuUN10n["Position"]= UDim2["new"]((-159+160),WZQxOWUppWIN_["X"]["Offset"]+ p_WuU["X"],(157-157),WZQxOWUppWIN_["Y"]["Offset"]+ p_WuU["Y"])
 end
 end)
-return inst72, conn12
-end
-CreateESPEntry("PerfMonitor", 0.5,
+return _zwU1,w_MnQ1HX_ZWp
+end NpvQIDpz("PerfMonitor",0.5,
 function()
-if not ESPState._perfActive then
- return
+if not HM1uHIZZl0["_perfActive"] then
+    return
 end
-local OqIqzx = math.floor(ESPState._perfFrames/ math.max(ESPState._perfElapsed, 0.001))
-local v32 = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-local OwZuQz = OqIqzx>= 50 and "rgb(80,220,100)" or OqIqzx>= 30 and "rgb(255,200,60)" or "rgb(255,70,70)"
-local inst74 = v32<= 80 and "rgb(80,220,100)" or v32<= 150 and "rgb(255,200,60)" or "rgb(255,70,70)"
-if ESPState.perfGuiand ESPState.perfGui.Parent then
- local oln_x = ESPState.perfGui:FindFirstChild("PerfFrame"):FindFirstChild("InfoLabel")
- if oln_x then
-oln_x.Text = string.format("<font color = \"%s\">FPS %d</font> <font color = \"rgb(60,60,75)\">|</font> <font color = \"%s\">PING %d</font>", OwZuQz, OqIqzx, inst74, v32)
- end
-end ESPState._perfElapsed = 0;
-ESPState._perfFrames = 0
-end) CreateESPEntry("PerfCounter", 0,
+local OqIqzx= w_ZpoH0p1["MQUq1oIZmD"](HM1uHIZZl0["_perfFrames"]/ w_ZpoH0p1["lZUWvp_XuN"](HM1uHIZZl0["_perfElapsed"],0.001))
+local qp_qowHo0x= w_ZpoH0p1["MQUq1oIZmD"](BUb0O1q["Network"]["ServerStatsItem"]["Data Ping"]:GetValue())
+local OwZuQz= OqIqzx>=(-574+624) and"rgb(80,220,100)" or OqIqzx>=(-592+622) and"rgb(255,200,60)" or"rgb(255,70,70)"
+local Bwpmv1X0vXbN= qp_qowHo0x<=(-886+966) and"rgb(80,220,100)" or qp_qowHo0x<= 150 and"rgb(255,200,60)" or"rgb(255,70,70)"
+if HM1uHIZZl0["perfGui"] and HM1uHIZZl0["perfGui"]["Parent"] then
+    local oln_x= HM1uHIZZl0["perfGui"]:FindFirstChild("PerfFrame"):FindFirstChild("InfoLabel")
+    if oln_x then
+oln_x["Text"]= w_ZpoH0p1["qWxWwz"]("<font color=\"%s\">FPS %d</font> <font color=\"rgb(60,60,75)\">|</font> <font color=\"%s\">PING %d</font>",OwZuQz,OqIqzx,Bwpmv1X0vXbN,qp_qowHo0x)
+    end
+end HM1uHIZZl0["_perfElapsed"]=0;
+HM1uHIZZl0["_perfFrames"]=0
+end) NpvQIDpz("PerfCounter",0,
 function(DIbMZOlUq)
-if ESPState._perfActivethen ESPState._perfFrames = ESPState._perfFrames+ 1 ESPState._perfElapsed = ESPState._perfElapsed+ DIbMZOlUq
+if HM1uHIZZl0["_perfActive"] then
+HM1uHIZZl0["_perfFrames"]= HM1uHIZZl0["_perfFrames"]+1 HM1uHIZZl0["_perfElapsed"]= HM1uHIZZl0["_perfElapsed"]+ DIbMZOlUq
 end
 end)
-function MainState.lUwpXW()
-if ESPState.perfGuithen ESPState.perfGui:Destroy()
+function b0W0wpHoxmHDWX.lUwpXW()
+if HM1uHIZZl0["perfGui"] then
+HM1uHIZZl0["perfGui"]:Destroy()
 end
-local N_q1oHobZ, bZXnUXWW = MainState.lpZNv1HZpDo()
-ESPState.perfGui = N_q1oHobZ;
-ESPState._perfActive = true ESPState._perfElapsed = 0;
-ESPState._perfFrames = 0
+local N_q1oHobZ,bZXnUXWW= b0W0wpHoxmHDWX.lpZNv1HZpDo() HM1uHIZZl0["perfGui"]= N_q1oHobZ;
+HM1uHIZZl0["_perfActive"]= true HM1uHIZZl0["_perfElapsed"]=0;
+HM1uHIZZl0["_perfFrames"]=(774-774)
 end
-function MainState.p_X0zlUul()
-ESPState._perfActive = false
-if ESPState.perfGui then
-ESPState.perfGui:Destroy();
-ESPState.perfGui = nil
+function b0W0wpHoxmHDWX.p_X0zlUul() HM1uHIZZl0["_perfActive"]= false
+if HM1uHIZZl0["perfGui"] then
+HM1uHIZZl0["perfGui"]:Destroy();
+HM1uHIZZl0["perfGui"]= nil
 end
 end
-function MainState.M1INum0lnUMMI(BDM1MoZv, Wun_Qbl1)
+function b0W0wpHoxmHDWX.M1INum0lnUMMI(BDM1MoZv,Wun_Qbl1)
 if not BDM1MoZv then
- return nil
+    return nil
 end
-local flag18 = BDM1MoZv:GetAttribute(Wun_Qbl1)
-if flag18~= nil then
- return flag18
+local QuOZ1HmuZ= BDM1MoZv["GetAttribute"](BDM1MoZv,Wun_Qbl1)
+if QuOZ1HmuZ~= nil then
+    return QuOZ1HmuZ
 end
-local flag19 = BDM1MoZv:FindFirstChild(Wun_Qbl1)
-if flag19 then
- local OXnw0bl, vNMUowwZHZ = pcall(
- function()
- return flag19.Valueend)
- if OXnw0bl then
- return vNMUowwZHZ
- end
+local NZnm_OOHmwv= BDM1MoZv["FindFirstChild"](BDM1MoZv,Wun_Qbl1)
+if NZnm_OOHmwv then
+    local OXnw0bl,vNMUowwZHZ= w_ZpoH0p1["bHopuzIW"](
+    function()
+    return NZnm_OOHmwv["Value"]
+end)
+if OXnw0bl then
+    return vNMUowwZHZ
+end
 end
 return nil
 end
-function MainState.HM0v1q1I1Ix()
-local v33 = Instance.new("ScreenGui")
-v33.Name = "BolongPrediction" v33.ResetOnSpawn = false v33.IgnoreGuiInset = true v33.DisplayOrder = 9999999 v33.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-local v34 = nil pcall(
-function()
-v34 = gethui()
+function b0W0wpHoxmHDWX.HM0v1q1I1Ix()
+local p_nwvHv= Instance["new"]("ScreenGui") p_nwvHv["Name"]="BolongPrediction" p_nwvHv["ResetOnSpawn"]= false p_nwvHv["IgnoreGuiInset"]= true p_nwvHv["DisplayOrder"]=9999999 p_nwvHv["ZIndexBehavior"]= Enum["ZIndexBehavior"]["Sibling"]
+local b_D0vo= nil w_ZpoH0p1["bHopuzIW"](
+function() b_D0vo= gethui()
 end)
-if not v34 then
-pcall(
- function()
-v34 = game:GetService("CoreGui")
+if not b_D0vo then
+w_ZpoH0p1["bHopuzIW"](
+    function() b_D0vo= game["GetService"](game,"CoreGui")
 end)
 end
-if not v34 then
-v34 = PlayerGui
-end
-v33.Parent = v34
-local gui52 = Instance.new("TextLabel")
-gui52.Name = "InfoLabel" gui52.AnchorPoint = Vector2.new(0.5, 0)
-if ESPState.predLastPos then
-gui52.Position = ESPState.predLastPos
-else gui52.Position = UDim2.new(0.5, 0, 0, 50)
-end
-gui52.BackgroundTransparency = 1 gui52.AutomaticSize = Enum.AutomaticSize.XY gui52.Text = "Map: — | Killer: —" gui52.TextColor3 = Color3.fromRGB(252, 235, 229)
-gui52.TextSize = 14 p_mWOQlv_mpnbU.Font = Enum.Font.GothamBold gui52.TextXAlignment = Enum.TextXAlignment.Centerp_mWOQlv_mpnbU.TextYAlignment = Enum.TextYAlignment.Centerp_mWOQlv_mpnbU.RichText = true gui52.Active = true gui52.Parent = v33
-local val8 = Instance.new("UIStroke")
-val8.Name = "Outline" val8.Color = Color3.new(0, 0, 0)
-val8.Thickness = 1 NUplUXvW_n1.Transparency = 0.2 val8.Parent = gui52
-local val9 = false
-local val10 = Vector2.new()
-local val11 = UDim2.new()
-gui52.InputBegan:Connect(
+if not b_D0vo then
+b_D0vo= lXUHZ
+end p_nwvHv["Parent"]= b_D0vo
+local p_mWOQlv_mpnbU= Instance["new"]("TextLabel") p_mWOQlv_mpnbU["Name"]="InfoLabel" p_mWOQlv_mpnbU["AnchorPoint"]= Vector2["new"](0.5,(330-330))
+if HM1uHIZZl0["predLastPos"] then
+p_mWOQlv_mpnbU["Position"]= HM1uHIZZl0["predLastPos"]
+else p_mWOQlv_mpnbU["Position"]= UDim2["new"](0.5,0,(366-366),50)
+end p_mWOQlv_mpnbU["BackgroundTransparency"]=1 p_mWOQlv_mpnbU["AutomaticSize"]= Enum["AutomaticSize"]["XY"] p_mWOQlv_mpnbU["Text"]="Map: — | Killer: —" p_mWOQlv_mpnbU["TextColor3"]= Color3["fromRGB"](252,235,(-557+786)) p_mWOQlv_mpnbU["TextSize"]=(-278+292) p_mWOQlv_mpnbU["Font"]= Enum["Font"]["GothamBold"] p_mWOQlv_mpnbU["TextXAlignment"]= Enum["TextXAlignment"]["Center"] p_mWOQlv_mpnbU["TextYAlignment"]= Enum["TextYAlignment"]["Center"] p_mWOQlv_mpnbU["RichText"]= true p_mWOQlv_mpnbU["Active"]= true p_mWOQlv_mpnbU["Parent"]= p_nwvHv
+local NUplUXvW_n1= Instance["new"]("UIStroke") NUplUXvW_n1["Name"]="Outline" NUplUXvW_n1["Color"]= Color3["new"]((-455+455),0,(51-51)) NUplUXvW_n1["Thickness"]=(-811+812) NUplUXvW_n1["Transparency"]=0.2 NUplUXvW_n1["Parent"]= p_mWOQlv_mpnbU
+local oZWNHlN= false
+local _bOlv= Vector2["new"]()
+local vqvDIbOuxlnXmm= UDim2["new"]() p_mWOQlv_mpnbU["InputBegan"]:Connect(
 function(OxXUWWNx)
-if OxXUWWNx.UserInputType== Enum.UserInputType.MouseButton1or OxXUWWNx.UserInputType== Enum.UserInputType.Touchthen val9 = true val10 = OxXUWWNx.Position val11 = gui52.Position
+if OxXUWWNx["UserInputType"]== Enum["UserInputType"]["MouseButton1"] or OxXUWWNx["UserInputType"]== Enum["UserInputType"]["Touch"] then
+oZWNHlN= true _bOlv= OxXUWWNx["Position"] vqvDIbOuxlnXmm= p_mWOQlv_mpnbU["Position"]
 end
-end)
-gui52.InputEnded:Connect(
+end) p_mWOQlv_mpnbU["InputEnded"]:Connect(
 function(Wvb1qz1nbu0DHD)
-if Wvb1qz1nbu0DHD.UserInputType== Enum.UserInputType.MouseButton1 or Wvb1qz1nbu0DHD.UserInputType== Enum.UserInputType.Touchthen val9 = false
+if Wvb1qz1nbu0DHD["UserInputType"]== Enum["UserInputType"]["MouseButton1"] or Wvb1qz1nbu0DHD["UserInputType"]== Enum["UserInputType"]["Touch"] then
+oZWNHlN= false
 end
-end)
-UIS2.InputChanged:Connect(
+end) OqbbHwQNoU["InputChanged"]:Connect(
 function(bWI0_ZwlxDnuIz)
-if val9 and(bWI0_ZwlxDnuIz.UserInputType== Enum.UserInputType.MouseMovementor bWI0_ZwlxDnuIz.UserInputType== Enum.UserInputType.Touch) then
- local val12 = bWI0_ZwlxDnuIz.Position- val10
- local val13 = UDim2.new(val11.X.Scale, val11.X.Offset+ val12.X, val11.Y.Scale, val11.Y.Offset+ val12.Y)
-gui52.Position = val13 ESPState.predLastPos = val13
+if oZWNHlN and(bWI0_ZwlxDnuIz["UserInputType"]== Enum["UserInputType"]["MouseMovement"] or bWI0_ZwlxDnuIz["UserInputType"]== Enum["UserInputType"]["Touch"]) then
+    local Wxmb0WxHv= bWI0_ZwlxDnuIz["Position"]- _bOlv
+    local IXM1Onq= UDim2["new"](vqvDIbOuxlnXmm["X"]["Scale"],vqvDIbOuxlnXmm["X"]["Offset"]+ Wxmb0WxHv["X"],vqvDIbOuxlnXmm["Y"]["Scale"],vqvDIbOuxlnXmm["Y"]["Offset"]+ Wxmb0WxHv["Y"]) p_mWOQlv_mpnbU["Position"]= IXM1Onq HM1uHIZZl0["predLastPos"]= IXM1Onq
 end
 end)
-return v33, gui52
+return p_nwvHv,p_mWOQlv_mpnbU
 end
-function MainState.IuxHvXo()
-if ESPState.predMapInfoConnthen
-return
-end
-task.spawn(
+function b0W0wpHoxmHDWX.IuxHvXo()
+if HM1uHIZZl0["predMapInfoConn"] then
+    return
+end task["spawn"](
 function()
-local bUmxXOoXWvW, BoxunQbqXpN = pcall(
+local bUmxXOoXWvW,BoxunQbqXpN= w_ZpoH0p1["bHopuzIW"](
 function()
-return ReplicatedStorage:WaitForChild("Remotes", 10):WaitForChild("Messages", 10):WaitForChild("Mapinfo", 10)
+return DMNlwumvQ0Mmvp["WaitForChild"](DMNlwumvQ0Mmvp,"Remotes",10):WaitForChild("Messages",(986-976)):WaitForChild("Mapinfo",10)
 end)
-if bUmxXOoXWvW and BoxunQbqXpN and BoxunQbqXpN:IsA("RemoteEvent") then
-ESPState.predMapInfoConn = BoxunQbqXpN.OnClientEvent:Connect(
- function(pOOxbvQ, OMqmMuMlM)
- if type(pOOxbvQ)=="string" and pOOxbvQ~="" then
-ESPState.predMapName = pOOxbvQ
- end
-end)
-end
+if bUmxXOoXWvW and BoxunQbqXpN and BoxunQbqXpN["IsA"](BoxunQbqXpN,"RemoteEvent") then
+HM1uHIZZl0["predMapInfoConn"]= BoxunQbqXpN["OnClientEvent"]:Connect(
+    function(pOOxbvQ,OMqmMuMlM)
+    if w_ZpoH0p1["HmnU_lbWXHQX1I"](pOOxbvQ)=="string" and pOOxbvQ~="" then
+HM1uHIZZl0["predMapName"]= pOOxbvQ
+    end
 end)
 end
-CreateESPEntry("PredictionMonitor", 1,
+end)
+end NpvQIDpz("PredictionMonitor",1,
 function()
-if not ESPState.predActivethen
-return
+if not HM1uHIZZl0["predActive"] then
+    return
 end
-if not ESPState.predGuior not ESPState.predGui.Parent then
- if ESPState.predGuithen ESPState.predGui:Destroy()
+if not HM1uHIZZl0["predGui"] or not HM1uHIZZl0["predGui"]["Parent"] then
+    if HM1uHIZZl0["predGui"] then
+HM1uHIZZl0["predGui"]:Destroy()
+    end
+    local HqwXx,lQlwQp= b0W0wpHoxmHDWX.HM0v1q1I1Ix() HM1uHIZZl0["predGui"]= HqwXx HM1uHIZZl0["predInfoLabel"]= lQlwQp
 end
-local HqwXx, lQlwQp = MainState.HM0v1q1I1Ix()
-ESPState.predGui = HqwXx ESPState.predInfoLabel = lQlwQp
+local lpMqNuoQpnlXW= HM1uHIZZl0["predGui"]:FindFirstChild("InfoLabel")
+if not lpMqNuoQpnlXW then
+    return
 end
-local inst75 = ESPState.predGui:FindFirstChild("InfoLabel")
-if not inst75 then
- return
+local uvMOwNWODmO= OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo) table["sort"](uvMOwNWODmO,
+function(wwqnIom,HqXQOX0Z)
+local IWID11wpMp10NW= b0W0wpHoxmHDWX.M1INum0lnUMMI(wwqnIom,"AllowKiller")
+local ouxWp= b0W0wpHoxmHDWX.M1INum0lnUMMI(HqXQOX0Z,"AllowKiller")
+local OzxW_ZUO=(IWID11wpMp10NW== false)
+local DXoo0_lm1Qx=(ouxWp== false)
+if OzxW_ZUO~= DXoo0_lm1Qx then
+    return not OzxW_ZUO
 end
-local inst76 = Players.GetPlayers(Players)
-table.sort(inst76,
-function(wwqnIom, HqXQOX0Z)
-local inst77 = MainState.M1INum0lnUMMI(wwqnIom,"AllowKiller")
-local v35 = MainState.M1INum0lnUMMI(HqXQOX0Z,"AllowKiller")
-local inst78 = (inst77== false)
-local inst79 = (v35== false)
-if inst78~= inst79 then
- return not inst78
+if not OzxW_ZUO and not DXoo0_lm1Qx then
+    return(b0W0wpHoxmHDWX.M1INum0lnUMMI(wwqnIom,"KillerChance") or(-481+481))>(b0W0wpHoxmHDWX.M1INum0lnUMMI(HqXQOX0Z,"KillerChance") or(890-890))
 end
-if not inst78 and not inst79 then
- return(MainState.M1INum0lnUMMI(wwqnIom,"KillerChance") or 0)>(MainState.M1INum0lnUMMI(HqXQOX0Z,"KillerChance") or 0)
-end
-return(MainState.M1INum0lnUMMI(wwqnIom,"KillerChance") or0)<(MainState.M1INum0lnUMMI(HqXQOX0Z,"KillerChance") or 0)
+return(b0W0wpHoxmHDWX.M1INum0lnUMMI(wwqnIom,"KillerChance") or(499-499))<(b0W0wpHoxmHDWX.M1INum0lnUMMI(HqXQOX0Z,"KillerChance") or 0)
 end)
-local val14 = inst76[1]
-local val15 = "<font color = \"rgb(100,110,130)\">—</font>"
-if val14 then
- local val16 = val14.Name
- local inst80 = MainState.M1INum0lnUMMI(val14,"SelectedKiller")
- local inst81 = MainState.M1INum0lnUMMI(val14,"AllowKiller")
- if val14== LocalPlayer then
-val16 = "YOU"
- end
-local _UvMwO___
- if inst81== false then
-_UvMwO___ = "rgb(255,0,30)"
- else _UvMwO___ = "rgb(252,235,229)"
+local Oob0ZvxqMvObw= uvMOwNWODmO[1]
+local p1Ooz="<font color=\"rgb(100,110,130)\">—</font>"
+if Oob0ZvxqMvObw then
+    local QQDv1HWQxqUH0= Oob0ZvxqMvObw["Name"]
+    local _IloQ= b0W0wpHoxmHDWX.M1INum0lnUMMI(Oob0ZvxqMvObw,"SelectedKiller")
+    local _bMH1qOQUowNn= b0W0wpHoxmHDWX.M1INum0lnUMMI(Oob0ZvxqMvObw,"AllowKiller")
+    if Oob0ZvxqMvObw== Hnv0Zw then
+QQDv1HWQxqUH0="YOU"
+    end
+    local _UvMwO___
+    if _bMH1qOQUowNn== false then
+_UvMwO___="rgb(255,0,30)"
+    else _UvMwO___="rgb(252,235,229)"
 end
-if inst80 and type(inst80)=="string" and inst80~="" then
-val15 = string.format("<font color = \"%s\">%s</font> <font color = \"rgb(255,0,30)\">(%s)</font>", _UvMwO___, val16, inst80)
-else val15 = string.format("<font color = \"%s\">%s</font>", _UvMwO___, val16)
+if _IloQ and w_ZpoH0p1["HmnU_lbWXHQX1I"](_IloQ)=="string" and _IloQ~="" then
+p1Ooz= w_ZpoH0p1["qWxWwz"]("<font color=\"%s\">%s</font> <font color=\"rgb(255,0,30)\">(%s)</font>",_UvMwO___,QQDv1HWQxqUH0,_IloQ)
+else p1Ooz= w_ZpoH0p1["qWxWwz"]("<font color=\"%s\">%s</font>",_UvMwO___,QQDv1HWQxqUH0)
 end
 end
-local inst82 = ESPState.predMapName or "—" inst75.Text = string.format("<font color = \"rgb(255,210,60)\">Map:</font> <font color = \"rgb(252,235,229)\">%s</font> <font color = \"rgb(80,80,85)\">|</font> <font color = \"rgb(255,210,60)\">Killer:</font> %s", inst82, val15)
+local W_HXo0w= HM1uHIZZl0["predMapName"] or"—" lpMqNuoQpnlXW["Text"]= w_ZpoH0p1["qWxWwz"]("<font color=\"rgb(255,210,60)\">Map:</font> <font color=\"rgb(252,235,229)\">%s</font>  <font color=\"rgb(80,80,85)\">|</font>  <font color=\"rgb(255,210,60)\">Killer:</font> %s",W_HXo0w,p1Ooz)
 end)
-function MainState.HuQnoUuWpwo()
-if ESPState.predGuithen ESPState.predGui:Destroy()
+function b0W0wpHoxmHDWX.HuQnoUuWpwo()
+if HM1uHIZZl0["predGui"] then
+HM1uHIZZl0["predGui"]:Destroy()
+end HM1uHIZZl0["predMapName"]= nil b0W0wpHoxmHDWX.IuxHvXo()
+local lHpXvDmmnIH_,MH0Qb_oDOxnz= b0W0wpHoxmHDWX.HM0v1q1I1Ix() HM1uHIZZl0["predGui"]= lHpXvDmmnIH_ HM1uHIZZl0["predInfoLabel"]= MH0Qb_oDOxnz HM1uHIZZl0["predActive"]= true
 end
-ESPState.predMapName = nil MainState.IuxHvXo()
-local lHpXvDmmnIH_, MH0Qb_oDOxnz = MainState.HM0v1q1I1Ix()
-ESPState.predGui = lHpXvDmmnIH_ ESPState.predInfoLabel = MH0Qb_oDOxnz ESPState.predActive = true
+function b0W0wpHoxmHDWX.lboDUI() HM1uHIZZl0["predActive"]= false
+if HM1uHIZZl0["predMapInfoConn"] then
+w_ZpoH0p1["bHopuzIW"](
+    function() HM1uHIZZl0["predMapInfoConn"]:Disconnect()
+end) HM1uHIZZl0["predMapInfoConn"]= nil
 end
-function MainState.lboDUI()
-ESPState.predActive = false
-if ESPState.predMapInfoConn then
-pcall(
- function()
-ESPState.predMapInfoConn:Disconnect()
-end)
-ESPState.predMapInfoConn = nil
+if HM1uHIZZl0["predGui"] then
+HM1uHIZZl0["predGui"]:Destroy() HM1uHIZZl0["predGui"]= nil
 end
-if ESPState.predGuithen ESPState.predGui:Destroy()
-ESPState.predGui = nil
+end CROSSHAIR_STYLES={"Dot","Circle","Circle + Dot","Plus","Cross (X)","T-Shape","Square"} do
+b0W0wpHoxmHDWX.HUvmUM1Uu=80 b0W0wpHoxmHDWX.qqQHNWzvmq= b0W0wpHoxmHDWX.HUvmUM1Uu/(-743+745) b0W0wpHoxmHDWX.bwDoXvvnnDOn={}
+    function b0W0wpHoxmHDWX.Dq_W0bDW0(ONWD0x_HoHIm,lDH1_zWD,uXwUONoHZ,D1xwNvNl,QpIn_qbIzoUO,D0xzqUnHp,WZqOuqX1owO,wovbwZWqUq_)
+    local qvxD_= Instance["new"]("Frame") qvxD_["Name"]= wovbwZWqUq_ or"CH_Part" qvxD_["BackgroundColor3"]= D0xzqUnHp qvxD_["BackgroundTransparency"]= WZqOuqX1owO qvxD_["BorderSizePixel"]=0 qvxD_["Size"]= UDim2["fromOffset"](w_ZpoH0p1["lZUWvp_XuN"]((-109+110),math["round"](uXwUONoHZ)),w_ZpoH0p1["lZUWvp_XuN"](1,math["round"](D1xwNvNl))) qvxD_["AnchorPoint"]= Vector2["new"](0.5,0.5) qvxD_["Position"]= UDim2["fromOffset"](math["round"](ONWD0x_HoHIm),math["round"](lDH1_zWD))
+    if QpIn_qbIzoUO~=(-760+760) then
+qvxD_["Rotation"]= QpIn_qbIzoUO
+    end
+    return qvxD_
 end
-end CROSSHAIR_STYLES = {"Dot","Circle","Circle + Dot","Plus","Cross (X)","T-Shape","Square"} do
-MainState.HUvmUM1Uu = 80 MainState.qqQHNWzvmq = MainState.HUvmUM1Uu/ 2 b0W0wpHoxmHDWX.bwDoXvvnnDOn = {}
- function MainState.Dq_W0bDW0(ONWD0x_HoHIm, lDH1_zWD, uXwUONoHZ, D1xwNvNl, QpIn_qbIzoUO, D0xzqUnHp, WZqOuqX1owO, wovbwZWqUq_)
- local tbl4 = Instance.new("Frame")
-tbl4.Name = wovbwZWqUq_ or "CH_Part" tbl4.BackgroundColor3 = D0xzqUnHp tbl4.BackgroundTransparency = WZqOuqX1owO tbl4.BorderSizePixel = 0 tbl4.Size = UDim2.fromOffset(math.max(1, math.round(uXwUONoHZ)), math.max(1, math.round(D1xwNvNl)))
-tbl4.AnchorPoint = Vector2.new(0.5, 0.5)
-tbl4.Position = UDim2.fromOffset(math.round(ONWD0x_HoHIm), math.round(lDH1_zWD))
- if QpIn_qbIzoUO~= 0 then
-tbl4.Rotation = QpIn_qbIzoUO
- end
-return tbl4
+function b0W0wpHoxmHDWX.HIXMnml1M(u1wpZMHv)
+return 0.3+(w_ZpoH0p1["_WXbbv_1_HnO"](u1wpZMHv,1,(125-25))/(-153+253))*2.2
+end b0W0wpHoxmHDWX.bwDoXvvnnDOn["Plus"]=
+function(w_uw_N1IWH,WwlpxwHDMownH,omqbDb)
+local vwIODUxbp1qxm={}
+local voonNm0Zp1zZ= b0W0wpHoxmHDWX.HIXMnml1M(w_uw_N1IWH)
+local bHqx1DwWMDN= w_ZpoH0p1["lZUWvp_XuN"](2,math["round"]((105-103)* voonNm0Zp1zZ))
+local Oq1WuoOxuIbHH= w_ZpoH0p1["lZUWvp_XuN"]((224-216),math["round"]((-702+727)* voonNm0Zp1zZ))
+local BMQHXo_upmoNzz= b0W0wpHoxmHDWX.qqQHNWzvmq w_ZpoH0p1["I_plQ"](vwIODUxbp1qxm,b0W0wpHoxmHDWX.Dq_W0bDW0(BMQHXo_upmoNzz,BMQHXo_upmoNzz,bHqx1DwWMDN,Oq1WuoOxuIbHH,(743-743),WwlpxwHDMownH,omqbDb)) w_ZpoH0p1["I_plQ"](vwIODUxbp1qxm,b0W0wpHoxmHDWX.Dq_W0bDW0(BMQHXo_upmoNzz,BMQHXo_upmoNzz,Oq1WuoOxuIbHH,bHqx1DwWMDN,(-560+560),WwlpxwHDMownH,omqbDb))
+return vwIODUxbp1qxm,{},{}
+end b0W0wpHoxmHDWX.bwDoXvvnnDOn["Cross (X)"]=
+function(woMbvvmW0zI,bOXDMW,w0DXINqwM_)
+local NZuZZl={}
+local I1nxv= b0W0wpHoxmHDWX.HIXMnml1M(woMbvvmW0zI)
+local pwu1Wbx= w_ZpoH0p1["lZUWvp_XuN"](2,math["round"](2* I1nxv))
+local qpnvMvHU_0u= w_ZpoH0p1["lZUWvp_XuN"]((-828+836),math["round"]((864-839)* I1nxv))
+local NxHvq= b0W0wpHoxmHDWX.qqQHNWzvmq w_ZpoH0p1["I_plQ"](NZuZZl,b0W0wpHoxmHDWX.Dq_W0bDW0(NxHvq,NxHvq,pwu1Wbx,qpnvMvHU_0u,(-542+587),bOXDMW,w0DXINqwM_)) w_ZpoH0p1["I_plQ"](NZuZZl,b0W0wpHoxmHDWX.Dq_W0bDW0(NxHvq,NxHvq,pwu1Wbx,qpnvMvHU_0u,-(-812+857),bOXDMW,w0DXINqwM_))
+return NZuZZl,{},{}
+end b0W0wpHoxmHDWX.bwDoXvvnnDOn["Dot"]=
+function(pmzxDvbvOp,bzbxxzMzboM,_lonX)
+local DOQpunvllNZ={}
+local HnMMZ_bppuolx= b0W0wpHoxmHDWX.HIXMnml1M(pmzxDvbvOp)
+local BW_NqvuvvN= w_ZpoH0p1["lZUWvp_XuN"]((-9+12),math["round"]((822-814)* HnMMZ_bppuolx))
+local qUMXWDomn1qN= b0W0wpHoxmHDWX.qqQHNWzvmq
+local p_xHDpD= b0W0wpHoxmHDWX.Dq_W0bDW0(qUMXWDomn1qN,qUMXWDomn1qN,BW_NqvuvvN,BW_NqvuvvN,(433-433),bzbxxzMzboM,_lonX,"CH_Dot")
+local BWOwOqN= Instance["new"]("UICorner") BWOwOqN["CornerRadius"]= UDim["new"]((-785+786),0) BWOwOqN["Parent"]= p_xHDpD w_ZpoH0p1["I_plQ"](DOQpunvllNZ,p_xHDpD)
+return DOQpunvllNZ,{},{}
+end b0W0wpHoxmHDWX.bwDoXvvnnDOn["Circle"]=
+function(QmDbvzNOX,BZHHu,WXIuowDoX)
+local Bx0nN,B_DQQN={},{}
+local bUwzb1vlQmbM= b0W0wpHoxmHDWX.HIXMnml1M(QmDbvzNOX)
+local IOXUOobXHUm= w_ZpoH0p1["lZUWvp_XuN"](4,math["round"]((-720+732)* bUwzb1vlQmbM))
+local uZoONlOvmDmpp= w_ZpoH0p1["lZUWvp_XuN"]((622-620),math["round"](2* bUwzb1vlQmbM))
+local Qww1mmb= b0W0wpHoxmHDWX.qqQHNWzvmq
+local DxHNqp1= Instance["new"]("Frame") DxHNqp1["Name"]="CH_Ring" DxHNqp1["BackgroundTransparency"]=1 DxHNqp1["Size"]= UDim2["fromOffset"](IOXUOobXHUm*(-770+772),IOXUOobXHUm*(112-110)) DxHNqp1["AnchorPoint"]= Vector2["new"](0.5,0.5) DxHNqp1["Position"]= UDim2["fromOffset"](Qww1mmb,Qww1mmb)
+local DlmNUmxOHZwZ= Instance["new"]("UICorner") DlmNUmxOHZwZ["CornerRadius"]= UDim["new"](1,(939-939)) DlmNUmxOHZwZ["Parent"]= DxHNqp1
+local _lXoOlpMODNn= Instance["new"]("UIStroke") _lXoOlpMODNn["Name"]="CH_Stroke" _lXoOlpMODNn["Color"]= BZHHu _lXoOlpMODNn["Thickness"]= uZoONlOvmDmpp _lXoOlpMODNn["Transparency"]= WXIuowDoX _lXoOlpMODNn["Parent"]= DxHNqp1 w_ZpoH0p1["I_plQ"](Bx0nN,DxHNqp1) w_ZpoH0p1["I_plQ"](B_DQQN,_lXoOlpMODNn)
+return Bx0nN,B_DQQN,{}
+end b0W0wpHoxmHDWX.bwDoXvvnnDOn["Circle + Dot"]=
+function(MUHbWq,BHnuQH,WvWuvI)
+local qp_zZHqNqHu,qOX1v,WNvNbnnunM0={},{},{}
+local WMUzXnUUW= b0W0wpHoxmHDWX.HIXMnml1M(MUHbWq)
+local DINmW= w_ZpoH0p1["lZUWvp_XuN"](4,math["round"](12* WMUzXnUUW))
+local OXMlluMquUIXlI= w_ZpoH0p1["lZUWvp_XuN"]((-386+388),math["round"](2* WMUzXnUUW))
+local vquXvOXbDpzWm= w_ZpoH0p1["lZUWvp_XuN"](2,math["round"](4* WMUzXnUUW))
+local v_1N1QoqDbq= b0W0wpHoxmHDWX.qqQHNWzvmq
+local qQ0DMwzZm0ZwMH= Instance["new"]("Frame") qQ0DMwzZm0ZwMH["Name"]="CH_Ring" qQ0DMwzZm0ZwMH["BackgroundTransparency"]=1 qQ0DMwzZm0ZwMH["Size"]= UDim2["fromOffset"](DINmW*2,DINmW*(-705+707)) qQ0DMwzZm0ZwMH["AnchorPoint"]= Vector2["new"](0.5,0.5) qQ0DMwzZm0ZwMH["Position"]= UDim2["fromOffset"](v_1N1QoqDbq,v_1N1QoqDbq)
+local Bunuw= Instance["new"]("UICorner") Bunuw["CornerRadius"]= UDim["new"]((529-528),0) Bunuw["Parent"]= qQ0DMwzZm0ZwMH
+local o1wuIIZp= Instance["new"]("UIStroke") o1wuIIZp["Name"]="CH_Stroke" o1wuIIZp["Color"]= BHnuQH o1wuIIZp["Thickness"]= OXMlluMquUIXlI o1wuIIZp["Transparency"]= WvWuvI o1wuIIZp["Parent"]= qQ0DMwzZm0ZwMH w_ZpoH0p1["I_plQ"](qp_zZHqNqHu,qQ0DMwzZm0ZwMH) w_ZpoH0p1["I_plQ"](qOX1v,o1wuIIZp)
+local w0qMvuOzIqZo= b0W0wpHoxmHDWX.Dq_W0bDW0(v_1N1QoqDbq,v_1N1QoqDbq,vquXvOXbDpzWm,vquXvOXbDpzWm,(292-292),BHnuQH,WvWuvI,"CH_Dot")
+local IDWDb0OmmxU0o= Instance["new"]("UICorner") IDWDb0OmmxU0o["CornerRadius"]= UDim["new"](1,0) IDWDb0OmmxU0o["Parent"]= w0qMvuOzIqZo w_ZpoH0p1["I_plQ"](qp_zZHqNqHu,w0qMvuOzIqZo) w_ZpoH0p1["I_plQ"](WNvNbnnunM0,w0qMvuOzIqZo)
+return qp_zZHqNqHu,qOX1v,WNvNbnnunM0
+end b0W0wpHoxmHDWX.bwDoXvvnnDOn["T-Shape"]=
+function(qomNzQ,I1H_pbqZIpxlM,oOzw1QZm)
+local vOZbn={}
+local wQQNwHNn= b0W0wpHoxmHDWX.HIXMnml1M(qomNzQ)
+local u0Xom0MDlxNxO= w_ZpoH0p1["lZUWvp_XuN"](2,math["round"](2* wQQNwHNn))
+local MznQ0Ipb= w_ZpoH0p1["lZUWvp_XuN"](8,math["round"](25* wQQNwHNn))
+local BZbDMXQlnx= b0W0wpHoxmHDWX.qqQHNWzvmq
+local oWvZ_b= math["round"](MznQ0Ipb*0.25) w_ZpoH0p1["I_plQ"](vOZbn,b0W0wpHoxmHDWX.Dq_W0bDW0(BZbDMXQlnx,BZbDMXQlnx- oWvZ_b,MznQ0Ipb,u0Xom0MDlxNxO,0,I1H_pbqZIpxlM,oOzw1QZm)) w_ZpoH0p1["I_plQ"](vOZbn,b0W0wpHoxmHDWX.Dq_W0bDW0(BZbDMXQlnx,BZbDMXQlnx- oWvZ_b+ MznQ0Ipb/2,u0Xom0MDlxNxO,MznQ0Ipb,0,I1H_pbqZIpxlM,oOzw1QZm))
+return vOZbn,{},{}
+end b0W0wpHoxmHDWX.bwDoXvvnnDOn["Square"]=
+function(OnWmXnQw0_ZIWl,BqQII0QM,uq1Huw)
+local ImHOou={}
+local Ml1mXXzzzvH= b0W0wpHoxmHDWX.HIXMnml1M(OnWmXnQw0_ZIWl)
+local oWZum0I0zx__1= w_ZpoH0p1["lZUWvp_XuN"](2,math["round"]((320-318)* Ml1mXXzzzvH))
+local NzqIwHzMZ= w_ZpoH0p1["lZUWvp_XuN"]((-85+93),math["round"](22* Ml1mXXzzzvH))
+local vWQnDmIbqZuq0O= w_ZpoH0p1["lZUWvp_XuN"](3,math["round"](NzqIwHzMZ*0.4))
+local HbuUo_oxN= b0W0wpHoxmHDWX.qqQHNWzvmq
+local ooQNDWIvvN= NzqIwHzMZ/(175-173) w_ZpoH0p1["I_plQ"](ImHOou,b0W0wpHoxmHDWX.Dq_W0bDW0(HbuUo_oxN- ooQNDWIvvN+ vWQnDmIbqZuq0O/2,HbuUo_oxN- ooQNDWIvvN,vWQnDmIbqZuq0O,oWZum0I0zx__1,(660-660),BqQII0QM,uq1Huw)) w_ZpoH0p1["I_plQ"](ImHOou,b0W0wpHoxmHDWX.Dq_W0bDW0(HbuUo_oxN- ooQNDWIvvN,HbuUo_oxN- ooQNDWIvvN+ vWQnDmIbqZuq0O/(610-608),oWZum0I0zx__1,vWQnDmIbqZuq0O,(247-247),BqQII0QM,uq1Huw)) w_ZpoH0p1["I_plQ"](ImHOou,b0W0wpHoxmHDWX.Dq_W0bDW0(HbuUo_oxN+ ooQNDWIvvN- vWQnDmIbqZuq0O/2,HbuUo_oxN- ooQNDWIvvN,vWQnDmIbqZuq0O,oWZum0I0zx__1,0,BqQII0QM,uq1Huw)) w_ZpoH0p1["I_plQ"](ImHOou,b0W0wpHoxmHDWX.Dq_W0bDW0(HbuUo_oxN+ ooQNDWIvvN,HbuUo_oxN- ooQNDWIvvN+ vWQnDmIbqZuq0O/(621-619),oWZum0I0zx__1,vWQnDmIbqZuq0O,(-177+177),BqQII0QM,uq1Huw)) w_ZpoH0p1["I_plQ"](ImHOou,b0W0wpHoxmHDWX.Dq_W0bDW0(HbuUo_oxN- ooQNDWIvvN+ vWQnDmIbqZuq0O/(-167+169),HbuUo_oxN+ ooQNDWIvvN,vWQnDmIbqZuq0O,oWZum0I0zx__1,(-98+98),BqQII0QM,uq1Huw)) w_ZpoH0p1["I_plQ"](ImHOou,b0W0wpHoxmHDWX.Dq_W0bDW0(HbuUo_oxN- ooQNDWIvvN,HbuUo_oxN+ ooQNDWIvvN- vWQnDmIbqZuq0O/(-143+145),oWZum0I0zx__1,vWQnDmIbqZuq0O,0,BqQII0QM,uq1Huw)) w_ZpoH0p1["I_plQ"](ImHOou,b0W0wpHoxmHDWX.Dq_W0bDW0(HbuUo_oxN+ ooQNDWIvvN- vWQnDmIbqZuq0O/(897-895),HbuUo_oxN+ ooQNDWIvvN,vWQnDmIbqZuq0O,oWZum0I0zx__1,0,BqQII0QM,uq1Huw)) w_ZpoH0p1["I_plQ"](ImHOou,b0W0wpHoxmHDWX.Dq_W0bDW0(HbuUo_oxN+ ooQNDWIvvN,HbuUo_oxN+ ooQNDWIvvN- vWQnDmIbqZuq0O/2,oWZum0I0zx__1,vWQnDmIbqZuq0O,(52-52),BqQII0QM,uq1Huw))
+return ImHOou,{},{}
+end b0W0wpHoxmHDWX.wIxwUXZxX={} b0W0wpHoxmHDWX.wIxwUXZxX["__index"]= b0W0wpHoxmHDWX.wIxwUXZxX
+function b0W0wpHoxmHDWX.wIxwUXZxX.new()
+local _voUW1uD_DDp= setmetatable({},b0W0wpHoxmHDWX.wIxwUXZxX) _voUW1uD_DDp["config"]={["enabled"]= false,["style"]="Plus",["size"]=1,["opacity"]=1.0,["offsetX"]=0,["offsetY"]=0,["color"]= Color3["fromRGB"](255,(-505+760),255),["smooth"]= true,["smoothSpeed"]=0.25,} _voUW1uD_DDp["gui"]= nil _voUW1uD_DDp["container"]= nil _voUW1uD_DDp["parent"]= nil _voUW1uD_DDp["parts"]={["frames"]={},["strokes"]={},["dots"]={}} _voUW1uD_DDp["connections"]={} _voUW1uD_DDp["renderConn"]= nil _voUW1uD_DDp["currentOffset"]= Vector2["new"]((-240+240),(-188+188)) _voUW1uD_DDp["targetOffset"]= Vector2["new"]((-665+665),(132-132)) _voUW1uD_DDp["_frameCount"]=0
+return _voUW1uD_DDp
 end
-function MainState.HIXMnml1M(u1wpZMHv)
-return 0.3+(math.clamp(u1wpZMHv, 1, 100)/ 100)* 2.2
-end
-MainState.bwDoXvvnnDOn.Plus = function(w_uw_N1IWH, WwlpxwHDMownH, omqbDb)
-local tbl5 = {}
-local tbl6 = MainState.HIXMnml1M(w_uw_N1IWH)
-local tbl7 = math.max(2, math.round(2* tbl6))
-local tbl8 = math.max(8, math.round(25* tbl6))
-local tbl9 = MainState.qqQHNWzvmq table.insert(tbl5, MainState.Dq_W0bDW0(tbl9, tbl9, tbl7, tbl8, 0, WwlpxwHDMownH, omqbDb))
-table.insert(tbl5, MainState.Dq_W0bDW0(tbl9, tbl9, tbl8, tbl7, 0, WwlpxwHDMownH, omqbDb))
-return tbl5,{},{}
-end
-MainState.bwDoXvvnnDOn["Cross (X)"]=
-function(woMbvvmW0zI, bOXDMW, w0DXINqwM_)
-local tbl10 = {}
-local tbl11 = MainState.HIXMnml1M(woMbvvmW0zI)
-local tbl12 = math.max(2, math.round(2* tbl11))
-local tbl13 = math.max(8, math.round(25* tbl11))
-local NxHvq = MainState.qqQHNWzvmq table.insert(tbl10, MainState.Dq_W0bDW0(NxHvq, NxHvq, tbl12, tbl13, 45, bOXDMW, w0DXINqwM_))
-table.insert(tbl10, MainState.Dq_W0bDW0(NxHvq, NxHvq, tbl12, tbl13,- 45, bOXDMW, w0DXINqwM_))
-return tbl10,{},{}
-end
-MainState.bwDoXvvnnDOn.Dot = function(pmzxDvbvOp, bzbxxzMzboM, _lonX)
-local color12 = {}
-local color13 = MainState.HIXMnml1M(pmzxDvbvOp)
-local color14 = math.max(3, math.round(8* color13))
-local flag20 = MainState.qqQHNWzvmq
-local v36 = MainState.Dq_W0bDW0(flag20, flag20, color14, color14, 0, bzbxxzMzboM, _lonX,"CH_Dot")
-local pcall3 = Instance.new("UICorner")
-pcall3.CornerRadius = UDim.new(1, 0)
-pcall3.Parent = v36 table.insert(color12, v36)
-return color12,{},{}
-end
-MainState.bwDoXvvnnDOn.Circle = function(QmDbvzNOX, BZHHu, WXIuowDoX)
-local Bx0nN, B_DQQN = {},{}
-local pcall4 = MainState.HIXMnml1M(QmDbvzNOX)
-local inst83 = math.max(4, math.round(12* pcall4))
-local inst84 = math.max(2, math.round(2* pcall4))
-local inst85 = MainState.qqQHNWzvmq
-local inst86 = Instance.new("Frame")
-inst86.Name = "CH_Ring" inst86.BackgroundTransparency = 1 inst86.Size = UDim2.fromOffset(inst83* 2, inst83* 2)
-inst86.AnchorPoint = Vector2.new(0.5, 0.5)
-inst86.Position = UDim2.fromOffset(inst85, inst85)
-local gui53 = Instance.new("UICorner")
-gui53.CornerRadius = UDim.new(1, 0)
-gui53.Parent = inst86
-local gui54 = Instance.new("UIStroke")
-gui54.Name = "CH_Stroke" gui54.Color = BZHHu gui54.Thickness = inst84 gui54.Transparency = WXIuowDoX gui54.Parent = inst86 table.insert(Bx0nN, inst86)
-table.insert(B_DQQN, gui54)
-return Bx0nN, B_DQQN,{}
-end
-MainState.bwDoXvvnnDOn["Circle + Dot"]=
-function(MUHbWq, BHnuQH, WvWuvI)
-local qp_zZHqNqHu, qOX1v, WNvNbnnunM0 = {},{},{}
-local pcall5 = MainState.HIXMnml1M(MUHbWq)
-local pcall6 = math.max(4, math.round(12* pcall5))
-local v37 = math.max(2, math.round(2* pcall5))
-local v38 = math.max(2, math.round(4* pcall5))
-local tbl14 = MainState.qqQHNWzvmq
-local tbl15 = Instance.new("Frame")
-tbl15.Name = "CH_Ring" tbl15.BackgroundTransparency = 1 tbl15.Size = UDim2.fromOffset(pcall6* 2, pcall6* 2)
-tbl15.AnchorPoint = Vector2.new(0.5, 0.5)
-tbl15.Position = UDim2.fromOffset(tbl14, tbl14)
-local Bunuw = Instance.new("UICorner")
-Bunuw.CornerRadius = UDim.new(1, 0)
-Bunuw.Parent = tbl15
-local color15 = Instance.new("UIStroke")
-color15.Name = "CH_Stroke" color15.Color = BHnuQH color15.Thickness = v37 color15.Transparency = WvWuvI color15.Parent = tbl15 table.insert(qp_zZHqNqHu, tbl15)
-table.insert(qOX1v, color15)
-local inst87 = MainState.Dq_W0bDW0(tbl14, tbl14, v38, v38, 0, BHnuQH, WvWuvI,"CH_Dot")
-local v39 = Instance.new("UICorner")
-v39.CornerRadius = UDim.new(1, 0)
-v39.Parent = inst87 table.insert(qp_zZHqNqHu, inst87)
-table.insert(WNvNbnnunM0, inst87)
-return qp_zZHqNqHu, qOX1v, WNvNbnnunM0
-end
-MainState.bwDoXvvnnDOn["T-Shape"]=
-function(qomNzQ, I1H_pbqZIpxlM, oOzw1QZm)
-local cam10 = {}
-local cam11 = MainState.HIXMnml1M(qomNzQ)
-local cam12 = math.max(2, math.round(2* cam11))
-local cam13 = math.max(8, math.round(25* cam11))
-local conn13 = MainState.qqQHNWzvmq
-local conn14 = math.round(cam13* 0.25)
-table.insert(cam10, MainState.Dq_W0bDW0(conn13, conn13- conn14, cam13, cam12, 0, I1H_pbqZIpxlM, oOzw1QZm))
-table.insert(cam10, MainState.Dq_W0bDW0(conn13, conn13- conn14+ cam13/ 2, cam12, cam13, 0, I1H_pbqZIpxlM, oOzw1QZm))
-return cam10,{},{}
-end
-MainState.bwDoXvvnnDOn.Square = function(OnWmXnQw0_ZIWl, BqQII0QM, uq1Huw)
-local conn15 = {}
-local conn16 = MainState.HIXMnml1M(OnWmXnQw0_ZIWl)
-local conn17 = math.max(2, math.round(2* conn16))
-local conn18 = math.max(8, math.round(22* conn16))
-local conn19 = math.max(3, math.round(conn18* 0.4))
-local conn20 = MainState.qqQHNWzvmq
-local conn21 = conn18/ 2 table.insert(conn15, MainState.Dq_W0bDW0(conn20- conn21+ conn19/ 2, conn20- conn21, conn19, conn17, 0, BqQII0QM, uq1Huw))
-table.insert(conn15, MainState.Dq_W0bDW0(conn20- conn21, conn20- conn21+ conn19/ 2, conn17, conn19, 0, BqQII0QM, uq1Huw))
-table.insert(conn15, MainState.Dq_W0bDW0(conn20+ conn21- conn19/ 2, conn20- conn21, conn19, conn17, 0, BqQII0QM, uq1Huw))
-table.insert(conn15, MainState.Dq_W0bDW0(conn20+ conn21, conn20- conn21+ conn19/ 2, conn17, conn19, 0, BqQII0QM, uq1Huw))
-table.insert(conn15, MainState.Dq_W0bDW0(conn20- conn21+ conn19/ 2, conn20+ conn21, conn19, conn17, 0, BqQII0QM, uq1Huw))
-table.insert(conn15, MainState.Dq_W0bDW0(conn20- conn21, conn20+ conn21- conn19/ 2, conn17, conn19, 0, BqQII0QM, uq1Huw))
-table.insert(conn15, MainState.Dq_W0bDW0(conn20+ conn21- conn19/ 2, conn20+ conn21, conn19, conn17, 0, BqQII0QM, uq1Huw))
-table.insert(conn15, MainState.Dq_W0bDW0(conn20+ conn21, conn20+ conn21- conn19/ 2, conn17, conn19, 0, BqQII0QM, uq1Huw))
-return conn15,{},{}
-end
-MainState.wIxwUXZxX = {} MainState.wIxwUXZxX.__index = MainState.wIxwUXZxX
-function MainState.wIxwUXZxX.new()
-local flag21 = setmetatable({}, MainState.wIxwUXZxX)
-flag21.config = { enabled = false, style = "Plus", size = 1, opacity = 1.0, offsetX = 0, offsetY = 0, color = Color3.fromRGB(255, 255, 255), smooth = true, smoothSpeed = 0.25,} flag21.gui = nil flag21.container = nil flag21.parent = nil flag21.parts = { frames = {}, strokes = {}, dots = {}} flag21.connections = {} flag21.renderConn = nil flag21.currentOffset = Vector2.new(0, 0)
-flag21.targetOffset = Vector2.new(0, 0)
-flag21._frameCount = 0
-return flag21
-end
-function MainState.qXo_llDnw()
-local lDpQOQ1 pcall(
+function b0W0wpHoxmHDWX.qXo_llDnw()
+local lDpQOQ1 w_ZpoH0p1["bHopuzIW"](
 function()
 if gethui then
-lDpQOQ1 = gethui()
+lDpQOQ1= gethui()
 end
 end)
-if lDpQOQ1 and lDpQOQ1.Parent then
- return lDpQOQ1
-end
-pcall(
-function()
-lDpQOQ1 = game:GetService("CoreGui")
+if lDpQOQ1 and lDpQOQ1["Parent"] then
+    return lDpQOQ1
+end w_ZpoH0p1["bHopuzIW"](
+function() lDpQOQ1= game["GetService"](game,"CoreGui")
 end)
-if lDpQOQ1 and lDpQOQ1.Parentthen
-return lDpQOQ1
+if lDpQOQ1 and lDpQOQ1["Parent"] then
+    return lDpQOQ1
 end
-return PlayerGui
+return lXUHZ
 end
-function MainState.wIxwUXZxX:_createGui()
-if self.guiand self.gui.Parentthen
-return
+function b0W0wpHoxmHDWX.wIxwUXZxX:_createGui()
+if self["gui"] and self["gui"]["Parent"] then
+    return
 end
-local v40 = Instance.new("ScreenGui")
-v40.Name = "BolongCrosshair" v40.ResetOnSpawn = false v40.ZIndexBehavior = Enum.ZIndexBehavior.SiblingwvvxMHXUum.IgnoreGuiInset = true v40.DisplayOrder = 999999
-local pcall7 = MainState.qXo_llDnw()
-v40.Parent = pcall7 self.parent = pcall7
-local pcall8 = Instance.new("Frame")
-pcall8.Name = "Container" pcall8.Size = UDim2.fromOffset(MainState.HUvmUM1Uu, MainState.HUvmUM1Uu)
-pcall8.AnchorPoint = Vector2.new(0.5, 0.5)
-pcall8.BackgroundTransparency = 1 bINvn.BorderSizePixel = 0 pcall8.Parent = v40 self.gui = v40 self.container = pcall8 self:_rebuild()
-self.targetOffset = Vector2.new(self.config.offsetX, self.config.offsetY)
-self.currentOffset = self.targetOffsetself:_updatePosition()
+local wvvxMHXUum= Instance["new"]("ScreenGui") wvvxMHXUum["Name"]="BolongCrosshair" wvvxMHXUum["ResetOnSpawn"]= false wvvxMHXUum["ZIndexBehavior"]= Enum["ZIndexBehavior"]["Sibling"] wvvxMHXUum["IgnoreGuiInset"]= true wvvxMHXUum["DisplayOrder"]=(999186+813)
+local HqMlzvpOqoOuD_= b0W0wpHoxmHDWX.qXo_llDnw() wvvxMHXUum["Parent"]= HqMlzvpOqoOuD_ self["parent"]= HqMlzvpOqoOuD_
+local bINvn= Instance["new"]("Frame") bINvn["Name"]="Container" bINvn["Size"]= UDim2["fromOffset"](b0W0wpHoxmHDWX.HUvmUM1Uu,b0W0wpHoxmHDWX.HUvmUM1Uu) bINvn["AnchorPoint"]= Vector2["new"](0.5,0.5) bINvn["BackgroundTransparency"]=(-520+521) bINvn["BorderSizePixel"]=0 bINvn["Parent"]= wvvxMHXUum self["gui"]= wvvxMHXUum self["container"]= bINvn self:_rebuild() self["targetOffset"]= Vector2["new"](self["config"]["offsetX"],self["config"]["offsetY"]) self["currentOffset"]= self["targetOffset"] self:_updatePosition()
 end
-function MainState.wIxwUXZxX:_rebuild()
-if not self.containerthen
-return
+function b0W0wpHoxmHDWX.wIxwUXZxX:_rebuild()
+if not self["container"] then
+    return
 end
-for oWuUbuUWQqwD, pno_0qbOnqmlmX in ipairs(self.parts.frames) do
-pcall(
- function() pno_0qbOnqmlmX:Destroy()
+for oWuUbuUWQqwD,pno_0qbOnqmlmX in w_ZpoH0p1["DZu1Dmvbw"](self["parts"]["frames"]) do
+w_ZpoH0p1["bHopuzIW"](
+    function() pno_0qbOnqmlmX:Destroy()
 end)
+end self["parts"]={["frames"]={},["strokes"]={},["dots"]={}}
+local QlIwl1m= b0W0wpHoxmHDWX.bwDoXvvnnDOn[self["config"]["style"]]
+if not QlIwl1m then
+    return
 end
-self.parts = { frames = {}, strokes = {}, dots = {}}
-local inst88 = MainState.bwDoXvvnnDOn[self.config.style]
-if not inst88 then
- return
+local Mlv1xUlz_=(547-546)- self["config"]["opacity"]
+local MxpHoNNZU,_bppDlWHZoUu,w0INlm000IoHn= QlIwl1m(self["config"]["size"],self["config"]["color"],Mlv1xUlz_)
+for I0NoNu_NMXMM,NpDOpZ in w_ZpoH0p1["DZu1Dmvbw"](MxpHoNNZU) do
+NpDOpZ["Parent"]= self["container"] w_ZpoH0p1["I_plQ"](self["parts"]["frames"],NpDOpZ)
 end
-local inst89 = 1- self.config.opacity
-local MxpHoNNZU, _bppDlWHZoUu, w0INlm000IoHn = inst88(self.config.size, self.config.color, inst89)
-for I0NoNu_NMXMM, NpDOpZ in ipairs(MxpHoNNZU) do
-NpDOpZ.Parent = self.containertable.insert(self.parts.frames, NpDOpZ)
+for bDxlqmWQ0w0Xu,wbvUUQvXqZ in w_ZpoH0p1["DZu1Dmvbw"](_bppDlWHZoUu) do
+w_ZpoH0p1["I_plQ"](self["parts"]["strokes"],wbvUUQvXqZ)
+end self["parts"]["dots"]= w0INlm000IoHn or{}
 end
-for bDxlqmWQ0w0Xu, wbvUUQvXqZ in ipairs(_bppDlWHZoUu) do
-table.insert(self.parts.strokes, wbvUUQvXqZ)
-end
-self.parts.dots = w0INlm000IoHn or{}
-end
-function MainState.wIxwUXZxX:_updateColors()
-local inst90 = self.config.colorlocal inst91 = 1- self.config.opacity
-local _mqo01v1_ = {}
-for v_mIXzlq1DzO, OvqIIIWDl in ipairs(self.parts.dots) do
+function b0W0wpHoxmHDWX.wIxwUXZxX:_updateColors()
+local _zlUw= self["config"]["color"]
+local NHZzq1uwonWpH=(634-633)- self["config"]["opacity"]
+local _mqo01v1_={}
+for v_mIXzlq1DzO,OvqIIIWDl in w_ZpoH0p1["DZu1Dmvbw"](self["parts"]["dots"]) do
 _mqo01v1_[OvqIIIWDl]= true
 end
-for MpM0pqwmo, NOuMMxIXNmZv in ipairs(self.parts.frames) do
- if NOuMMxIXNmZv and NOuMMxIXNmZv.Parentthen NOuMMxIXNmZv.BackgroundColor3 = _mqo01v1_[NOuMMxIXNmZv] and Color3.fromRGB(255, 255, 255) or inst90
- if not NOuMMxIXNmZv:FindFirstChildWhichIsA("UIStroke") then
-NOuMMxIXNmZv.BackgroundTransparency = inst91
- end
+for MpM0pqwmo,NOuMMxIXNmZv in w_ZpoH0p1["DZu1Dmvbw"](self["parts"]["frames"]) do
+    if NOuMMxIXNmZv and NOuMMxIXNmZv["Parent"] then
+NOuMMxIXNmZv["BackgroundColor3"]= _mqo01v1_[NOuMMxIXNmZv] and Color3["fromRGB"]((1189-934),(1201-946),(-674+929)) or _zlUw
+        if not NOuMMxIXNmZv["FindFirstChildWhichIsA"](NOuMMxIXNmZv,"UIStroke") then
+NOuMMxIXNmZv["BackgroundTransparency"]= NHZzq1uwonWpH
+        end
+    end
+end
+for IwzQzX0Wwu0Xq,Iw1lZmWbl in w_ZpoH0p1["DZu1Dmvbw"](self["parts"]["strokes"]) do
+    if Iw1lZmWbl and Iw1lZmWbl["Parent"] then
+Iw1lZmWbl["Color"]= _zlUw Iw1lZmWbl["Transparency"]= NHZzq1uwonWpH
+    end
 end
 end
-for IwzQzX0Wwu0Xq, Iw1lZmWbl in ipairs(self.parts.strokes) do
- if Iw1lZmWbl and Iw1lZmWbl.Parent then
-Iw1lZmWbl.Color = inst90 Iw1lZmWbl.Transparency = inst91
- end
+function b0W0wpHoxmHDWX.wIxwUXZxX:_updatePosition()
+if not self["container"] then
+    return
 end
+local OM1_zoXmUbp= workspace["CurrentCamera"]
+if not OM1_zoXmUbp then
+    return
 end
-function MainState.wIxwUXZxX:_updatePosition()
-if not self.containerthen
-return
+local lmpQbqxvWom= OM1_zoXmUbp["ViewportSize"] self["container"]["Position"]= UDim2["fromOffset"](lmpQbqxvWom["X"]*0.5+ self["currentOffset"]["X"],lmpQbqxvWom["Y"]*0.5+ self["currentOffset"]["Y"])
 end
-local inst92 = workspace.CurrentCameraif not inst92 then
- return
+function b0W0wpHoxmHDWX.wIxwUXZxX:_hookCamera()
+if self["connections"]["camViewport"] then
+self["connections"]["camViewport"]:Disconnect() self["connections"]["camViewport"]= nil
 end
-local inst93 = inst92.ViewportSize self.container.Position = UDim2.fromOffset(inst93.X* 0.5+ self.currentOffset.X, inst93.Y* 0.5+ self.currentOffset.Y)
-end
-function MainState.wIxwUXZxX:_hookCamera()
-if self.connections.camViewport then
-self.connections.camViewport:Disconnect()
-self.connections.camViewport = nil
-end
-local char25 = workspace.CurrentCameraif char25 then
-self.connections.camViewport = char25:GetPropertyChangedSignal("ViewportSize"):Connect(
- function() self:_updatePosition()
+local Bmx_0M= workspace["CurrentCamera"]
+if Bmx_0M then
+self["connections"]["camViewport"]= Bmx_0M["GetPropertyChangedSignal"](Bmx_0M,"ViewportSize"):Connect(
+    function() self:_updatePosition()
 end)
 end
 end
-function MainState.wIxwUXZxX:_setupConnections() self:_hookCamera()
-while(190* 0~= 0) do
- local gui55 = 416 break
+function b0W0wpHoxmHDWX.wIxwUXZxX:_setupConnections() self:_hookCamera()
+while(190*0~= 0) do
+    local N1U10I_D1m=416 break
 end
-if not self.connections.camChangethen self.connections.camChange = workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(
-function() self:_hookCamera() self:_updatePosition()
+if not self["connections"]["camChange"] then
+self["connections"]["camChange"]= workspace["GetPropertyChangedSignal"](workspace,"CurrentCamera"):Connect(
+    function() self:_hookCamera() self:_updatePosition()
 end)
 end
-if not self.connections.childRemoved then
-self.connections.childRemoved = self.parent.ChildRemoved:Connect(
- function(DWwXIUzxXuMv_)
- if DWwXIUzxXuMv_== self.gui and self.config.enabled then
-self.gui = nil self.container = nil self.parts = { frames = {}, strokes = {}, dots = {}} task.wait(0.05)
- if self.config.enabledthen self._createGui(self)
- end
-end
+if not self["connections"]["childRemoved"] then
+self["connections"]["childRemoved"]= self["parent"]["ChildRemoved"]:Connect(
+    function(DWwXIUzxXuMv_)
+    if DWwXIUzxXuMv_== self["gui"] and self["config"]["enabled"] then
+self["gui"]= nil self["container"]= nil self["parts"]={["frames"]={},["strokes"]={},["dots"]={}} task["wait"](0.05)
+        if self["config"]["enabled"] then
+self["_createGui"](self)
+        end
+    end
 end)
 end
-if not self.connections.touchChangedthen self.connections.touchChanged = UIS2:GetPropertyChangedSignal("TouchEnabled"):Connect(
-function() self:_updatePosition()
+if not self["connections"]["touchChanged"] then
+self["connections"]["touchChanged"]= OqbbHwQNoU["GetPropertyChangedSignal"](OqbbHwQNoU,"TouchEnabled"):Connect(
+    function() self:_updatePosition()
 end)
 end
 end
-function MainState.wIxwUXZxX:_startRender()
-if self.renderConn then
- return
-end
-self.renderConn = RunService.RenderStepped:Connect(
+function b0W0wpHoxmHDWX.wIxwUXZxX:_startRender()
+if self["renderConn"] then
+    return
+end self["renderConn"]= u0xpmq_WoUlm["RenderStepped"]:Connect(
 function(Dmmbu0N)
-if not self.config.enabled then
- return
+if not self["config"]["enabled"] then
+    return
 end
-if not self.guior not self.gui.Parentthen self._createGui(self)
-return
+if not self["gui"] or not self["gui"]["Parent"] then
+self["_createGui"](self)
+    return
 end
-if not self.gui.Enabledthen self.gui.Enabled = true
-end
-self._frameCount = self._frameCount+ 1
-if self._frameCount% 30== 0 then
- local v41 = false
- for lDZwwz, pDmO_wlQZxQ1D in ipairs(self.parts.frames) do
- if pDmO_wlQZxQ1D and pDmO_wlQZxQ1D.Parent then
-v41 = true;
+if not self["gui"]["Enabled"] then
+self["gui"]["Enabled"]= true
+end self["_frameCount"]= self["_frameCount"]+(-537+538)
+if self["_frameCount"]%(547-517)== 0 then
+    local bDZHOluz= false
+    for lDZwwz,pDmO_wlQZxQ1D in w_ZpoH0p1["DZu1Dmvbw"](self["parts"]["frames"]) do
+        if pDmO_wlQZxQ1D and pDmO_wlQZxQ1D["Parent"] then
+bDZHOluz= true;
 break
- end
+        end
+    end
+    if not bDZHOluz and#self["parts"]["frames"]>0 then
+self["_rebuild"](self)
+    end
 end
- if not v41 and#self.parts.frames> 0 then
-self._rebuild(self)
- end
-end
-if self.config.smooththen
-local v42 = self.targetOffset- self.currentOffset
-if v42.Magnitude> 0.01 then
- local v43 = 1- math.pow(1- self.config.smoothSpeed, Dmmbu0N* 60)
-self.currentOffset = self.currentOffset:Lerp(self.targetOffset, v43) self:_updatePosition()
-end
+if self["config"]["smooth"] then
+    local oDpNbQX= self["targetOffset"]- self["currentOffset"]
+    if oDpNbQX["Magnitude"]>0.01 then
+        local HlZW0v10pzl=(-510+511)- math["pow"]((569-568)- self["config"]["smoothSpeed"],Dmmbu0N*60) self["currentOffset"]= self["currentOffset"]:Lerp(self["targetOffset"],HlZW0v10pzl) self:_updatePosition()
+    end
 end
 end)
 end
-function MainState.wIxwUXZxX:_stopRender()
-if self.renderConnthen self.renderConn:Disconnect()
-self.renderConn = nil
+function b0W0wpHoxmHDWX.wIxwUXZxX:_stopRender()
+if self["renderConn"] then
+self["renderConn"]:Disconnect() self["renderConn"]= nil
 end
 end
-function MainState.wIxwUXZxX:SetEnabled(HHuNNHOwp)
-self.config.enabled = HHuNNHOwp
+function b0W0wpHoxmHDWX.wIxwUXZxX:SetEnabled(HHuNNHOwp) self["config"]["enabled"]= HHuNNHOwp
 if HHuNNHOwp then
- if not self.guior not self.gui.Parent then
-self._createGui(self) self:_setupConnections()
- end
-self.gui.Enabled = true self.targetOffset = Vector2.new(self.config.offsetX, self.config.offsetY)
-self.currentOffset = self.targetOffsetself:_updatePosition() self:_startRender()
-else self._stopRender(self)
-if self.gui then
-self.gui.Enabled = false
+    if not self["gui"] or not self["gui"]["Parent"] then
+self["_createGui"](self) self:_setupConnections()
+    end self["gui"]["Enabled"]= true self["targetOffset"]= Vector2["new"](self["config"]["offsetX"],self["config"]["offsetY"]) self["currentOffset"]= self["targetOffset"] self:_updatePosition() self:_startRender()
+else self["_stopRender"](self)
+if self["gui"] then
+self["gui"]["Enabled"]= false
 end
 end
 end
-function MainState.wIxwUXZxX:SetStyle(_xxUlHNNMbqqQ)
-self.config.style = _xxUlHNNMbqqQ
-if self.config.enabledand self.guithen self._rebuild(self)
+function b0W0wpHoxmHDWX.wIxwUXZxX:SetStyle(_xxUlHNNMbqqQ) self["config"]["style"]= _xxUlHNNMbqqQ
+if self["config"]["enabled"] and self["gui"] then
+self["_rebuild"](self)
 end
 end
-function MainState.wIxwUXZxX:SetSize(QZ0qbzZ)
-self.config.size = QZ0qbzZ
-if self.config.enabledand self.guithen self._rebuild(self)
+function b0W0wpHoxmHDWX.wIxwUXZxX:SetSize(QZ0qbzZ) self["config"]["size"]= QZ0qbzZ
+if self["config"]["enabled"] and self["gui"] then
+self["_rebuild"](self)
 end
 end
-function MainState.wIxwUXZxX:SetOpacity(bHn_0uUvQzbqlv)
-self.config.opacity = bHn_0uUvQzbqlv
-if self.config.enabledand self.gui then
-self._updateColors(self)
+function b0W0wpHoxmHDWX.wIxwUXZxX:SetOpacity(bHn_0uUvQzbqlv) self["config"]["opacity"]= bHn_0uUvQzbqlv
+if self["config"]["enabled"] and self["gui"] then
+self["_updateColors"](self)
 end
 end
-function MainState.wIxwUXZxX:SetColor(Qbl0QXp)
-self.config.color = Qbl0QXp
-if self.config.enabled and self.guithen self._updateColors(self)
+function b0W0wpHoxmHDWX.wIxwUXZxX:SetColor(Qbl0QXp) self["config"]["color"]= Qbl0QXp
+if self["config"]["enabled"] and self["gui"] then
+self["_updateColors"](self)
 end
 end
-function MainState.wIxwUXZxX:SetOffsetX(QQoqq)
-self.config.offsetX = QQoqq self.targetOffset = Vector2.new(QQoqq, self.config.offsetY)
-if not self.config.smooth and self.config.enabled then
-self.currentOffset = self.targetOffset self:_updatePosition()
+function b0W0wpHoxmHDWX.wIxwUXZxX:SetOffsetX(QQoqq) self["config"]["offsetX"]= QQoqq self["targetOffset"]= Vector2["new"](QQoqq,self["config"]["offsetY"])
+if not self["config"]["smooth"] and self["config"]["enabled"] then
+self["currentOffset"]= self["targetOffset"] self:_updatePosition()
 end
 end
-function MainState.wIxwUXZxX:SetOffsetY(OzQwqO0)
-self.config.offsetY = OzQwqO0 self.targetOffset = Vector2.new(self.config.offsetX, OzQwqO0)
-if not self.config.smooth and self.config.enabledthen self.currentOffset = self.targetOffsetself:_updatePosition()
+function b0W0wpHoxmHDWX.wIxwUXZxX:SetOffsetY(OzQwqO0) self["config"]["offsetY"]= OzQwqO0 self["targetOffset"]= Vector2["new"](self["config"]["offsetX"],OzQwqO0)
+if not self["config"]["smooth"] and self["config"]["enabled"] then
+self["currentOffset"]= self["targetOffset"] self:_updatePosition()
 end
 end
-function MainState.wIxwUXZxX:Destroy()
-self.config.enabled = false self._stopRender(self)
-for pOWvxN_MOIuNMn, uDuwbQ in pairs(self.connections) do
-pcall(
- function() uDuwbQ:Disconnect()
+function b0W0wpHoxmHDWX.wIxwUXZxX:Destroy() self["config"]["enabled"]= false self["_stopRender"](self)
+for pOWvxN_MOIuNMn,uDuwbQ in w_ZpoH0p1["qpzwM0xWbbIH"](self["connections"]) do
+w_ZpoH0p1["bHopuzIW"](
+    function() uDuwbQ:Disconnect()
 end)
-end
-self.connections = {}
-if self.guithen pcall(
-function()
-self.gui:Destroy()
+end self["connections"]={}
+if self["gui"] then
+w_ZpoH0p1["bHopuzIW"](
+    function() self["gui"]:Destroy()
 end)
+end self["gui"]= nil self["container"]= nil self["parts"]={["frames"]={},["strokes"]={},["dots"]={}}
+end b0W0wpHoxmHDWX.Iw0_ov= b0W0wpHoxmHDWX.wIxwUXZxX["new"]()
 end
-self.gui = nil self.container = nil self.parts = { frames = {}, strokes = {}, dots = {}}
+function b0W0wpHoxmHDWX._ouxzuoxpIb_n(HwW1m)
+if not HM1uHIZZl0["pnameFakeNames"][HwW1m] then
+    local wWM0p=(#HM1uHIZZl0["pnameFakeNames"]%#bZ0Z0M)+1 HM1uHIZZl0["pnameFakeNames"][HwW1m]= bZ0Z0M[wWM0p]
 end
-MainState.Iw0_ov = MainState.wIxwUXZxX.new()
+return HM1uHIZZl0["pnameFakeNames"][HwW1m]
 end
-function MainState._ouxzuoxpIb_n(HwW1m)
-if not ESPState.pnameFakeNames[HwW1m] then
- local inst94 = (#ESPState.pnameFakeNames%#ESPFolder)+ 1 ESPState.pnameFakeNames[HwW1m]= ESPFolder[inst94]
-end
-return ESPState.pnameFakeNames[HwW1m]
-end
-function MainState.qMpmWHOmoNvm(H_qzHWHxv, qDpMbIZ0_opH)
+function b0W0wpHoxmHDWX.qMpmWHOmoNvm(H_qzHWHxv,qDpMbIZ0_opH)
 if not H_qzHWHxv then
- return
+    return
 end
-local remote8 = H_qzHWHxv:FindFirstChild("Head")
-if not remote8 then
- return
+local uZl0wuM= H_qzHWHxv["FindFirstChild"](H_qzHWHxv,"Head")
+if not uZl0wuM then
+    return
 end
-for b0OMuUo, _WqoMOHIIooZo in ipairs(remote8.GetChildren(remote8)) do
- if _WqoMOHIIooZo:IsA("BillboardGui") then
- local inst95 = _WqoMOHIIooZo:FindFirstChildWhichIsA("TextLabel", true)
- if inst95 then
-inst95.Text = qDpMbIZ0_opH
- end
+for b0OMuUo,_WqoMOHIIooZo in w_ZpoH0p1["DZu1Dmvbw"](uZl0wuM["GetChildren"](uZl0wuM)) do
+    if _WqoMOHIIooZo["IsA"](_WqoMOHIIooZo,"BillboardGui") then
+        local wbbq0WZ1NU= _WqoMOHIIooZo["FindFirstChildWhichIsA"](_WqoMOHIIooZo,"TextLabel",true)
+        if wbbq0WZ1NU then
+wbbq0WZ1NU["Text"]= qDpMbIZ0_opH
+        end
+    end
 end
-end
-local inst96 = H_qzHWHxv:FindFirstChildOfClass("Humanoid")
-if inst96 then
-pcall(
- function()
-inst96.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Noneend)
-end
-end
-function MainState.vwmHN1nIDm0X(qnxNHwOoMvHX1Q, QMxQWH_uM)
-if not qnxNHwOoMvHX1Q then
- return
-end
-local inst97 = qnxNHwOoMvHX1Q:FindFirstChild("Head")
-if inst97 then
- for IZl_Xzbl, _WQuWlqpomU in ipairs(inst97.GetChildren(inst97)) do
- if _WQuWlqpomU:IsA("BillboardGui") then
- local cam14 = _WQuWlqpomU:FindFirstChildWhichIsA("TextLabel", true)
- if cam14 then
-cam14.Text = QMxQWH_uM
- end
-end
- end
-end
-local conn22 = qnxNHwOoMvHX1Q:FindFirstChildOfClass("Humanoid")
-if conn22 then
-pcall(
- function()
-conn22.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Limit
+local Mu1lNupo_= H_qzHWHxv["FindFirstChildOfClass"](H_qzHWHxv,"Humanoid")
+if Mu1lNupo_ then
+w_ZpoH0p1["bHopuzIW"](
+    function() Mu1lNupo_["DisplayDistanceType"]= Enum["HumanoidDisplayDistanceType"]["None"]
 end)
 end
 end
-function MainState.WQWzx(HwUvOD1vpO)
-local cam15 = PlayerGui:FindFirstChild("Survivor-mob")
-if not cam15 then
- return nil
+function b0W0wpHoxmHDWX.vwmHN1nIDm0X(qnxNHwOoMvHX1Q,QMxQWH_uM)
+if not qnxNHwOoMvHX1Q then
+    return
 end
-local conn23 = cam15:FindFirstChild("Frame")
-if not conn23 then
- return nil
+local Woww0umZ= qnxNHwOoMvHX1Q["FindFirstChild"](qnxNHwOoMvHX1Q,"Head")
+if Woww0umZ then
+    for IZl_Xzbl,_WQuWlqpomU in w_ZpoH0p1["DZu1Dmvbw"](Woww0umZ["GetChildren"](Woww0umZ)) do
+        if _WQuWlqpomU["IsA"](_WQuWlqpomU,"BillboardGui") then
+            local _QDXXZzQ= _WQuWlqpomU["FindFirstChildWhichIsA"](_WQuWlqpomU,"TextLabel",true)
+            if _QDXXZzQ then
+_QDXXZzQ["Text"]= QMxQWH_uM
+            end
+        end
+    end
 end
-for omXDOvpulUxWl = 1, 5 do
- local conn24 = conn23:FindFirstChild("Survivor"..omXDOvpulUxWl)
- if conn24 and conn24:GetAttribute("UserId")== HwUvOD1vpO then
- return conn24:FindFirstChild("TextLabel")
- end
+local QvqqzWzX_bbb1N= qnxNHwOoMvHX1Q["FindFirstChildOfClass"](qnxNHwOoMvHX1Q,"Humanoid")
+if QvqqzWzX_bbb1N then
+w_ZpoH0p1["bHopuzIW"](
+    function() QvqqzWzX_bbb1N["DisplayDistanceType"]= Enum["HumanoidDisplayDistanceType"]["Limit"]
+end)
+end
+end
+function b0W0wpHoxmHDWX.WQWzx(HwUvOD1vpO)
+local HbNHbOb= lXUHZ["FindFirstChild"](lXUHZ,"Survivor-mob")
+if not HbNHbOb then
+    return nil
+end
+local IHonobMQ1ZMuO= HbNHbOb["FindFirstChild"](HbNHbOb,"Frame")
+if not IHonobMQ1ZMuO then
+    return nil
+end
+for omXDOvpulUxWl=1,5 do
+    local NWDnzIWH_= IHonobMQ1ZMuO["FindFirstChild"](IHonobMQ1ZMuO,"Survivor".. omXDOvpulUxWl)
+    if NWDnzIWH_ and NWDnzIWH_["GetAttribute"](NWDnzIWH_,"UserId")== HwUvOD1vpO then
+        return NWDnzIWH_["FindFirstChild"](NWDnzIWH_,"TextLabel")
+    end
 end
 return nil
 end
-function MainState.W_vpz(uozOZ)
-local tbl16 = (uozOZ== LocalPlayer)
-local tbl17 = MainState._ouxzuoxpIb_n(uozOZ)
-if not tbl16 then
- if ESPState.espObjects[uozOZ] then
-ESPState.espObjects[uozOZ].nameLabel.Text = tbl17
- end
-if uozOZ.Character then
-MainState.qMpmWHOmoNvm(uozOZ.Character, tbl17)
- end
+function b0W0wpHoxmHDWX.W_vpz(uozOZ)
+local bMvNzl=(uozOZ== Hnv0Zw)
+local bDzWmlp0vZqu= b0W0wpHoxmHDWX._ouxzuoxpIb_n(uozOZ)
+if not bMvNzl then
+    if HM1uHIZZl0["espObjects"][uozOZ] then
+HM1uHIZZl0["espObjects"][uozOZ]["nameLabel"]["Text"]= bDzWmlp0vZqu
+    end
+    if uozOZ["Character"] then
+b0W0wpHoxmHDWX.qMpmWHOmoNvm(uozOZ["Character"],bDzWmlp0vZqu)
+    end
 end
-local inst98 = MainState.WQWzx(uozOZ.UserId)
-if inst98 then
-inst98.Text = tbl17
+local pHppQvNo= b0W0wpHoxmHDWX.WQWzx(uozOZ["UserId"])
+if pHppQvNo then
+pHppQvNo["Text"]= bDzWmlp0vZqu
 end
-if not tbl16 and not ESPState.pnameNameConns[uozOZ] then
-ESPState.pnameNameConns[uozOZ]= uozOZ.CharacterAdded:Connect(
- function(HHNWnHp)
- if not ESPState.pnameEnabledthen
- return
-end
-local conn25 = MainState._ouxzuoxpIb_n(uozOZ)
-task.wait(0.5)
-MainState.qMpmWHOmoNvm(HHNWnHp, conn25)
-if ESPState.espObjects[uozOZ] then
-ESPState.espObjects[uozOZ].nameLabel.Text = conn25
-end
-local p1w1px = MainState.WQWzx(uozOZ.UserId)
-if p1w1px then
-p1w1px.Text = conn25
-end
+if not bMvNzl and not HM1uHIZZl0["pnameNameConns"][uozOZ] then
+HM1uHIZZl0["pnameNameConns"][uozOZ]= uozOZ["CharacterAdded"]:Connect(
+    function(HHNWnHp)
+    if not HM1uHIZZl0["pnameEnabled"] then
+        return
+    end
+    local OqoqXOvXMv= b0W0wpHoxmHDWX._ouxzuoxpIb_n(uozOZ) task["wait"](0.5) b0W0wpHoxmHDWX.qMpmWHOmoNvm(HHNWnHp,OqoqXOvXMv)
+    if HM1uHIZZl0["espObjects"][uozOZ] then
+HM1uHIZZl0["espObjects"][uozOZ]["nameLabel"]["Text"]= OqoqXOvXMv
+    end
+    local p1w1px= b0W0wpHoxmHDWX.WQWzx(uozOZ["UserId"])
+    if p1w1px then
+p1w1px["Text"]= OqoqXOvXMv
+    end
 end)
 end
 end
-function MainState.HpnnwXmlxZ1(bvIZZmqHzqlIU)
-local pcall9 = (bvIZZmqHzqlIU== LocalPlayer)
-local pcall10 = bvIZZmqHzqlIU.Nameif not pcall9 then
- if ESPState.espObjects[bvIZZmqHzqlIU] then
-ESPState.espObjects[bvIZZmqHzqlIU].nameLabel.Text = pcall10
- end
-if bvIZZmqHzqlIU.Character then
-MainState.vwmHN1nIDm0X(bvIZZmqHzqlIU.Character, pcall10)
- end
-if ESPState.pnameNameConns[bvIZZmqHzqlIU] then
-ESPState.pnameNameConns[bvIZZmqHzqlIU]:Disconnect()
-ESPState.pnameNameConns[bvIZZmqHzqlIU]= nil
- end
+function b0W0wpHoxmHDWX.HpnnwXmlxZ1(bvIZZmqHzqlIU)
+local OpuuIpQuNloOQv=(bvIZZmqHzqlIU== Hnv0Zw)
+local HqzqI= bvIZZmqHzqlIU["Name"]
+if not OpuuIpQuNloOQv then
+    if HM1uHIZZl0["espObjects"][bvIZZmqHzqlIU] then
+HM1uHIZZl0["espObjects"][bvIZZmqHzqlIU]["nameLabel"]["Text"]= HqzqI
+    end
+    if bvIZZmqHzqlIU["Character"] then
+b0W0wpHoxmHDWX.vwmHN1nIDm0X(bvIZZmqHzqlIU["Character"],HqzqI)
+    end
+    if HM1uHIZZl0["pnameNameConns"][bvIZZmqHzqlIU] then
+HM1uHIZZl0["pnameNameConns"][bvIZZmqHzqlIU]:Disconnect() HM1uHIZZl0["pnameNameConns"][bvIZZmqHzqlIU]= nil
+    end
 end
-local gui56 = MainState.WQWzx(bvIZZmqHzqlIU.UserId)
-if gui56 then
-gui56.Text = pcall10
+local BMvwnbvN= b0W0wpHoxmHDWX.WQWzx(bvIZZmqHzqlIU["UserId"])
+if BMvwnbvN then
+BMvwnbvN["Text"]= HqzqI
 end
 end
-function MainState.DMMn1nInqXml(poHnqZxmQnbq, qovnuZ)
-local conn26 = poHnqZxmQnbq.Name
-if ESPState.pnameSlotConns[conn26] then
-ESPState.pnameSlotConns[conn26]:Disconnect()
-ESPState.pnameSlotConns[conn26]= nil
+function b0W0wpHoxmHDWX.DMMn1nInqXml(poHnqZxmQnbq,qovnuZ)
+local BZzXo= poHnqZxmQnbq["Name"]
+if HM1uHIZZl0["pnameSlotConns"][BZzXo] then
+HM1uHIZZl0["pnameSlotConns"][BZzXo]:Disconnect() HM1uHIZZl0["pnameSlotConns"][BZzXo]= nil
 end
-local conn27 = poHnqZxmQnbq:GetAttribute("UserId")
-if not conn27 then
- return
+local Hb0_oQQz_nN= poHnqZxmQnbq["GetAttribute"](poHnqZxmQnbq,"UserId")
+if not Hb0_oQQz_nN then
+    return
 end
 local DvXNQu
-for vxqq0QI0, OHOqnmx in ipairs(Players.GetPlayers(Players)) do
- if OHOqnmx.UserId== conn27 then
-DvXNQu = OHOqnmx;
+for vxqq0QI0,OHOqnmx in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if OHOqnmx["UserId"]== Hb0_oQQz_nN then
+DvXNQu= OHOqnmx;
 break
- end
+    end
 end
 if not DvXNQu then
- return
+    return
 end
-local tbl18 = MainState._ouxzuoxpIb_n(DvXNQu)
-ESPState.pnameSlotConns[conn26]= qovnuZ:GetPropertyChangedSignal("Text"):Connect(
+local oQo0mubmvDqQDZ= b0W0wpHoxmHDWX._ouxzuoxpIb_n(DvXNQu) HM1uHIZZl0["pnameSlotConns"][BZzXo]= qovnuZ["GetPropertyChangedSignal"](qovnuZ,"Text"):Connect(
 function()
-if not ESPState.pnameEnabled then
- return
+if not HM1uHIZZl0["pnameEnabled"] then
+    return
 end
-local conn28 = poHnqZxmQnbq:GetAttribute("UserId")
-if not conn28 then
- return
+local ImqpIoImMOU= poHnqZxmQnbq["GetAttribute"](poHnqZxmQnbq,"UserId")
+if not ImqpIoImMOU then
+    return
 end
 local DqUHDQ
-for puMwpQol, MwxvlzupIWQbQ in ipairs(Players.GetPlayers(Players)) do
- if MwxvlzupIWQbQ.UserId== conn28 then
-DqUHDQ = MwxvlzupIWQbQ;
+for puMwpQol,MwxvlzupIWQbQ in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if MwxvlzupIWQbQ["UserId"]== ImqpIoImMOU then
+DqUHDQ= MwxvlzupIWQbQ;
 break
- end
+    end
 end
 if not DqUHDQ then
- return
+    return
 end
-local pcall11 = MainState._ouxzuoxpIb_n(DqUHDQ)
-if qovnuZ.Text~= pcall11 then
-qovnuZ.Text = pcall11
-end
-end)
-end
-function MainState.q0vOXnXpp0qUQQ()
-for Q0nXbqlOx, _WpwQ0zpwM1l in pairs(ESPState.pnameSlotConns) do
-_WpwQ0zpwM1l.Disconnect(_WpwQ0zpwM1l)
-ESPState.pnameSlotConns[Q0nXbqlOx]= nil
-end
-local flag22 = PlayerGui:FindFirstChild("Survivor-mob")
-if not flag22 then
- return
-end
-local flag23 = flag22:FindFirstChild("Frame")
-if not flag23 then
- return
-end
-for QnHoI_b = 1, 5 do
- local flag24 = flag23:FindFirstChild("Survivor"..QnHoI_b)
- if flag24 then
- local flag25 = flag24:FindFirstChild("TextLabel")
- if flag25 then
-MainState.DMMn1nInqXml(flag24, flag25)
- end
-end
-end
-end
-function MainState.QwZpNwn()
-ESPState.pnameEnabled = true
-for OwMpNNWxxunMpZ, _l0NZUbzZIXWWn in ipairs(Players.GetPlayers(Players)) do
-MainState.W_vpz(_l0NZUbzZIXWWn)
-end
-MainState.q0vOXnXpp0qUQQ()
-if not ESPState.pnameWatchConnthen ESPState.pnameWatchConn = PlayerGui.ChildAdded:Connect(
-function(O_HQZHW)
-if O_HQZHW.Name=="Survivor-mob" then
-task.wait(0.2)
- if ESPState.pnameEnabledthen MainState.q0vOXnXpp0qUQQ()
- for Q1MUwn, IulHOZWx in ipairs(Players.GetPlayers(Players)) do
-MainState.W_vpz(IulHOZWx)
- end
-end
+local bpwUIbo_0Q= b0W0wpHoxmHDWX._ouxzuoxpIb_n(DqUHDQ)
+if qovnuZ["Text"]~= bpwUIbo_0Q then
+qovnuZ["Text"]= bpwUIbo_0Q
 end
 end)
 end
-if not ESPState.pnameAddedConnthen ESPState.pnameAddedConn = Players.PlayerAdded:Connect(
-function(IqO0xXDuuuv)
-if ESPState.pnameEnabled then
-task.wait(1)
-MainState.W_vpz(IqO0xXDuuuv)
-MainState.q0vOXnXpp0qUQQ()
+function b0W0wpHoxmHDWX.q0vOXnXpp0qUQQ()
+for Q0nXbqlOx,_WpwQ0zpwM1l in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["pnameSlotConns"]) do
+_WpwQ0zpwM1l["Disconnect"](_WpwQ0zpwM1l) HM1uHIZZl0["pnameSlotConns"][Q0nXbqlOx]= nil
 end
+local buZDI00Muxxq= lXUHZ["FindFirstChild"](lXUHZ,"Survivor-mob")
+if not buZDI00Muxxq then
+    return
+end
+local IzbOINmq00Wq= buZDI00Muxxq["FindFirstChild"](buZDI00Muxxq,"Frame")
+if not IzbOINmq00Wq then
+    return
+end
+for QnHoI_b=1,5 do
+    local Mp0Hn0DQ0N= IzbOINmq00Wq["FindFirstChild"](IzbOINmq00Wq,"Survivor".. QnHoI_b)
+    if Mp0Hn0DQ0N then
+        local pzb0bqv_HN= Mp0Hn0DQ0N["FindFirstChild"](Mp0Hn0DQ0N,"TextLabel")
+        if pzb0bqv_HN then
+b0W0wpHoxmHDWX.DMMn1nInqXml(Mp0Hn0DQ0N,pzb0bqv_HN)
+        end
+    end
+end
+end
+function b0W0wpHoxmHDWX.QwZpNwn() HM1uHIZZl0["pnameEnabled"]= true
+for OwMpNNWxxunMpZ,_l0NZUbzZIXWWn in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+b0W0wpHoxmHDWX.W_vpz(_l0NZUbzZIXWWn)
+end b0W0wpHoxmHDWX.q0vOXnXpp0qUQQ()
+if not HM1uHIZZl0["pnameWatchConn"] then
+HM1uHIZZl0["pnameWatchConn"]= lXUHZ["ChildAdded"]:Connect(
+    function(O_HQZHW)
+    if O_HQZHW["Name"]=="Survivor-mob" then
+task["wait"](0.2)
+        if HM1uHIZZl0["pnameEnabled"] then
+b0W0wpHoxmHDWX.q0vOXnXpp0qUQQ()
+            for Q1MUwn,IulHOZWx in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+b0W0wpHoxmHDWX.W_vpz(IulHOZWx)
+            end
+        end
+    end
+end)
+end
+if not HM1uHIZZl0["pnameAddedConn"] then
+HM1uHIZZl0["pnameAddedConn"]= OD_0p_00Xblo["PlayerAdded"]:Connect(
+    function(IqO0xXDuuuv)
+    if HM1uHIZZl0["pnameEnabled"] then
+task["wait"]((436-435)) b0W0wpHoxmHDWX.W_vpz(IqO0xXDuuuv) b0W0wpHoxmHDWX.q0vOXnXpp0qUQQ()
+    end
 end)
 end
 end
-function MainState.lOqqxMquzxn_()
-ESPState.pnameEnabled = false
-for OUqpx, HZuZOlDQ0xW in pairs(ESPState.pnameSlotConns) do
-HZuZOlDQ0xW.Disconnect(HZuZOlDQ0xW)
-ESPState.pnameSlotConns[OUqpx]= nil
+function b0W0wpHoxmHDWX.lOqqxMquzxn_() HM1uHIZZl0["pnameEnabled"]= false
+for OUqpx,HZuZOlDQ0xW in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["pnameSlotConns"]) do
+HZuZOlDQ0xW["Disconnect"](HZuZOlDQ0xW) HM1uHIZZl0["pnameSlotConns"][OUqpx]= nil
 end
-if ESPState.pnameWatchConnthen ESPState.pnameWatchConn:Disconnect()
-ESPState.pnameWatchConn = nil
+if HM1uHIZZl0["pnameWatchConn"] then
+HM1uHIZZl0["pnameWatchConn"]:Disconnect() HM1uHIZZl0["pnameWatchConn"]= nil
 end
-for HZUvoZ1l00lHqm, _UpuNvX in ipairs(Players.GetPlayers(Players)) do
-MainState.HpnnwXmlxZ1(_UpuNvX)
-end
-ESPState.pnameFakeNames = {}
-if ESPState.pnameAddedConnthen ESPState.pnameAddedConn:Disconnect()
-ESPState.pnameAddedConn = nil
+for HZUvoZ1l00lHqm,_UpuNvX in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+b0W0wpHoxmHDWX.HpnnwXmlxZ1(_UpuNvX)
+end HM1uHIZZl0["pnameFakeNames"]={}
+if HM1uHIZZl0["pnameAddedConn"] then
+HM1uHIZZl0["pnameAddedConn"]:Disconnect() HM1uHIZZl0["pnameAddedConn"]= nil
 end
 end
-function MainState.oqWmXqpHU(lWquoZN)
-lWquoZN = lWquoZN or false
-local inst99 = Workspace.CurrentCameralocal gui57 = ESPState.skipEndScreenConnslocal inst100 = false
-local inst101 = false
-local inst102 = false pcall(
+function b0W0wpHoxmHDWX.oqWmXqpHU(lWquoZN) lWquoZN= lWquoZN or false
+local WN1DIxbx= uvWUOOzvx1["CurrentCamera"]
+local DWuXW= HM1uHIZZl0["skipEndScreenConns"]
+local wUIpxbuZXHNw= false
+local wmHq1xDNo1H= false
+local Oxl0NMnQ= false w_ZpoH0p1["bHopuzIW"](
 function()
-local inst103 = ReplicatedStorage:FindFirstChild("Remotes")
-if not inst103 then
- return
+local DIu_wnmXXpwlwq= DMNlwumvQ0Mmvp["FindFirstChild"](DMNlwumvQ0Mmvp,"Remotes")
+if not DIu_wnmXXpwlwq then
+    return
 end
-local function func64(BlxbvHpU)
-if BlxbvHpU and BlxbvHpU:IsA("RemoteEvent") then
- for vwX0p_bIm_Uv, QoDbHvpw1b in ipairs(getconnections(BlxbvHpU.OnClientEvent)) do
-QoDbHvpw1b.Disable(QoDbHvpw1b) QoDbHvpw1b:Disconnect()
- end
+local function vXqQwb_N(BlxbvHpU)
+if BlxbvHpU and BlxbvHpU["IsA"](BlxbvHpU,"RemoteEvent") then
+    for vwX0p_bIm_Uv,QoDbHvpw1b in w_ZpoH0p1["DZu1Dmvbw"](getconnections(BlxbvHpU["OnClientEvent"])) do
+QoDbHvpw1b["Disable"](QoDbHvpw1b) QoDbHvpw1b:Disconnect()
+    end
 end
 end
-local inst104 = inst103:FindFirstChild("Game")
-if inst104 then
- for WOHQQHZQo, qvlZuZZQUwOX in ipairs({"cutscene","cutsceneEnd","cutsceneEnd2","endscreencutscene","cutsceneEndwithownchar","shake"}) do
-func64(inst104:FindFirstChild(qvlZuZZQUwOX))
- end
+local BZXxIXl1= DIu_wnmXXpwlwq["FindFirstChild"](DIu_wnmXXpwlwq,"Game")
+if BZXxIXl1 then
+    for WOHQQHZQo,qvlZuZZQUwOX in w_ZpoH0p1["DZu1Dmvbw"]({"cutscene","cutsceneEnd","cutsceneEnd2","endscreencutscene","cutsceneEndwithownchar","shake"}) do
+vXqQwb_N(BZXxIXl1["FindFirstChild"](BZXxIXl1,qvlZuZZQUwOX))
+    end
 end
-local inst105 = inst103:FindFirstChild("Killers")
-if inst105 then
-func64(inst105:FindFirstChild("Startmori"))
+local HMnNm= DIu_wnmXXpwlwq["FindFirstChild"](DIu_wnmXXpwlwq,"Killers")
+if HMnNm then
+vXqQwb_N(HMnNm["FindFirstChild"](HMnNm,"Startmori"))
 end
 if lWquoZN then
-func64(inst103:FindFirstChild("Darkness2"))
+vXqQwb_N(DIu_wnmXXpwlwq["FindFirstChild"](DIu_wnmXXpwlwq,"Darkness2"))
 end
 end)
-local function func65()
-if not inst99 then
- return
+local function WvxNv0n()
+if not WN1DIxbx then
+    return
 end
-if inst99.CameraType== Enum.CameraType.Scriptablethen inst100 = true inst99.CameraType = Enum.CameraType.Custom inst100 = false
+if WN1DIxbx["CameraType"]== Enum["CameraType"]["Scriptable"] then
+wUIpxbuZXHNw= true WN1DIxbx["CameraType"]= Enum["CameraType"]["Custom"] wUIpxbuZXHNw= false
 end
 end
-if inst99 then
-func65()
-table.insert(gui57, inst99:GetPropertyChangedSignal("CameraType"):Connect(
- function()
- if not inst100 then
-func65()
- end
-end))
-table.insert(gui57, inst99:GetPropertyChangedSignal("FieldOfView"):Connect(
+if WN1DIxbx then
+WvxNv0n() w_ZpoH0p1["I_plQ"](DWuXW,WN1DIxbx["GetPropertyChangedSignal"](WN1DIxbx,"CameraType"):Connect(
+    function()
+    if not wUIpxbuZXHNw then
+WvxNv0n()
+    end
+end)) w_ZpoH0p1["I_plQ"](DWuXW,WN1DIxbx["GetPropertyChangedSignal"](WN1DIxbx,"FieldOfView"):Connect(
 function()
-if inst101 or Settings.lockFovEnabled then
- return
+if wmHq1xDNo1H or Wv0HMNDowvn["lockFovEnabled"] then
+    return
 end
-if inst99.FieldOfView~= 70 then
-inst101 = true inst99.FieldOfView = 70 inst101 = false
+if WN1DIxbx["FieldOfView"]~=(-120+190) then
+wmHq1xDNo1H= true WN1DIxbx["FieldOfView"]=70 wmHq1xDNo1H= false
 end
 end))
+end w_ZpoH0p1["I_plQ"](DWuXW,uvWUOOzvx1["GetPropertyChangedSignal"](uvWUOOzvx1,"CurrentCamera"):Connect(
+function() WN1DIxbx= uvWUOOzvx1["CurrentCamera"]
+if WN1DIxbx then
+WvxNv0n()
 end
-table.insert(gui57, Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(
+end)) w_ZpoH0p1["I_plQ"](DWuXW,Hnv0Zw["GetAttributeChangedSignal"](Hnv0Zw,"isspectating"):Connect(
 function()
-inst99 = Workspace.CurrentCameraif inst99 then
-func65()
+if Oxl0NMnQ then
+    return
 end
-end))
-table.insert(gui57, LocalPlayer:GetAttributeChangedSignal("isspectating"):Connect(
+if Hnv0Zw["GetAttribute"](Hnv0Zw,"isspectating") then
+Oxl0NMnQ= true Hnv0Zw["SetAttribute"](Hnv0Zw,"isspectating",false) Oxl0NMnQ= false
+end
+end)) w_ZpoH0p1["I_plQ"](DWuXW,Hnv0Zw["GetAttributeChangedSignal"](Hnv0Zw,"killerend"):Connect(
 function()
-if inst102 then
- return
+if Oxl0NMnQ then
+    return
 end
-if LocalPlayer:GetAttribute("isspectating") then
-inst102 = true LocalPlayer:SetAttribute("isspectating", false)
-inst102 = false
-end
-end))
-table.insert(gui57, LocalPlayer:GetAttributeChangedSignal("killerend"):Connect(
-function()
-if inst102 then
- return
-end
-if LocalPlayer:GetAttribute("killerend") then
-inst102 = true LocalPlayer:SetAttribute("killerend", false)
-inst102 = false
+if Hnv0Zw["GetAttribute"](Hnv0Zw,"killerend") then
+Oxl0NMnQ= true Hnv0Zw["SetAttribute"](Hnv0Zw,"killerend",false) Oxl0NMnQ= false
 end
 end))
-local function func66()
-local inst106 = Workspace:FindFirstChild("Map")
-if inst106 then
- local inst107 = inst106:FindFirstChild("endscreen")
- if inst107 then
-pcall(
- function()
-inst107.Parent = nil
- end)
+local function ONMOlOHl()
+local wq_Xn_W_W= uvWUOOzvx1["FindFirstChild"](uvWUOOzvx1,"Map")
+if wq_Xn_W_W then
+    local lZZOpQMDDMqx= wq_Xn_W_W["FindFirstChild"](wq_Xn_W_W,"endscreen")
+    if lZZOpQMDDMqx then
+w_ZpoH0p1["bHopuzIW"](
+        function() lZZOpQMDDMqx["Parent"]= nil
+    end)
 end
 end
-local inst108 = Workspace:FindFirstChild("BackgroundSounds")
-if inst108 then
-pcall(
- function() inst108:Destroy()
+local DpxuZUpDNUon01= uvWUOOzvx1["FindFirstChild"](uvWUOOzvx1,"BackgroundSounds")
+if DpxuZUpDNUon01 then
+w_ZpoH0p1["bHopuzIW"](
+    function() DpxuZUpDNUon01:Destroy()
 end)
 end
-end func66()
-table.insert(gui57, Workspace.DescendantAdded:Connect(
+end ONMOlOHl() w_ZpoH0p1["I_plQ"](DWuXW,uvWUOOzvx1["DescendantAdded"]:Connect(
 function(wzNnNH)
-if wzNnNH.Name=="endscreen" and wzNnNH.Parent and wzNnNH.Parent.Name=="Map" then
-task.wait(0.01) pcall(
- function()
-wzNnNH.Parent = nil
+if wzNnNH["Name"]=="endscreen" and wzNnNH["Parent"] and wzNnNH["Parent"]["Name"]=="Map" then
+task["wait"](0.01) w_ZpoH0p1["bHopuzIW"](
+    function() wzNnNH["Parent"]= nil
 end)
-elseif wzNnNH.Name=="BackgroundSounds" then
-pcall(
- function() wzNnNH:Destroy()
+elseif wzNnNH["Name"]=="BackgroundSounds" then
+w_ZpoH0p1["bHopuzIW"](
+    function() wzNnNH:Destroy()
 end)
 end
 end))
-local function func67(NMMoDNmv1Iz1o)
-if not NMMoDNmv1Iz1o or not NMMoDNmv1Iz1o.Parentthen
-return
-end
-pcall(
+local function qDXQqNpOx_x(NMMoDNmv1Iz1o)
+if not NMMoDNmv1Iz1o or not NMMoDNmv1Iz1o["Parent"] then
+    return
+end w_ZpoH0p1["bHopuzIW"](
 function()
-if lWquoZN and NMMoDNmv1Iz1o.Name=="Darkness" and NMMoDNmv1Iz1o:IsA("ScreenGui") then
-NMMoDNmv1Iz1o.Enabled = false
+if lWquoZN and NMMoDNmv1Iz1o["Name"]=="Darkness" and NMMoDNmv1Iz1o["IsA"](NMMoDNmv1Iz1o,"ScreenGui") then
+NMMoDNmv1Iz1o["Enabled"]= false
 end
-for vqwOp, WONuHmwUDU0O in ipairs(NMMoDNmv1Iz1o.GetDescendants(NMMoDNmv1Iz1o)) do
- if WONuHmwUDU0O:IsA("VideoFrame") then
-WONuHmwUDU0O.Destroy(WONuHmwUDU0O)
- elseif WONuHmwUDU0O:IsA("Frame") and(WONuHmwUDU0O.Name=="Frame2" or WONuHmwUDU0O.Name=="blackout") then
-WONuHmwUDU0O.BackgroundTransparency = 1
- if lWquoZN then
-WONuHmwUDU0O.Visible = false WONuHmwUDU0O:GetPropertyChangedSignal("BackgroundTransparency"):Connect(
- function()
- if WONuHmwUDU0O.BackgroundTransparency< 1 then
-WONuHmwUDU0O.BackgroundTransparency = 1
- end
-end) WONuHmwUDU0O:GetPropertyChangedSignal("Visible"):Connect(
- function()
- if WONuHmwUDU0O.Visible then
-WONuHmwUDU0O.Visible = false
- end
+for vqwOp,WONuHmwUDU0O in w_ZpoH0p1["DZu1Dmvbw"](NMMoDNmv1Iz1o["GetDescendants"](NMMoDNmv1Iz1o)) do
+    if WONuHmwUDU0O["IsA"](WONuHmwUDU0O,"VideoFrame") then
+WONuHmwUDU0O["Destroy"](WONuHmwUDU0O)
+    elseif WONuHmwUDU0O["IsA"](WONuHmwUDU0O,"Frame") and(WONuHmwUDU0O["Name"]=="Frame2" or WONuHmwUDU0O["Name"]=="blackout") then
+WONuHmwUDU0O["BackgroundTransparency"]=1
+        if lWquoZN then
+WONuHmwUDU0O["Visible"]= false WONuHmwUDU0O["GetPropertyChangedSignal"](WONuHmwUDU0O,"BackgroundTransparency"):Connect(
+            function()
+            if WONuHmwUDU0O["BackgroundTransparency"]<(-640+641) then
+WONuHmwUDU0O["BackgroundTransparency"]=1
+            end
+        end) WONuHmwUDU0O:GetPropertyChangedSignal("Visible"):Connect(
+        function()
+        if WONuHmwUDU0O["Visible"] then
+WONuHmwUDU0O["Visible"]= false
+        end
+    end)
+end
+elseif WONuHmwUDU0O["IsA"](WONuHmwUDU0O,"ParticleEmitter") or WONuHmwUDU0O["IsA"](WONuHmwUDU0O,"Beam") or WONuHmwUDU0O["IsA"](WONuHmwUDU0O,"Trail") then
+WONuHmwUDU0O["Enabled"]= false
+end
+end
 end)
 end
-elseif WONuHmwUDU0O:IsA("ParticleEmitter") or WONuHmwUDU0O:IsA("Beam") or WONuHmwUDU0O:IsA("Trail") then
-WONuHmwUDU0O.Enabled = false
-end
-end
-end)
-end
-for uvuZn1xzp1, wozm_ in ipairs(PlayerGui.GetChildren(PlayerGui)) do
- local v44 = wozm_.Name
- if v44=="Darkness" or v44=="EndScreen" or v44=="Cutscene" or v44=="Results" then
-func67(wozm_)
- end
-end table.insert(gui57, PlayerGui.ChildAdded:Connect(
+for uvuZn1xzp1,wozm_ in w_ZpoH0p1["DZu1Dmvbw"](lXUHZ["GetChildren"](lXUHZ)) do
+    local QqbIpDxWl0= wozm_["Name"]
+    if QqbIpDxWl0=="Darkness" or QqbIpDxWl0=="EndScreen" or QqbIpDxWl0=="Cutscene" or QqbIpDxWl0=="Results" then
+qDXQqNpOx_x(wozm_)
+    end
+end w_ZpoH0p1["I_plQ"](DWuXW,lXUHZ["ChildAdded"]:Connect(
 function(uWzlDzNNHHXImM)
-local inst109 = uWzlDzNNHHXImM.Nameif inst109=="Darkness" or inst109=="EndScreen" or inst109=="Cutscene" or inst109=="Results" then
-task.wait(0.05) func67(uWzlDzNNHHXImM)
+local pnHZUz= uWzlDzNNHHXImM["Name"]
+if pnHZUz=="Darkness" or pnHZUz=="EndScreen" or pnHZUz=="Cutscene" or pnHZUz=="Results" then
+task["wait"](0.05) qDXQqNpOx_x(uWzlDzNNHHXImM)
 end
 end))
 end
-function MainState.Wb0x1XpWv()
-for pDWH_oX, M1oqpNNIzXw in ipairs(ESPState.skipEndScreenConns) do
-pcall(
- function() M1oqpNNIzXw:Disconnect()
+function b0W0wpHoxmHDWX.Wb0x1XpWv()
+for pDWH_oX,M1oqpNNIzXw in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["skipEndScreenConns"]) do
+w_ZpoH0p1["bHopuzIW"](
+    function() M1oqpNNIzXw:Disconnect()
 end)
-end
-table.clear(ESPState.skipEndScreenConns)
-end
-do
-MainState.DUpNoHpX0DZv = {[78432063483146]= true,[121216847022485]= true,[74968262036854]= true,[132817836308238]= true,[82666958311998]= true,[111920872708571]= true,[106871536134254]= true,[109402730355822]= true,[130593238885843]= true,[138720291317243]= true,[139369275981139]= true,[133963973694098]= true,[78935059863801]= true} MainState.BOouUDMI0x = {[118907603246885]= true,[135002183282873]= true,[113255068724446]= true,[129784271201071]= true,[105374834496520]= true,[117070354890871]= true,[115244153053858]= true,[110355011987939]= true,[117042998468241]= true,[122812055447896]= true} MainState.IxW_Dmx_ZxU1Uv = {}
- for vWpqDlOU, DbvDb in pairs(MainState.DUpNoHpX0DZv) do
-MainState.IxW_Dmx_ZxU1Uv["rbxassetid://"..vWpqDlOU]="attack"
- end
-for BvMIwlOuzI, l0mUwom in pairs(MainState.BOouUDMI0x) do
-MainState.IxW_Dmx_ZxU1Uv["rbxassetid://"..BvMIwlOuzI]="lungehold"
- end
-function MainState.MQQuzxZ(BoupqvXnz_x1p, BwM_obqOH)
- if not BoupqvXnz_x1p or not BwM_obqOH then
- return nil
- end
-if BoupqvXnz_x1p== LocalPlayer then
- local lzxnow = LocalPlayer:GetAttribute("SelectedKiller")
- if lzxnow then
- return lzxnow
- end
-end
- local QMlo_, IOwmIw0XqnN = pcall(
- function()
- return BwM_obqOH:WaitForChild("Values", 2)
+end table["clear"](HM1uHIZZl0["skipEndScreenConns"])
+end do
+b0W0wpHoxmHDWX.DUpNoHpX0DZv={[78432063483146]= true,[(121216847022218+267)]= true,[74968262036854]= true,[(132817836307538+700)]= true,[(82666958311774+224)]= true,[(111920872707721+850)]= true,[106871536134254]= true,[(109402730356001-179)]= true,[(130593238885132+711)]= true,[138720291317243]= true,[139369275981139]= true,[(133963973694530-432)]= true,[(78935059863776+25)]= true} b0W0wpHoxmHDWX.BOouUDMI0x={[118907603246885]= true,[135002183282873]= true,[(113255068724535-89)]= true,[(129784271201804-733)]= true,[(105374834496859-339)]= true,[(117070354891660-789)]= true,[(115244153052885+973)]= true,[(110355011988114-175)]= true,[(117042998467721+520)]= true,[122812055447896]= true} b0W0wpHoxmHDWX.IxW_Dmx_ZxU1Uv={}
+    for vWpqDlOU,DbvDb in w_ZpoH0p1["qpzwM0xWbbIH"](b0W0wpHoxmHDWX.DUpNoHpX0DZv) do
+b0W0wpHoxmHDWX.IxW_Dmx_ZxU1Uv["rbxassetid://".. vWpqDlOU]="attack"
+    end
+    for BvMIwlOuzI,l0mUwom in w_ZpoH0p1["qpzwM0xWbbIH"](b0W0wpHoxmHDWX.BOouUDMI0x) do
+b0W0wpHoxmHDWX.IxW_Dmx_ZxU1Uv["rbxassetid://".. BvMIwlOuzI]="lungehold"
+    end
+    function b0W0wpHoxmHDWX.MQQuzxZ(BoupqvXnz_x1p,BwM_obqOH)
+    if not BoupqvXnz_x1p or not BwM_obqOH then
+        return nil
+    end
+    if BoupqvXnz_x1p== Hnv0Zw then
+        local lzxnow= Hnv0Zw["GetAttribute"](Hnv0Zw,"SelectedKiller")
+        if lzxnow then
+            return lzxnow
+        end
+    end
+    local QMlo_,IOwmIw0XqnN= w_ZpoH0p1["bHopuzIW"](
+    function()
+    return BwM_obqOH["WaitForChild"](BwM_obqOH,"Values",(-123+125))
 end)
 if QMlo_ and IOwmIw0XqnN then
- local v45 = IOwmIw0XqnN:FindFirstChild("KillerName")
- if v45 and v45:IsA("StringValue") then
- return v45.Value
- end
+    local obxvpHlNpO1= IOwmIw0XqnN["FindFirstChild"](IOwmIw0XqnN,"KillerName")
+    if obxvpHlNpO1 and obxvpHlNpO1["IsA"](obxvpHlNpO1,"StringValue") then
+        return obxvpHlNpO1["Value"]
+    end
 end
-local conn29 = BoupqvXnz_x1p:GetAttribute("SelectedKiller")
-if conn29 then
- return conn29
+local b0qxHOQml= BoupqvXnz_x1p["GetAttribute"](BoupqvXnz_x1p,"SelectedKiller")
+if b0qxHOQml then
+    return b0qxHOQml
 end
 return nil
 end
-function MainState.pqpqo_mIXXOmqz()
-if not ESPState.autoParryEnabledthen
-return
+function b0W0wpHoxmHDWX.pqpqo_mIXXOmqz()
+if not HM1uHIZZl0["autoParryEnabled"] then
+    return
 end
-if tick()- ESPState.lastParryTime< 0.15 then
- return
+if tick()- HM1uHIZZl0["lastParryTime"]<0.15 then
+    return
+end HM1uHIZZl0["lastParryTime"]= tick()
+local HZXzvW1Q= Hnv0Zw["Character"]
+if not HZXzvW1Q then
+    return
 end
-ESPState.lastParryTime = tick()
-local inst110 = LocalPlayer.Character
-if not inst110 then
- return
-end
-local char26 = PlayerGui:FindFirstChild("Survivor-mob")
-local v46 = char26 and char26:FindFirstChild("Controls")
-local v47 = v46 and v46:FindFirstChild("Gui-mob")
-if v47 and v47:IsA("ImageButton") then
-firesignal(v47.MouseButton1Down)
-task.delay(0.05,
- function()
- if v47 and v47.Parentthen firesignal(v47.MouseButton1Up)
-end
+local NwvbQ= lXUHZ["FindFirstChild"](lXUHZ,"Survivor-mob")
+local oN1wpoNpW= NwvbQ and NwvbQ["FindFirstChild"](NwvbQ,"Controls")
+local BOnnQwbwHDv= oN1wpoNpW and oN1wpoNpW["FindFirstChild"](oN1wpoNpW,"Gui-mob")
+if BOnnQwbwHDv and BOnnQwbwHDv["IsA"](BOnnQwbwHDv,"ImageButton") then
+firesignal(BOnnQwbwHDv["MouseButton1Down"]) task["delay"](0.05,
+    function()
+    if BOnnQwbwHDv and BOnnQwbwHDv["Parent"] then
+firesignal(BOnnQwbwHDv["MouseButton1Up"])
+    end
 end)
 else
-local QMwHUl, WH_Up = pcall(
+local QMwHUl,WH_Up= w_ZpoH0p1["bHopuzIW"](
 function()
-local gui58 = Instance.new("InputObject")
-gui58.UserInputType = Enum.UserInputType.MouseButton2 gui58.UserInputState = Enum.UserInputState.Beginreturn gui58
+local H0ZZnwzbDquX= Instance["new"]("InputObject") H0ZZnwzbDquX["UserInputType"]= Enum["UserInputType"]["MouseButton2"] H0ZZnwzbDquX["UserInputState"]= Enum["UserInputState"]["Begin"]
+return H0ZZnwzbDquX
 end)
 if QMwHUl and WH_Up then
- for p__omXqm_1, vHouMQob in getconnections(UIS2.InputBegan) do
-vHouMQob:Fire(WH_Up, false)
- end
-else VirtualInputManager:SendMouseButtonEvent(0, 0, 1, true, game, 0)
+    for p__omXqm_1,vHouMQob in getconnections(OqbbHwQNoU["InputBegan"]) do
+vHouMQob["Fire"](vHouMQob,WH_Up,false)
+    end
+else HWvNq["SendMouseButtonEvent"](HWvNq,0,0,(-373+374),true,game,0)
 end
 end
-local inst111 = inst110:FindFirstChild("HumanoidRootPart")
-if inst111 then
-task.defer(
- function() pcall(
- function()
- if CollectionService:HasTag(inst111,"doing action") then
-CollectionService:RemoveTag(inst111,"doing action")
- end
+local bM_llmmwDO= HZXzvW1Q["FindFirstChild"](HZXzvW1Q,"HumanoidRootPart")
+if bM_llmmwDO then
+task["defer"](
+    function() w_ZpoH0p1["bHopuzIW"](
+    function()
+    if WoxXzobD["HasTag"](WoxXzobD,bM_llmmwDO,"doing action") then
+WoxXzobD["RemoveTag"](WoxXzobD,bM_llmmwDO,"doing action")
+    end
 end)
 end)
 end
 end
-function MainState.omXXOoIZHO1(l0quv, p_IIuz0Oz1)
-local inst112 = LocalPlayer.Characterif not inst112 then
- return
+function b0W0wpHoxmHDWX.omXXOoIZHO1(l0quv,p_IIuz0Oz1)
+local buDlWNZXDnox= Hnv0Zw["Character"]
+if not buDlWNZXDnox then
+    return
 end
-local NmzOx = inst112:FindFirstChild("HumanoidRootPart")
+local NmzOx= buDlWNZXDnox["FindFirstChild"](buDlWNZXDnox,"HumanoidRootPart")
 if not NmzOx then
- return
+    return
 end
-local v48 = l0quv:FindFirstChild("HumanoidRootPart")
-if not v48 then
- return
+local wD1oHz_1vZq= l0quv["FindFirstChild"](l0quv,"HumanoidRootPart")
+if not wD1oHz_1vZq then
+    return
 end
-local v49 = Players.LocalPlayer:GetNetworkPing()
-local v50 = math.clamp(v49, 0, 0.3)
-local v51 = v48.AssemblyLinearVelocity
-local v52 = Vector3.new(v51.X, 0, v51.Z)
-local gui59 = v48.Position+(v52* v50)
-local gui60 = NmzOx.Position- gui59
-local gui61 = gui60.Magnitudelocal gui62 = ESPState.autoParryRadius+ 2
-if gui61> gui62 then
- return
+local BxWzZ= OD_0p_00Xblo["LocalPlayer"]:GetNetworkPing()
+local bOWzXoMQXqZ= w_ZpoH0p1["_WXbbv_1_HnO"](BxWzZ,(348-348),0.3)
+local MZ1MZvlM1= wD1oHz_1vZq["AssemblyLinearVelocity"]
+local wzoDQ00vMU= Vector3["new"](MZ1MZvlM1["X"],(-933+933),MZ1MZvlM1["Z"])
+local W_lN_NxoZbHXQ= wD1oHz_1vZq["Position"]+(wzoDQ00vMU* bOWzXoMQXqZ)
+local wbH0u1pHqDZx= NmzOx["Position"]- W_lN_NxoZbHXQ
+local u1lIvNoWDx_b= wbH0u1pHqDZx["Magnitude"]
+local bO1lIXIqUM_= HM1uHIZZl0["autoParryRadius"]+(758-756)
+if u1lIvNoWDx_b> bO1lIXIqUM_ then
+    return
 end
-local gui63 = (NmzOx.Position- v48.Position).Unit
-if v52.Magnitude> 8 then
- local inst113 = v52.Unit:Dot(gui63)
- if inst113<- 0.1 then
- return
- end
+local OoUQxmUw=(NmzOx["Position"]- wD1oHz_1vZq["Position"])["Unit"]
+if wzoDQ00vMU["Magnitude"]>8 then
+    local oO0QN= wzoDQ00vMU["Unit"]:Dot(OoUQxmUw)
+    if oO0QN<-0.1 then
+        return
+    end
 end
-if gui61>= 15 then
- local inst114 = RaycastParams.new()
-inst114.FilterDescendantsInstances = { inst112, l0quv} inst114.FilterType = Enum.RaycastFilterType.Exclude
- local inst115 = Workspace:Raycast(v48.Position, gui60, inst114)
- if inst115 and inst115.Instanceand not inst115.Instance:IsDescendantOf(inst112) then
- return
- end
-end MainState.pqpqo_mIXXOmqz()
+if u1lIvNoWDx_b>= 15 then
+    local WwUMZxZHnUD= RaycastParams["new"]() WwUMZxZHnUD["FilterDescendantsInstances"]={buDlWNZXDnox,l0quv} WwUMZxZHnUD["FilterType"]= Enum["RaycastFilterType"]["Exclude"]
+    local _buOq= uvWUOOzvx1["Raycast"](uvWUOOzvx1,wD1oHz_1vZq["Position"],wbH0u1pHqDZx,WwUMZxZHnUD)
+    if _buOq and _buOq["Instance"] and not _buOq["Instance"]:IsDescendantOf(buDlWNZXDnox) then
+        return
+    end
+end b0W0wpHoxmHDWX.pqpqo_mIXXOmqz()
 end
-function MainState.uzDHHIvzqz(bzHw1N, WwXoZ)
-if bzHw1N== LocalPlayer then
- return
+function b0W0wpHoxmHDWX.uzDHHIvzqz(bzHw1N,WwXoZ)
+if bzHw1N== Hnv0Zw then
+    return
+end task["wait"](0.5)
+if not WwXoZ["Parent"] then
+    return
 end
-task.wait(0.5)
-if not WwXoZ.Parent then
- return
-end
-local char27 = MainState.MQQuzxZ(bzHw1N, WwXoZ)
-if char27 or(bzHw1N.Team and bzHw1N.Team.Name:lower():find("killer")) then
- local char28 = char27 or "Unknown Killer"
- local char29 = WwXoZ:WaitForChild("Humanoid", 3)
- if char29 then
- local DwopNwppQp = char29:WaitForChild("Animator", 3)
- if DwopNwppQp then
-DwopNwppQp.AnimationPlayed:Connect(
- function(lvUXZu)
- if not ESPState.autoParryEnabledthen
- return
- end
-if lvUXZu and lvUXZu.Animationthen
- local remote9 = MainState.IxW_Dmx_ZxU1Uv[lvUXZu.Animation.AnimationId]
- if remote9 then
-ESPState.activeAttackers[WwXoZ]={ name = char28, track = lvUXZu, type = remote9}
- if remote9=="attack" then
-MainState.omXXOoIZHO1(WwXoZ, char28)
- end
-local IXvnz IXvnz = lvUXZu.Stopped:Connect(
- function()
- if IXvnz then
-IXvnz.Disconnect(IXvnz)
- end
-task.delay(0.3,
- function()
- if ESPState.activeAttackers[WwXoZ] and ESPState.activeAttackers[WwXoZ].track== lvUXZu then
-ESPState.activeAttackers[WwXoZ]= nil
- end
-end)
- end)
-end
-end
+local _vUnnDQ= b0W0wpHoxmHDWX.MQQuzxZ(bzHw1N,WwXoZ)
+if _vUnnDQ or(bzHw1N["Team"] and bzHw1N["Team"]["Name"]:lower():find("killer")) then
+    local INolnuW1wXxx= _vUnnDQ or"Unknown Killer"
+    local HpD0M= WwXoZ["WaitForChild"](WwXoZ,"Humanoid",(345-342))
+    if HpD0M then
+        local DwopNwppQp= HpD0M["WaitForChild"](HpD0M,"Animator",3)
+        if DwopNwppQp then
+DwopNwppQp["AnimationPlayed"]:Connect(
+            function(lvUXZu)
+            if not HM1uHIZZl0["autoParryEnabled"] then
+                return
+            end
+            if lvUXZu and lvUXZu["Animation"] then
+                local O1OInp0lo= b0W0wpHoxmHDWX.IxW_Dmx_ZxU1Uv[lvUXZu["Animation"]["AnimationId"]]
+                if O1OInp0lo then
+HM1uHIZZl0["activeAttackers"][WwXoZ]={["name"]= INolnuW1wXxx,["track"]= lvUXZu,["type"]= O1OInp0lo}
+                    if O1OInp0lo=="attack" then
+b0W0wpHoxmHDWX.omXXOoIZHO1(WwXoZ,INolnuW1wXxx)
+                    end
+                    local IXvnz IXvnz= lvUXZu["Stopped"]:Connect(
+                    function()
+                    if IXvnz then
+IXvnz["Disconnect"](IXvnz)
+                    end task["delay"](0.3,
+                    function()
+                    if HM1uHIZZl0["activeAttackers"][WwXoZ] and HM1uHIZZl0["activeAttackers"][WwXoZ]["track"]== lvUXZu then
+HM1uHIZZl0["activeAttackers"][WwXoZ]= nil
+                    end
+                end)
+            end)
+        end
+    end
 end)
 end
 end
 end
 end
-function MainState._qM_on(WQOIXUMQQ)
-if WQOIXUMQQ== LocalPlayer then
- return
+function b0W0wpHoxmHDWX._qM_on(WQOIXUMQQ)
+if WQOIXUMQQ== Hnv0Zw then
+    return
 end
-if WQOIXUMQQ.Characterthen task.spawn(
+if WQOIXUMQQ["Character"] then
+task["spawn"](
+    function() b0W0wpHoxmHDWX.uzDHHIvzqz(WQOIXUMQQ,WQOIXUMQQ["Character"])
+end)
+end WQOIXUMQQ["CharacterAdded"]:Connect(
+function(QqMHw_UW0) task["spawn"](
+function() b0W0wpHoxmHDWX.uzDHHIvzqz(WQOIXUMQQ,QqMHw_UW0)
+end)
+end)
+end
+for qoU0IW,lvmOIMXW in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if lvmOIMXW~= Hnv0Zw then
+b0W0wpHoxmHDWX._qM_on(lvmOIMXW)
+    end
+end OD_0p_00Xblo["PlayerAdded"]:Connect(b0W0wpHoxmHDWX._qM_on) NpvQIDpz("AttackersMonitor",0,
 function()
-MainState.uzDHHIvzqz(WQOIXUMQQ, WQOIXUMQQ.Character)
-end)
+if not HM1uHIZZl0["autoParryEnabled"] then
+    return
 end
-WQOIXUMQQ.CharacterAdded:Connect(
-function(QqMHw_UW0)
-task.spawn(
-function()
-MainState.uzDHHIvzqz(WQOIXUMQQ, QqMHw_UW0)
-end)
-end)
+if w_ZpoH0p1["WbzmnX"](HM1uHIZZl0["activeAttackers"])== nil then
+    return
 end
-for qoU0IW, lvmOIMXW in ipairs(Players.GetPlayers(Players)) do
- if lvmOIMXW~= LocalPlayer then
-MainState._qM_on(lvmOIMXW)
- end
-end Players.PlayerAdded:Connect(MainState._qM_on) CreateESPEntry("AttackersMonitor", 0,
-function()
-if not ESPState.autoParryEnabledthen
-return
-end
-if next(ESPState.activeAttackers)== nil then
- return
-end
-for wlo1W0q0XuqX, OWzxxIm_ in pairs(ESPState.activeAttackers) do
- if not wlo1W0q0XuqX or not wlo1W0q0XuqX.Parent or not OWzxxIm_.track then
-ESPState.activeAttackers[wlo1W0q0XuqX]= nil
- else
- if not OWzxxIm_.track.IsPlaying then
-ESPState.activeAttackers[wlo1W0q0XuqX]= nil
- else
- if OWzxxIm_.type=="attack" then
- if OWzxxIm_.track.TimePosition< 0.25 then
-MainState.omXXOoIZHO1(wlo1W0q0XuqX, OWzxxIm_.name)
- end
-elseif OWzxxIm_.type=="lungehold" then
- local inst116 = LocalPlayer.Character
- local inst117 = inst116 and inst116:FindFirstChild("HumanoidRootPart")
- local inst118 = wlo1W0q0XuqX:FindFirstChild("HumanoidRootPart")
- if inst117 and inst118 then
- local inst119 = (inst118.Position- inst117.Position).Magnitudeif inst119<= ESPState.autoParryRadius* 0.8 then
-MainState.omXXOoIZHO1(wlo1W0q0XuqX, OWzxxIm_.name)
- end
-end
- end
+for wlo1W0q0XuqX,OWzxxIm_ in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["activeAttackers"]) do
+    if not wlo1W0q0XuqX or not wlo1W0q0XuqX["Parent"] or not OWzxxIm_["track"] then
+HM1uHIZZl0["activeAttackers"][wlo1W0q0XuqX]= nil
+    else
+    if not OWzxxIm_["track"]["IsPlaying"] then
+HM1uHIZZl0["activeAttackers"][wlo1W0q0XuqX]= nil
+    else
+    if OWzxxIm_["type"]=="attack" then
+        if OWzxxIm_["track"]["TimePosition"]<0.25 then
+b0W0wpHoxmHDWX.omXXOoIZHO1(wlo1W0q0XuqX,OWzxxIm_["name"])
+        end
+    elseif OWzxxIm_["type"]=="lungehold" then
+        local _lxvH1= Hnv0Zw["Character"]
+        local p1m0I= _lxvH1 and _lxvH1["FindFirstChild"](_lxvH1,"HumanoidRootPart")
+        local Q_vvIb1MHWbxbv= wlo1W0q0XuqX["FindFirstChild"](wlo1W0q0XuqX,"HumanoidRootPart")
+        if p1m0I and Q_vvIb1MHWbxbv then
+            local Nn0l0oxMq_X_Hn=(Q_vvIb1MHWbxbv["Position"]- p1m0I["Position"])["Magnitude"]
+            if Nn0l0oxMq_X_Hn<= HM1uHIZZl0["autoParryRadius"]*0.8 then
+b0W0wpHoxmHDWX.omXXOoIZHO1(wlo1W0q0XuqX,OWzxxIm_["name"])
+            end
+        end
+    end
 end
 end
 end
-end)
-MainState.vQbOXZmp_ = {} MainState.lwIb11vxW = nil MainState.BMO1q = {} MainState._MHzo1Zq = 32 MainState.uWXOlqNMoNMI = -1
-function MainState.qI_mZo0lWzH()
-for WQvumQoM, uDnHU_01x in ipairs(MainState.vQbOXZmp_) do
- if uDnHU_01x and uDnHU_01x.Parentthen uDnHU_01x.Destroy(uDnHU_01x)
-end
-end MainState.vQbOXZmp_ = {} MainState.BMO1q = {}
-local conn30 = (2* math.pi)/ MainState._MHzo1Zq
-for Nl0Iu_l = 1, MainState._MHzo1Zq do
- local conn31 = conn30*(Nl0Iu_l- 1)
- local conn32 = conn30* Nl0Iu_l MainState.BMO1q[Nl0Iu_l]={ cx = math.cos(conn31), cz = math.sin(conn31), nx = math.cos(conn32), nz = math.sin(conn32),}
- local conn33 = Instance.new("Part")
-conn33.Shape = Enum.PartType.BlockOqXoMQ.Anchored = true conn33.CanCollide = false conn33.CanQuery = false conn33.CastShadow = false conn33.Material = Enum.Material.Neon conn33.Color = Color3.fromRGB(255, 60, 60)
-conn33.Transparency = 0.15 conn33.Size = Vector3.new(0.08, 0.08, 0.1)
-conn33.Name = "BolongESP_Seg" conn33.Parent = Workspace MainState.vQbOXZmp_[Nl0Iu_l]= conn33
+end) b0W0wpHoxmHDWX.vQbOXZmp_={} b0W0wpHoxmHDWX.lwIb11vxW= nil b0W0wpHoxmHDWX.BMO1q={} b0W0wpHoxmHDWX._MHzo1Zq=32 b0W0wpHoxmHDWX.uWXOlqNMoNMI=-1
+function b0W0wpHoxmHDWX.qI_mZo0lWzH()
+for WQvumQoM,uDnHU_01x in w_ZpoH0p1["DZu1Dmvbw"](b0W0wpHoxmHDWX.vQbOXZmp_) do
+    if uDnHU_01x and uDnHU_01x["Parent"] then
+uDnHU_01x["Destroy"](uDnHU_01x)
+    end
+end b0W0wpHoxmHDWX.vQbOXZmp_={} b0W0wpHoxmHDWX.BMO1q={}
+local qNW0lquvm_=(2* math["pi"])/ b0W0wpHoxmHDWX._MHzo1Zq
+for Nl0Iu_l=1,b0W0wpHoxmHDWX._MHzo1Zq do
+    local vmOZvpbXl= qNW0lquvm_*(Nl0Iu_l-(-994+995))
+    local DpDvmOxZbQ= qNW0lquvm_* Nl0Iu_l b0W0wpHoxmHDWX.BMO1q[Nl0Iu_l]={["cx"]= math["cos"](vmOZvpbXl),["cz"]= math["sin"](vmOZvpbXl),["nx"]= math["cos"](DpDvmOxZbQ),["nz"]= math["sin"](DpDvmOxZbQ),}
+    local OqXoMQ= Instance["new"]("Part") OqXoMQ["Shape"]= Enum["PartType"]["Block"] OqXoMQ["Anchored"]= true OqXoMQ["CanCollide"]= false OqXoMQ["CanQuery"]= false OqXoMQ["CastShadow"]= false OqXoMQ["Material"]= Enum["Material"]["Neon"] OqXoMQ["Color"]= Color3["fromRGB"](255,60,60) OqXoMQ["Transparency"]=0.15 OqXoMQ["Size"]= Vector3["new"](0.08,0.08,0.1) OqXoMQ["Name"]="BolongESP_Seg" OqXoMQ["Parent"]= uvWUOOzvx1 b0W0wpHoxmHDWX.vQbOXZmp_[Nl0Iu_l]= OqXoMQ
 end
 end
-function MainState.I_XOXx0pqZolpo(MvNMNIo)
-local inst120 = (2* math.pi* MvNMNIo)/ MainState._MHzo1Zq
-for wXoZHI_n, DbQZu in ipairs(MainState.vQbOXZmp_) do
- if DbQZu and DbQZu.Parent then
-DbQZu.Size = Vector3.new(0.08, 0.08, inst120+ 0.02)
- end
+function b0W0wpHoxmHDWX.I_XOXx0pqZolpo(MvNMNIo)
+local Wl_oH=(2* math["pi"]* MvNMNIo)/ b0W0wpHoxmHDWX._MHzo1Zq
+for wXoZHI_n,DbQZu in w_ZpoH0p1["DZu1Dmvbw"](b0W0wpHoxmHDWX.vQbOXZmp_) do
+    if DbQZu and DbQZu["Parent"] then
+DbQZu["Size"]= Vector3["new"](0.08,0.08,Wl_oH+0.02)
+    end
 end
 end
-function MainState.lWMxxOX()
-for qvX_MqWlDlQ1WH, wO0_mbu in ipairs(MainState.vQbOXZmp_) do
- if wO0_mbu and wO0_mbu.Parent then
-wO0_mbu.Destroy(wO0_mbu)
- end
-end MainState.vQbOXZmp_ = {} MainState.BMO1q = {} MainState.uWXOlqNMoNMI = -1
+function b0W0wpHoxmHDWX.lWMxxOX()
+for qvX_MqWlDlQ1WH,wO0_mbu in w_ZpoH0p1["DZu1Dmvbw"](b0W0wpHoxmHDWX.vQbOXZmp_) do
+    if wO0_mbu and wO0_mbu["Parent"] then
+wO0_mbu["Destroy"](wO0_mbu)
+    end
+end b0W0wpHoxmHDWX.vQbOXZmp_={} b0W0wpHoxmHDWX.BMO1q={} b0W0wpHoxmHDWX.uWXOlqNMoNMI=-(642-641)
 end
-function MainState.onDxz1o(vXI0x1m1HW)
+function b0W0wpHoxmHDWX.onDxz1o(vXI0x1m1HW)
 if vXI0x1m1HW then
-MainState.qI_mZo0lWzH()
-MainState.lwIb11vxW = RunService.RenderStepped:Connect(
- function()
- if not LocalPlayer.Character then
- return
- end
-local char30 = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
- if not char30 then
- return
- end
-local char31 = ESPState.autoParryRadiusif char31~= MainState.uWXOlqNMoNMI then
-MainState.I_XOXx0pqZolpo(char31)
-MainState.uWXOlqNMoNMI = char31
- end
-local v53 = char30.Position- Vector3.new(0, char30.Size.Y/ 2+ 1.5, 0)
- for uvW0m, HbQmuWxQxoIW in ipairs(MainState.vQbOXZmp_) do
- if HbQmuWxQxoIW and HbQmuWxQxoIW.Parentthen
- local inst121 = MainState.BMO1q[uvW0m]
- local inst122 = v53+ Vector3.new(inst121.cx* char31, 0, inst121.cz* char31)
- local color16 = v53+ Vector3.new(inst121.nx* char31, 0, inst121.nz* char31)
-HbQmuWxQxoIW.CFrame = CFrame.lookAt(inst122, color16)* CFrame.new(0, 0,- HbQmuWxQxoIW.Size.Z/ 2)
- end
-end
+b0W0wpHoxmHDWX.qI_mZo0lWzH() b0W0wpHoxmHDWX.lwIb11vxW= u0xpmq_WoUlm["RenderStepped"]:Connect(
+    function()
+    if not Hnv0Zw["Character"] then
+        return
+    end
+    local B_ZIuwW_vM= Hnv0Zw["Character"]:FindFirstChild("HumanoidRootPart")
+    if not B_ZIuwW_vM then
+        return
+    end
+    local MZQvwUOol= HM1uHIZZl0["autoParryRadius"]
+    if MZQvwUOol~= b0W0wpHoxmHDWX.uWXOlqNMoNMI then
+b0W0wpHoxmHDWX.I_XOXx0pqZolpo(MZQvwUOol) b0W0wpHoxmHDWX.uWXOlqNMoNMI= MZQvwUOol
+    end
+    local bOpm0_nbwIx_= B_ZIuwW_vM["Position"]- Vector3["new"](0,B_ZIuwW_vM["Size"]["Y"]/2+1.5,(473-473))
+    for uvW0m,HbQmuWxQxoIW in w_ZpoH0p1["DZu1Dmvbw"](b0W0wpHoxmHDWX.vQbOXZmp_) do
+        if HbQmuWxQxoIW and HbQmuWxQxoIW["Parent"] then
+            local MDuHI1U= b0W0wpHoxmHDWX.BMO1q[uvW0m]
+            local uDmzH1lW_1X= bOpm0_nbwIx_+ Vector3["new"](MDuHI1U["cx"]* MZQvwUOol,(206-206),MDuHI1U["cz"]* MZQvwUOol)
+            local w_mmNNO= bOpm0_nbwIx_+ Vector3["new"](MDuHI1U["nx"]* MZQvwUOol,(13-13),MDuHI1U["nz"]* MZQvwUOol) HbQmuWxQxoIW["CFrame"]= CFrame["lookAt"](uDmzH1lW_1X,w_mmNNO)* CFrame["new"]((-277+277),(-800+800),- HbQmuWxQxoIW["Size"]["Z"]/2)
+        end
+    end
 end)
 else
-if MainState.lwIb11vxW then
-MainState.lwIb11vxW.Disconnect(MainState.lwIb11vxW);
-MainState.lwIb11vxW = nil
-end
-MainState.lWMxxOX()
-end
+if b0W0wpHoxmHDWX.lwIb11vxW then
+b0W0wpHoxmHDWX.lwIb11vxW["Disconnect"](b0W0wpHoxmHDWX.lwIb11vxW);
+b0W0wpHoxmHDWX.lwIb11vxW= nil
+end b0W0wpHoxmHDWX.lWMxxOX()
 end
 end
-function MainState.lHZlWupp()
-for QzwoMnWO, plz0Iv0D1bMuIq in ipairs(ESPState.cachedMapObjects.Gates) do
-func16(plz0Iv0D1bMuIq, ESPState.ghostGateEnabled)
+end
+function b0W0wpHoxmHDWX.lHZlWupp()
+for QzwoMnWO,plz0Iv0D1bMuIq in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Gates"]) do
+wz0qHHnO(plz0Iv0D1bMuIq,HM1uHIZZl0["ghostGateEnabled"])
 end
 end
-function MainState._XDNw()
-local inst123 = LocalPlayer.Character
-local inst124 = inst123 and inst123:FindFirstChild("HumanoidRootPart")
-if not inst124 then
-ShowNotify("Teleport","Karakter tidak ditemukan!", 2);
- return
+function b0W0wpHoxmHDWX._XDNw()
+local D1qZUOm_0l= Hnv0Zw["Character"]
+local Q0uu0zmb_HbNz= D1qZUOm_0l and D1qZUOm_0l["FindFirstChild"](D1qZUOm_0l,"HumanoidRootPart")
+if not Q0uu0zmb_HbNz then
+pUXUIwpIMmH("Teleport","Karakter tidak ditemukan!",(789-787));
+    return
 end
-local inst125 = workspace:FindFirstChild("Fininshline", true)
-if not inst125 then
-ShowNotify("Teleport","Fininshline tidak ditemukan di map!", 2);
- return
+local uqZOXunDq1uN1b= workspace["FindFirstChild"](workspace,"Fininshline",true)
+if not uqZOXunDq1uN1b then
+pUXUIwpIMmH("Teleport","Fininshline tidak ditemukan di map!",(186-184));
+    return
 end
-local char32 = inst125.Position
-local char33 = RaycastParams.new()
-char33.FilterType = Enum.RaycastFilterType.Exclude char33.FilterDescendantsInstances = { inst123, inst125.Parent}
-local inst126 = nil
-local Imqzm = char32+ Vector3.new(0, 10, 0)
-local inst127 = workspace:Raycast(Imqzm, Vector3.new(0,- 30, 0), char33)
-if inst127 then
- local pcall12 = workspace:Raycast(inst127.Position+ Vector3.new(0, 5, 0), Vector3.new(0, 5, 0), char33)
- if not pcall12 then
-inst126 = inst127.Position+ Vector3.new(0, 3, 0)
- end
+local oNMQp= uqZOXunDq1uN1b["Position"]
+local DlImONq1= RaycastParams["new"]() DlImONq1["FilterType"]= Enum["RaycastFilterType"]["Exclude"] DlImONq1["FilterDescendantsInstances"]={D1qZUOm_0l,uqZOXunDq1uN1b["Parent"]}
+local onoXUqoxUoXHzl= nil
+local Imqzm= oNMQp+ Vector3["new"](0,(938-928),(-744+744))
+local HwZZD0nU= workspace["Raycast"](workspace,Imqzm,Vector3["new"]((-511+511),-(956-926),(642-642)),DlImONq1)
+if HwZZD0nU then
+    local NbuppW= workspace["Raycast"](workspace,HwZZD0nU["Position"]+ Vector3["new"]((339-339),(-481+486),(-14+14)),Vector3["new"]((-485+485),5,0),DlImONq1)
+    if not NbuppW then
+onoXUqoxUoXHzl= HwZZD0nU["Position"]+ Vector3["new"]((-211+211),(418-415),0)
+    end
 end
-if inst126 then
-pcall(
- function()
-inst124.CFrame = CFrame.new(inst126)
+if onoXUqoxUoXHzl then
+w_ZpoH0p1["bHopuzIW"](
+    function() Q0uu0zmb_HbNz["CFrame"]= CFrame["new"](onoXUqoxUoXHzl)
 end)
-else pcall(
-function()
-inst124.CFrame = inst125.CFrameend)
+else w_ZpoH0p1["bHopuzIW"](
+function() Q0uu0zmb_HbNz["CFrame"]= uqZOXunDq1uN1b["CFrame"]
+end)
 end
 end do
 do
- local v54 = 46*(0+ 1- 1)
- local v55 = v54+ 302- 302
- end
-MainState._Q1MmIbx0x = "80411309607666"
- function MainState.DNHmxOz0wXm(WDNbX)
- if not WDNbX then
- return ""
- end
-return tostring(WDNbX):match("%d+") or ""
+        local qQwNMH=46*(0+1-1)
+        local OopZNlOlbQ_lHq= qQwNMH+302-302
+    end b0W0wpHoxmHDWX._Q1MmIbx0x="80411309607666"
+    function b0W0wpHoxmHDWX.DNHmxOz0wXm(WDNbX)
+    if not WDNbX then
+        return""
+    end
+    return w_ZpoH0p1["pQZnn0HWw"](WDNbX):match("%d+") or""
 end
-function MainState.NIlvNOODX()
-local inst128 = LocalPlayer:FindFirstChild("PlayerGui")
-if not inst128 then
- return nil
+function b0W0wpHoxmHDWX.NIlvNOODX()
+local qmluWDpDw= Hnv0Zw["FindFirstChild"](Hnv0Zw,"PlayerGui")
+if not qmluWDpDw then
+    return nil
 end
-local pcall13 = inst128:FindFirstChild("Survivor-mob")
-if not pcall13 then
- return nil
+local ODOunwW= qmluWDpDw["FindFirstChild"](qmluWDpDw,"Survivor-mob")
+if not ODOunwW then
+    return nil
 end
-local pcall14 = pcall13:FindFirstChild("Controls")
-if not pcall14 then
- return nil
+local vbH_OUwMUO_X= ODOunwW["FindFirstChild"](ODOunwW,"Controls")
+if not vbH_OUwMUO_X then
+    return nil
 end
-local pcall15 = pcall14:FindFirstChild("crouch")
-if pcall15 and pcall15:IsA("GuiButton") then
- return pcall15
+local QbooN= vbH_OUwMUO_X["FindFirstChild"](vbH_OUwMUO_X,"crouch")
+if QbooN and QbooN["IsA"](QbooN,"GuiButton") then
+    return QbooN
 end
 return nil
 end
-function MainState.uuMqxOzluob(WbvomoHupl)
-if ESPState.autoCrouchIsCrouching~= WbvomoHupl then
-ESPState.autoCrouchIsCrouching = WbvomoHupl
- local inst129 = LocalPlayer.Characterif inst129 then
-inst129:SetAttribute("Crouchingserver", WbvomoHupl) inst129:SetAttribute("Crouching", WbvomoHupl)
- end
-pcall(
- function()
-ReplicatedStorage.Remotes.Mechanics.ChangeAttribute:FireServer("Crouchingserver", WbvomoHupl)
-ReplicatedStorage.Remotes.Mechanics.ChangeAttribute:FireServer("Crouching", WbvomoHupl)
+function b0W0wpHoxmHDWX.uuMqxOzluob(WbvomoHupl)
+if HM1uHIZZl0["autoCrouchIsCrouching"]~= WbvomoHupl then
+HM1uHIZZl0["autoCrouchIsCrouching"]= WbvomoHupl
+    local vNb1ouQWlXnWwp= Hnv0Zw["Character"]
+    if vNb1ouQWlXnWwp then
+vNb1ouQWlXnWwp["SetAttribute"](vNb1ouQWlXnWwp,"Crouchingserver",WbvomoHupl) vNb1ouQWlXnWwp:SetAttribute("Crouching",WbvomoHupl)
+    end w_ZpoH0p1["bHopuzIW"](
+    function() DMNlwumvQ0Mmvp["Remotes"]["Mechanics"]["ChangeAttribute"]:FireServer("Crouchingserver",WbvomoHupl) DMNlwumvQ0Mmvp["Remotes"]["Mechanics"]["ChangeAttribute"]:FireServer("Crouching",WbvomoHupl)
 end)
-local inst130 = not UIS2.TouchEnabled and UIS2.KeyboardEnabledif inst130 then
-if0>(481) then
- local inst131 = 307+ 481
- local inst132 = inst131* 2
- end
-VirtualInputManager:SendKeyEvent(WbvomoHupl, Enum.KeyCode.C, false, game) VirtualInputManager:SendKeyEvent(WbvomoHupl, Enum.KeyCode.LeftControl, false, game)
+local oQpqOvMx= not OqbbHwQNoU["TouchEnabled"] and OqbbHwQNoU["KeyboardEnabled"]
+if oQpqOvMx then
+    if(0*307)>(481) then
+        local uZWzoHHQ=307+481
+        local oovvbMHX= uZWzoHHQ*2
+    end HWvNq["SendKeyEvent"](HWvNq,WbvomoHupl,Enum["KeyCode"]["C"],false,game) HWvNq:SendKeyEvent(WbvomoHupl,Enum["KeyCode"]["LeftControl"],false,game)
 else
-local inst133 = MainState.NIlvNOODX()
-if inst133 and type(firesignal)=="function" then
- if WbvomoHupl then
-firesignal(inst133.MouseButton1Down)
- if inst133.MouseButton1Clickthen firesignal(inst133.MouseButton1Click)
- end
-else firesignal(inst133.MouseButton1Up)
-if inst133.MouseButton1Clickthen firesignal(inst133.MouseButton1Click)
+local Dw_mqpQw= b0W0wpHoxmHDWX.NIlvNOODX()
+if Dw_mqpQw and w_ZpoH0p1["HmnU_lbWXHQX1I"](firesignal)=="function" then
+    if WbvomoHupl then
+firesignal(Dw_mqpQw["MouseButton1Down"])
+        if Dw_mqpQw["MouseButton1Click"] then
+firesignal(Dw_mqpQw["MouseButton1Click"])
+        end
+    else firesignal(Dw_mqpQw["MouseButton1Up"])
+    if Dw_mqpQw["MouseButton1Click"] then
+firesignal(Dw_mqpQw["MouseButton1Click"])
+    end
 end
 end
 end
 end
 end
-end
-function MainState.uqH_ZIQnzH_u(BNIvXQwIq_oq)
+function b0W0wpHoxmHDWX.uqH_ZIQnzH_u(BNIvXQwIq_oq)
 if not BNIvXQwIq_oq then
- return
+    return
 end
-local v56 = BNIvXQwIq_oq:FindFirstChildOfClass("Humanoid")
-if not v56 then
- return
+local NWb0b= BNIvXQwIq_oq["FindFirstChildOfClass"](BNIvXQwIq_oq,"Humanoid")
+if not NWb0b then
+    return
 end
-if ESPState.autoCrouchAnimConns[v56] then
- return
-end
-ESPState.autoCrouchAnimConns[v56]= v56.AnimationPlayed:Connect(
+if HM1uHIZZl0["autoCrouchAnimConns"][NWb0b] then
+    return
+end HM1uHIZZl0["autoCrouchAnimConns"][NWb0b]= NWb0b["AnimationPlayed"]:Connect(
 function(DZWIHb)
-if not Settings.autoCrouchEnabled then
- return
+if not Wv0HMNDowvn["autoCrouchEnabled"] then
+    return
 end
-local v57 = DZWIHb.Animationif v57 then
- local NWX_10XMN = MainState.DNHmxOz0wXm(v57.AnimationId)
- if NWX_10XMN== MainState._Q1MmIbx0x then
-ESPState.autoCrouchActiveSlashers[BNIvXQwIq_oq]= true DZWIHb.Stopped:Connect(
- function()
-task.wait(0.2)
-ESPState.autoCrouchActiveSlashers[BNIvXQwIq_oq]= nil
- end)
+local HIuNoU0WUU= DZWIHb["Animation"]
+if HIuNoU0WUU then
+    local NWX_10XMN= b0W0wpHoxmHDWX.DNHmxOz0wXm(HIuNoU0WUU["AnimationId"])
+    if NWX_10XMN== b0W0wpHoxmHDWX._Q1MmIbx0x then
+HM1uHIZZl0["autoCrouchActiveSlashers"][BNIvXQwIq_oq]= true DZWIHb["Stopped"]:Connect(
+        function() task["wait"](0.2) HM1uHIZZl0["autoCrouchActiveSlashers"][BNIvXQwIq_oq]= nil
+    end)
 end
 end
+end) NWb0b["Died"]:Connect(
+function() HM1uHIZZl0["autoCrouchActiveSlashers"][BNIvXQwIq_oq]= nil
 end)
-v56.Died:Connect(
+end NpvQIDpz("AutoCrouch",(-701+701),
 function()
-ESPState.autoCrouchActiveSlashers[BNIvXQwIq_oq]= nil
+if not Wv0HMNDowvn["autoCrouchEnabled"] then
+    return
+end
+local H_ZXpN1M0v_Uzu= Hnv0Zw["Character"]
+if not H_ZXpN1M0v_Uzu then
+    return
+end
+local HUbnl1NNzDM= H_ZXpN1M0v_Uzu["FindFirstChild"](H_ZXpN1M0v_Uzu,"HumanoidRootPart")
+if not HUbnl1NNzDM then
+    return
+end
+local w1OUMZzWul= false
+for bDMQZ,HDbUNv0uQMZW in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["autoCrouchActiveSlashers"]) do
+    if bDMQZ and bDMQZ["Parent"] then
+        local wopmxUM1U= bDMQZ["FindFirstChild"](bDMQZ,"HumanoidRootPart")
+        local q_HMX0XmoUoONU= bDMQZ["FindFirstChildOfClass"](bDMQZ,"Humanoid")
+        if wopmxUM1U and q_HMX0XmoUoONU and q_HMX0XmoUoONU["Health"]>(-261+261) then
+            local MMwMpNM=(wopmxUM1U["Position"]- HUbnl1NNzDM["Position"])["Magnitude"]
+            if MMwMpNM<= Wv0HMNDowvn["autoCrouchRadius"] then
+w1OUMZzWul= true break
+            end
+        end
+    else HM1uHIZZl0["autoCrouchActiveSlashers"][bDMQZ]= nil
+end
+end b0W0wpHoxmHDWX.uuMqxOzluob(w1OUMZzWul)
+end)
+for OmuImNmbDzqo1I,HIvWvODwzzu_p in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if HIvWvODwzzu_p~= Hnv0Zw and HIvWvODwzzu_p["Character"] then
+b0W0wpHoxmHDWX.uqH_ZIQnzH_u(HIvWvODwzzu_p["Character"])
+    end
+    if HIvWvODwzzu_p~= Hnv0Zw then
+HIvWvODwzzu_p["CharacterAdded"]:Connect(
+        function(wXz_XuD) task["wait"]((242-241)) b0W0wpHoxmHDWX.uqH_ZIQnzH_u(wXz_XuD)
+    end)
+end
+end OD_0p_00Xblo["PlayerAdded"]:Connect(
+function(HqvZ0WXWIZU) HqvZ0WXWIZU["CharacterAdded"]:Connect(
+function(BmqZDmDu1pnn) task["wait"](1)
+if Wv0HMNDowvn["autoCrouchEnabled"] then
+b0W0wpHoxmHDWX.uqH_ZIQnzH_u(BmqZDmDu1pnn)
+end
+end)
 end)
 end
-CreateESPEntry("AutoCrouch", 0,
+function b0W0wpHoxmHDWX.vzImqwp(vnqDZuQ0XQ)
+if not vnqDZuQ0XQ or vnqDZuQ0XQ["gsub"](vnqDZuQ0XQ,"%s+","")=="" then
+    return
+end vnqDZuQ0XQ= vnqDZuQ0XQ["gsub"](vnqDZuQ0XQ,"%s+","") task["spawn"](
 function()
-if not Settings.autoCrouchEnabled then
- return
-end
-local flag26 = LocalPlayer.Characterif not flag26 then
- return
-end
-local pcall16 = flag26:FindFirstChild("HumanoidRootPart")
-if not pcall16 then
- return
-end
-local pcall17 = false
-for bDMQZ, HDbUNv0uQMZW in pairs(ESPState.autoCrouchActiveSlashers) do
- if bDMQZ and bDMQZ.Parentthen
- local v58 = bDMQZ:FindFirstChild("HumanoidRootPart")
- local v59 = bDMQZ:FindFirstChildOfClass("Humanoid")
- if v58 and v59 and v59.Health> 0 then
- local pcall18 = (v58.Position- pcall16.Position).Magnitudeif pcall18<= Settings.autoCrouchRadiusthen pcall17 = true break
- end
-end
-else ESPState.autoCrouchActiveSlashers[bDMQZ]= nil
-end
-end MainState.uuMqxOzluob(pcall17)
+local ppIIvIoQOOQv= w_ZpoH0p1["pQwQXMN1QNbu_z"](vnqDZuQ0XQ)
+if not ppIIvIoQOOQv then
+    local bmbIwHwzXm= w_ZpoH0p1["bHopuzIW"](
+    function() ppIIvIoQOOQv= OD_0p_00Xblo["GetUserIdFromNameAsync"](OD_0p_00Xblo,vnqDZuQ0XQ)
 end)
-for OmuImNmbDzqo1I, HIvWvODwzzu_p in ipairs(Players.GetPlayers(Players)) do
- if HIvWvODwzzu_p~= LocalPlayer and HIvWvODwzzu_p.Characterthen MainState.uqH_ZIQnzH_u(HIvWvODwzzu_p.Character)
+if not bmbIwHwzXm or not ppIIvIoQOOQv then
+    return
 end
-if HIvWvODwzzu_p~= LocalPlayer then
-HIvWvODwzzu_p.CharacterAdded:Connect(
- function(wXz_XuD)
-task.wait(1)
-MainState.uqH_ZIQnzH_u(wXz_XuD)
+end
+local N0o0D_ZNx0l= Hnv0Zw["Character"]
+local BowwO_xwmqIn= N0o0D_ZNx0l and N0o0D_ZNx0l["FindFirstChildOfClass"](N0o0D_ZNx0l,"Humanoid")
+if not N0o0D_ZNx0l or not BowwO_xwmqIn then
+    return
+end
+local uzbXpuv0mnwZ= OD_0p_00Xblo["GetHumanoidDescriptionFromUserId"](OD_0p_00Xblo,ppIIvIoQOOQv)
+if not uzbXpuv0mnwZ then
+    return
+end
+local QqXuW0D_bvHUN= OD_0p_00Xblo["CreateHumanoidModelFromDescription"](OD_0p_00Xblo,uzbXpuv0mnwZ,BowwO_xwmqIn["RigType"])
+if not QqXuW0D_bvHUN then
+    return
+end
+for bMwXIob00,Qx_UXQb_N in w_ZpoH0p1["DZu1Dmvbw"](N0o0D_ZNx0l["GetChildren"](N0o0D_ZNx0l)) do
+    if Qx_UXQb_N["IsA"](Qx_UXQb_N,"Accessory") or Qx_UXQb_N["IsA"](Qx_UXQb_N,"Shirt") or Qx_UXQb_N["IsA"](Qx_UXQb_N,"Pants") or Qx_UXQb_N["IsA"](Qx_UXQb_N,"ShirtGraphic") or Qx_UXQb_N["IsA"](Qx_UXQb_N,"BodyColors") or Qx_UXQb_N["IsA"](Qx_UXQb_N,"CharacterMesh") then
+Qx_UXQb_N["Destroy"](Qx_UXQb_N)
+    end
+end
+for w0qzpxmvu,MWzUWQqDZnOHmW in w_ZpoH0p1["DZu1Dmvbw"](N0o0D_ZNx0l["GetChildren"](N0o0D_ZNx0l)) do
+    if MWzUWQqDZnOHmW["IsA"](MWzUWQqDZnOHmW,"BasePart") then
+        for p0ozMOZ,pbmxO1WZI in w_ZpoH0p1["DZu1Dmvbw"](MWzUWQqDZnOHmW["GetChildren"](MWzUWQqDZnOHmW)) do
+            if pbmxO1WZI["IsA"](pbmxO1WZI,"SpecialMesh") or pbmxO1WZI["IsA"](pbmxO1WZI,"Decal") or pbmxO1WZI["IsA"](pbmxO1WZI,"Texture") or pbmxO1WZI["IsA"](pbmxO1WZI,"SurfaceAppearance") then
+pbmxO1WZI["Destroy"](pbmxO1WZI)
+            end
+        end
+    end
+end
+local ouxZQ= QqXuW0D_bvHUN["FindFirstChildOfClass"](QqXuW0D_bvHUN,"BodyColors")
+if ouxZQ then
+ouxZQ["Clone"](ouxZQ)["Parent"]= N0o0D_ZNx0l
+    local HZImx={["Head"]= ouxZQ["HeadColor3"],["Torso"]= ouxZQ["TorsoColor3"],["Left Arm"]= ouxZQ["LeftArmColor3"],["Right Arm"]= ouxZQ["RightArmColor3"],["Left Leg"]= ouxZQ["LeftLegColor3"],["Right Leg"]= ouxZQ["RightLegColor3"],["UpperTorso"]= ouxZQ["TorsoColor3"],["LowerTorso"]= ouxZQ["TorsoColor3"],["LeftHand"]= ouxZQ["LeftArmColor3"],["RightHand"]= ouxZQ["RightArmColor3"],["LeftLowerArm"]= ouxZQ["LeftArmColor3"],["RightLowerArm"]= ouxZQ["RightArmColor3"],["LeftUpperArm"]= ouxZQ["LeftArmColor3"],["RightUpperArm"]= ouxZQ["RightArmColor3"],["LeftFoot"]= ouxZQ["LeftLegColor3"],["RightFoot"]= ouxZQ["RightLegColor3"],["LeftLowerLeg"]= ouxZQ["LeftLegColor3"],["RightLowerLeg"]= ouxZQ["RightLegColor3"],["LeftUpperLeg"]= ouxZQ["LeftLegColor3"],["RightUpperLeg"]= ouxZQ["RightLegColor3"],}
+    for oIW0OxMHIZH,QuqHOQ1lQ_zQv in w_ZpoH0p1["qpzwM0xWbbIH"](HZImx) do
+        local uuM0_z= N0o0D_ZNx0l["FindFirstChild"](N0o0D_ZNx0l,oIW0OxMHIZH)
+        if uuM0_z then
+w_ZpoH0p1["bHopuzIW"](
+            function() uuM0_z["Color"]= QuqHOQ1lQ_zQv
+        end)
+    end
+end
+end
+for wllqZxm,wIl1lxpxZlHnMo in w_ZpoH0p1["DZu1Dmvbw"](QqXuW0D_bvHUN["GetChildren"](QqXuW0D_bvHUN)) do
+    if wIl1lxpxZlHnMo["IsA"](wIl1lxpxZlHnMo,"Shirt") or wIl1lxpxZlHnMo["IsA"](wIl1lxpxZlHnMo,"Pants") or wIl1lxpxZlHnMo["IsA"](wIl1lxpxZlHnMo,"ShirtGraphic") or wIl1lxpxZlHnMo["IsA"](wIl1lxpxZlHnMo,"CharacterMesh") then
+wIl1lxpxZlHnMo["Clone"](wIl1lxpxZlHnMo)["Parent"]= N0o0D_ZNx0l
+    end
+end
+for _xv1qbQwpp,NvuqulXXlbzn in w_ZpoH0p1["DZu1Dmvbw"](QqXuW0D_bvHUN["GetChildren"](QqXuW0D_bvHUN)) do
+    if NvuqulXXlbzn["IsA"](NvuqulXXlbzn,"BasePart") then
+        local wmQzDQ_Qm01b= N0o0D_ZNx0l["FindFirstChild"](N0o0D_ZNx0l,NvuqulXXlbzn["Name"])
+        if wmQzDQ_Qm01b and wmQzDQ_Qm01b["IsA"](wmQzDQ_Qm01b,"BasePart") then
+            if NvuqulXXlbzn["IsA"](NvuqulXXlbzn,"MeshPart") and wmQzDQ_Qm01b["IsA"](wmQzDQ_Qm01b,"MeshPart") then
+w_ZpoH0p1["bHopuzIW"](
+                function() wmQzDQ_Qm01b["MeshId"]= NvuqulXXlbzn["MeshId"] wmQzDQ_Qm01b["TextureID"]= NvuqulXXlbzn["TextureID"] wmQzDQ_Qm01b["Color"]= NvuqulXXlbzn["Color"] wmQzDQ_Qm01b["Transparency"]= NvuqulXXlbzn["Transparency"]
+            end)
+        end
+        for HWMnXMIWo0w,MIM_Oxx in w_ZpoH0p1["DZu1Dmvbw"](NvuqulXXlbzn["GetChildren"](NvuqulXXlbzn)) do
+            if MIM_Oxx["IsA"](MIM_Oxx,"SpecialMesh") or MIM_Oxx["IsA"](MIM_Oxx,"Decal") or MIM_Oxx["IsA"](MIM_Oxx,"Texture") or MIM_Oxx["IsA"](MIM_Oxx,"SurfaceAppearance") then
+MIM_Oxx["Clone"](MIM_Oxx)["Parent"]= wmQzDQ_Qm01b
+            end
+        end
+    end
+end
+end
+local function _HHzNQXb(OpXUnWomU)
+local DoN1p1m= OpXUnWomU["Clone"](OpXUnWomU) DoN1p1m["Parent"]= N0o0D_ZNx0l
+local p1HqqQ= DoN1p1m["FindFirstChild"](DoN1p1m,"Handle")
+if not p1HqqQ then
+    return
+end p1HqqQ["Anchored"]= false p1HqqQ["CanCollide"]= false w_ZpoH0p1["bHopuzIW"](
+function() p1HqqQ["Massless"]= true
+end)
+for ln_ov,lXO0Qo in w_ZpoH0p1["DZu1Dmvbw"](p1HqqQ["GetChildren"](p1HqqQ)) do
+    if lXO0Qo["IsA"](lXO0Qo,"Weld") or lXO0Qo["IsA"](lXO0Qo,"WeldConstraint") or lXO0Qo["IsA"](lXO0Qo,"Motor6D") then
+lXO0Qo["Destroy"](lXO0Qo)
+    end
+end w_ZpoH0p1["bHopuzIW"](
+function() BowwO_xwmqIn:AddAccessory(DoN1p1m)
+end)
+local _1uDl10vWxp0xn= false
+for BuHqDzx,obZNZ1UIQXMm in w_ZpoH0p1["DZu1Dmvbw"](p1HqqQ["GetChildren"](p1HqqQ)) do
+    if(obZNZ1UIQXMm["IsA"](obZNZ1UIQXMm,"Weld") or obZNZ1UIQXMm["IsA"](obZNZ1UIQXMm,"WeldConstraint")) and obZNZ1UIQXMm["Part1"] and obZNZ1UIQXMm["Part1"]:IsDescendantOf(N0o0D_ZNx0l) then
+_1uDl10vWxp0xn= true break
+    end
+end
+if not _1uDl10vWxp0xn then
+    local bXpDzxXODvZ= p1HqqQ["FindFirstChildOfClass"](p1HqqQ,"Attachment")
+    local MMllwXOwo= nil
+    local HOIvqoQ1W0v_o= nil
+    if bXpDzxXODvZ then
+        for DpOunw__0b_pb,QQ1mZxn in w_ZpoH0p1["DZu1Dmvbw"](N0o0D_ZNx0l["GetDescendants"](N0o0D_ZNx0l)) do
+            if QQ1mZxn["IsA"](QQ1mZxn,"Attachment") and QQ1mZxn["Name"]== bXpDzxXODvZ["Name"] then
+MMllwXOwo= QQ1mZxn["Parent"] HOIvqoQ1W0v_o= QQ1mZxn break
+            end
+        end
+    end
+    if not MMllwXOwo then
+MMllwXOwo= N0o0D_ZNx0l["FindFirstChild"](N0o0D_ZNx0l,"Head") or N0o0D_ZNx0l["FindFirstChild"](N0o0D_ZNx0l,"HumanoidRootPart")
+    end
+    if MMllwXOwo then
+        if HOIvqoQ1W0v_o and bXpDzxXODvZ then
+p1HqqQ["CFrame"]= MMllwXOwo["CFrame"]* HOIvqoQ1W0v_o["CFrame"]* bXpDzxXODvZ["CFrame"]:Inverse()
+        else p1HqqQ["CFrame"]= MMllwXOwo["CFrame"]
+    end
+    local Ono_UO= Instance["new"]("WeldConstraint") Ono_UO["Name"]="BolongWeld" Ono_UO["Part0"]= p1HqqQ Ono_UO["Part1"]= MMllwXOwo Ono_UO["Parent"]= p1HqqQ
+end
+end
+end
+for OpWHzNmv0n,WzNZNDWoUMm in w_ZpoH0p1["DZu1Dmvbw"](QqXuW0D_bvHUN["GetChildren"](QqXuW0D_bvHUN)) do
+    if WzNZNDWoUMm["IsA"](WzNZNDWoUMm,"Accessory") then
+w_ZpoH0p1["bHopuzIW"](
+        function() _HHzNQXb(WzNZNDWoUMm)
+    end)
+end
+end QqXuW0D_bvHUN["Destroy"](QqXuW0D_bvHUN)
+end)
+end b0W0wpHoxmHDWX.owxoOMxxHWu={["Ambient"]= qxUnN["Ambient"],["OutdoorAmbient"]= qxUnN["OutdoorAmbient"],["ColorShift_Bottom"]= qxUnN["ColorShift_Bottom"],["ColorShift_Top"]= qxUnN["ColorShift_Top"],["Brightness"]= qxUnN["Brightness"],["ClockTime"]= qxUnN["ClockTime"],["GlobalShadows"]= qxUnN["GlobalShadows"],["FogStart"]= qxUnN["FogStart"],["FogEnd"]= qxUnN["FogEnd"],["FogColor"]= qxUnN["FogColor"],["ExposureCompensation"]= qxUnN["ExposureCompensation"],["EnvironmentDiffuseScale"]= qxUnN["EnvironmentDiffuseScale"],["EnvironmentSpecularScale"]= qxUnN["EnvironmentSpecularScale"],} b0W0wpHoxmHDWX.HwQWWqQUWpIl1N={}
+function b0W0wpHoxmHDWX.p_01zM1nQ() qxUnN["Ambient"]= Color3["fromRGB"](178,(-747+925),178) qxUnN["OutdoorAmbient"]= Color3["fromRGB"]((493-315),(-693+871),178) qxUnN["ColorShift_Bottom"]= Color3["new"]((389-389),0,0) qxUnN["ColorShift_Top"]= Color3["new"]((834-834),(-360+360),0) qxUnN["Brightness"]=3;
+qxUnN["ClockTime"]=12;
+qxUnN["GlobalShadows"]= false qxUnN["FogStart"]=9e9;
+qxUnN["FogEnd"]=9e9;
+qxUnN["ExposureCompensation"]=0 qxUnN["EnvironmentDiffuseScale"]=(606-606);
+qxUnN["EnvironmentSpecularScale"]=(740-740)
+end
+function b0W0wpHoxmHDWX.un10pxvlDoWQlp()
+for uMMbHHO,u0pWQHvI in w_ZpoH0p1["qpzwM0xWbbIH"](b0W0wpHoxmHDWX.owxoOMxxHWu) do
+w_ZpoH0p1["bHopuzIW"](
+    function() qxUnN[uMMbHHO]= u0pWQHvI
 end)
 end
-end Players.PlayerAdded:Connect(
-function(HqvZ0WXWIZU)
-HqvZ0WXWIZU.CharacterAdded:Connect(
-function(BmqZDmDu1pnn)
-task.wait(1)
-if Settings.autoCrouchEnabled then
-MainState.uqH_ZIQnzH_u(BmqZDmDu1pnn)
 end
+function b0W0wpHoxmHDWX.NZ0MOpIIxM_0() b0W0wpHoxmHDWX.HwQWWqQUWpIl1N={}
+for pO11wzpH,WHNHqXnl1ZQ0bH in w_ZpoH0p1["DZu1Dmvbw"](qxUnN["GetChildren"](qxUnN)) do
+    if WHNHqXnl1ZQ0bH["IsA"](WHNHqXnl1ZQ0bH,"PostEffect") or WHNHqXnl1ZQ0bH["IsA"](WHNHqXnl1ZQ0bH,"Clouds") or WHNHqXnl1ZQ0bH["IsA"](WHNHqXnl1ZQ0bH,"Atmosphere") or WHNHqXnl1ZQ0bH["IsA"](WHNHqXnl1ZQ0bH,"Sky") then
+b0W0wpHoxmHDWX.HwQWWqQUWpIl1N[WHNHqXnl1ZQ0bH]={["Enabled"]= WHNHqXnl1ZQ0bH["Enabled"],["Parent"]= WHNHqXnl1ZQ0bH["Parent"]} w_ZpoH0p1["bHopuzIW"](
+        function()
+        if WHNHqXnl1ZQ0bH["IsA"](WHNHqXnl1ZQ0bH,"Sky") then
+WHNHqXnl1ZQ0bH["Parent"]= nil
+        else WHNHqXnl1ZQ0bH["Enabled"]= false
+    end
 end)
+end
+end
+end
+function b0W0wpHoxmHDWX.WwMOwDZWQxwXD()
+for bIuOM_u,_ZWNNo0MHO in w_ZpoH0p1["qpzwM0xWbbIH"](b0W0wpHoxmHDWX.HwQWWqQUWpIl1N) do
+    if bIuOM_u then
+w_ZpoH0p1["bHopuzIW"](
+        function()
+        if bIuOM_u["IsA"](bIuOM_u,"Sky") then
+bIuOM_u["Parent"]= _ZWNNo0MHO["Parent"]
+        else bIuOM_u["Enabled"]= _ZWNNo0MHO["Enabled"]
+    end
 end)
 end
-function MainState.vzImqwp(vnqDZuQ0XQ)
-if not vnqDZuQ0XQ or vnqDZuQ0XQ:gsub("%s+","")=="" then
- return
-end
-vnqDZuQ0XQ = vnqDZuQ0XQ:gsub("%s+","")
-task.spawn(
+end b0W0wpHoxmHDWX.HwQWWqQUWpIl1N={}
+end NpvQIDpz("LightingEnforcer",0.5,
 function()
-local flag27 = tonumber(vnqDZuQ0XQ)
-if not flag27 then
- local flag28 = pcall(
- function()
-flag27 = Players:GetUserIdFromNameAsync(vnqDZuQ0XQ)
-end)
-if not flag28 or not flag27 then
- return
+if HM1uHIZZl0["fullbrightEnabled"] then
+b0W0wpHoxmHDWX.p_01zM1nQ()
 end
-end
-local pcall19 = LocalPlayer.Character
-local inst134 = pcall19 and pcall19:FindFirstChildOfClass("Humanoid")
-if not pcall19 or not inst134 then
- return
-end
-local inst135 = Players:GetHumanoidDescriptionFromUserId(flag27)
-if not inst135 then
- return
-end
-local gui64 = Players:CreateHumanoidModelFromDescription(inst135, inst134.RigType)
-if not gui64 then
- return
-end
-for bMwXIob00, Qx_UXQb_N in ipairs(pcall19.GetChildren(pcall19)) do
- if Qx_UXQb_N:IsA("Accessory") or Qx_UXQb_N:IsA("Shirt") or Qx_UXQb_N:IsA("Pants") or Qx_UXQb_N:IsA("ShirtGraphic") or Qx_UXQb_N:IsA("BodyColors") or Qx_UXQb_N:IsA("CharacterMesh") then
-Qx_UXQb_N.Destroy(Qx_UXQb_N)
- end
-end
-for w0qzpxmvu, MWzUWQqDZnOHmW in ipairs(pcall19.GetChildren(pcall19)) do
- if MWzUWQqDZnOHmW:IsA("BasePart") then
- for p0ozMOZ, pbmxO1WZI in ipairs(MWzUWQqDZnOHmW.GetChildren(MWzUWQqDZnOHmW)) do
- if pbmxO1WZI:IsA("SpecialMesh") or pbmxO1WZI:IsA("Decal") or pbmxO1WZI:IsA("Texture") or pbmxO1WZI:IsA("SurfaceAppearance") then
-pbmxO1WZI.Destroy(pbmxO1WZI)
- end
-end
- end
-end
-local inst136 = gui64:FindFirstChildOfClass("BodyColors")
-if inst136 then
-inst136.Clone(inst136).Parent = pcall19
- local inst137 = { Head = inst136.HeadColor3, Torso = inst136.TorsoColor3,["Left Arm"]= inst136.LeftArmColor3,["Right Arm"]= inst136.RightArmColor3,["Left Leg"]= inst136.LeftLegColor3,["Right Leg"]= inst136.RightLegColor3, UpperTorso = inst136.TorsoColor3, LowerTorso = inst136.TorsoColor3, LeftHand = inst136.LeftArmColor3, RightHand = inst136.RightArmColor3, LeftLowerArm = inst136.LeftArmColor3, RightLowerArm = inst136.RightArmColor3, LeftUpperArm = inst136.LeftArmColor3, RightUpperArm = inst136.RightArmColor3, LeftFoot = inst136.LeftLegColor3, RightFoot = inst136.RightLegColor3, LeftLowerLeg = inst136.LeftLegColor3, RightLowerLeg = inst136.RightLegColor3, LeftUpperLeg = inst136.LeftLegColor3, RightUpperLeg = inst136.RightLegColor3,}
- for oIW0OxMHIZH, QuqHOQ1lQ_zQv in pairs(inst137) do
- local inst138 = pcall19:FindFirstChild(oIW0OxMHIZH)
- if inst138 then
-pcall(
- function()
-inst138.Color = QuqHOQ1lQ_zQv
- end)
- end
-end
-end
-for wllqZxm, wIl1lxpxZlHnMo in ipairs(gui64.GetChildren(gui64)) do
- if wIl1lxpxZlHnMo:IsA("Shirt") or wIl1lxpxZlHnMo:IsA("Pants") or wIl1lxpxZlHnMo:IsA("ShirtGraphic") or wIl1lxpxZlHnMo:IsA("CharacterMesh") then
-wIl1lxpxZlHnMo.Clone(wIl1lxpxZlHnMo).Parent = pcall19
- end
-end
-for _xv1qbQwpp, NvuqulXXlbzn in ipairs(gui64.GetChildren(gui64)) do
- if NvuqulXXlbzn:IsA("BasePart") then
- local remote10 = pcall19:FindFirstChild(NvuqulXXlbzn.Name)
- if remote10 and remote10:IsA("BasePart") then
- if NvuqulXXlbzn:IsA("MeshPart") and remote10:IsA("MeshPart") then
-pcall(
- function()
-remote10.MeshId = NvuqulXXlbzn.MeshIdwmQzDQ_Qm01b.TextureID = NvuqulXXlbzn.TextureIDwmQzDQ_Qm01b.Color = NvuqulXXlbzn.ColorwmQzDQ_Qm01b.Transparency = NvuqulXXlbzn.Transparencyend)
- end
-for HWMnXMIWo0w, MIM_Oxx in ipairs(NvuqulXXlbzn.GetChildren(NvuqulXXlbzn)) do
- if MIM_Oxx:IsA("SpecialMesh") or MIM_Oxx:IsA("Decal") or MIM_Oxx:IsA("Texture") or MIM_Oxx:IsA("SurfaceAppearance") then
-MIM_Oxx.Clone(MIM_Oxx).Parent = remote10
- end
-end
- end
-end
-end
-local function func68(OpXUnWomU)
-local v60 = OpXUnWomU.Clone(OpXUnWomU)
-v60.Parent = pcall19
-local v61 = v60:FindFirstChild("Handle")
-if not v61 then
- return
-end
-v61.Anchored = false v61.CanCollide = false pcall(
-function()
-v61.Massless = true
-end)
-for ln_ov, lXO0Qo in ipairs(v61.GetChildren(v61)) do
- if lXO0Qo:IsA("Weld") or lXO0Qo:IsA("WeldConstraint") or lXO0Qo:IsA("Motor6D") then
-lXO0Qo.Destroy(lXO0Qo)
- end
-end pcall(
-function() inst134:AddAccessory(v60)
-end)
-local cam16 = false
-for BuHqDzx, obZNZ1UIQXMm in ipairs(v61.GetChildren(v61)) do
- if(obZNZ1UIQXMm:IsA("Weld") or obZNZ1UIQXMm:IsA("WeldConstraint")) and obZNZ1UIQXMm.Part1 and obZNZ1UIQXMm.Part1:IsDescendantOf(pcall19) then
-cam16 = true break
- end
-end
-if not cam16 then
- local inst139 = v61:FindFirstChildOfClass("Attachment")
- local char34 = nil
- local char35 = nil
- if inst139 then
- for DpOunw__0b_pb, QQ1mZxn in ipairs(pcall19.GetDescendants(pcall19)) do
- if QQ1mZxn:IsA("Attachment") and QQ1mZxn.Name== inst139.Name then
-char34 = QQ1mZxn.ParentHOIvqoQ1W0v_o = QQ1mZxn break
- end
-end
- end
-if not char34 then
-char34 = pcall19:FindFirstChild("Head") or pcall19:FindFirstChild("HumanoidRootPart")
- end
-if char34 then
- if char35 and inst139 then
-v61.CFrame = char34.CFrame* char35.CFrame* inst139.CFrame:Inverse()
- else v61.CFrame = char34.CFrameend
- local val17 = Instance.new("WeldConstraint")
-val17.Name = "BolongWeld" val17.Part0 = v61 val17.Part1 = char34 val17.Parent = v61
- end
-end
-end
-for OpWHzNmv0n, WzNZNDWoUMm in ipairs(gui64.GetChildren(gui64)) do
- if WzNZNDWoUMm:IsA("Accessory") then
-pcall(
- function() func68(WzNZNDWoUMm)
- end)
-end
-end gui64.Destroy(gui64)
-end)
-end
-MainState.owxoOMxxHWu = { Ambient = Lighting.Ambient, OutdoorAmbient = Lighting.OutdoorAmbient, ColorShift_Bottom = Lighting.ColorShift_Bottom, ColorShift_Top = Lighting.ColorShift_Top, Brightness = Lighting.Brightness, ClockTime = Lighting.ClockTime, GlobalShadows = Lighting.GlobalShadows, FogStart = Lighting.FogStart, FogEnd = Lighting.FogEnd, FogColor = Lighting.FogColor, ExposureCompensation = Lighting.ExposureCompensation, EnvironmentDiffuseScale = Lighting.EnvironmentDiffuseScale, EnvironmentSpecularScale = Lighting.EnvironmentSpecularScale,} MainState.HwQWWqQUWpIl1N = {}
-function MainState.p_01zM1nQ()
-Lighting.Ambient = Color3.fromRGB(178, 178, 178)
-Lighting.OutdoorAmbient = Color3.fromRGB(178, 178, 178)
-Lighting.ColorShift_Bottom = Color3.new(0, 0, 0)
-Lighting.ColorShift_Top = Color3.new(0, 0, 0)
-Lighting.Brightness = 3;
-Lighting.ClockTime = 12;
-Lighting.GlobalShadows = false Lighting.FogStart = 9e9;
-Lighting.FogEnd = 9e9;
-Lighting.ExposureCompensation = 0 Lighting.EnvironmentDiffuseScale = 0;
-Lighting.EnvironmentSpecularScale = 0
-end
-function MainState.un10pxvlDoWQlp()
-for uMMbHHO, u0pWQHvI in pairs(MainState.owxoOMxxHWu) do
-pcall(
- function() Lighting[uMMbHHO]= u0pWQHvI
-end)
-end
-end
-function MainState.NZ0MOpIIxM_0()
-MainState.HwQWWqQUWpIl1N = {}
-for pO11wzpH, WHNHqXnl1ZQ0bH in ipairs(Lighting.GetChildren(Lighting)) do
- if WHNHqXnl1ZQ0bH:IsA("PostEffect") or WHNHqXnl1ZQ0bH:IsA("Clouds") or WHNHqXnl1ZQ0bH:IsA("Atmosphere") or WHNHqXnl1ZQ0bH:IsA("Sky") then
-MainState.HwQWWqQUWpIl1N[WHNHqXnl1ZQ0bH]={ Enabled = WHNHqXnl1ZQ0bH.Enabled, Parent = WHNHqXnl1ZQ0bH.Parent} pcall(
- function()
- if WHNHqXnl1ZQ0bH:IsA("Sky") then
-WHNHqXnl1ZQ0bH.Parent = nil
- else WHNHqXnl1ZQ0bH.Enabled = false
- end
-end)
+if HM1uHIZZl0["removeVfxEnabled"] then
+    for pwvU1bHz,_DDlOw1ZI in w_ZpoH0p1["DZu1Dmvbw"](qxUnN["GetChildren"](qxUnN)) do
+        if _DDlOw1ZI["IsA"](_DDlOw1ZI,"PostEffect") or _DDlOw1ZI["IsA"](_DDlOw1ZI,"Clouds") or _DDlOw1ZI["IsA"](_DDlOw1ZI,"Atmosphere") or _DDlOw1ZI["IsA"](_DDlOw1ZI,"Sky") then
+w_ZpoH0p1["bHopuzIW"](
+            function()
+            if _DDlOw1ZI["IsA"](_DDlOw1ZI,"Sky") then
+                if _DDlOw1ZI["Parent"] then
+_DDlOw1ZI["Parent"]= nil
+                end
+            else
+            if _DDlOw1ZI["Enabled"] then
+_DDlOw1ZI["Enabled"]= false
+            end
+        end
+    end)
 end
 end
 end
-function MainState.WwMOwDZWQxwXD()
-for bIuOM_u, _ZWNNo0MHO in pairs(MainState.HwQWWqQUWpIl1N) do
- if bIuOM_u then
-pcall(
- function()
- if bIuOM_u:IsA("Sky") then
-bIuOM_u.Parent = _ZWNNo0MHO.Parentelse bIuOM_u.Enabled = _ZWNNo0MHO.Enabled
- end
-end)
-end
-end MainState.HwQWWqQUWpIl1N = {}
-end
-CreateESPEntry("LightingEnforcer", 0.5,
-function()
-if ESPState.fullbrightEnabled then
-MainState.p_01zM1nQ()
-end
-if ESPState.removeVfxEnabledthen
-for pwvU1bHz, _DDlOw1ZI in ipairs(Lighting.GetChildren(Lighting)) do
- if _DDlOw1ZI:IsA("PostEffect") or _DDlOw1ZI:IsA("Clouds") or _DDlOw1ZI:IsA("Atmosphere") or _DDlOw1ZI:IsA("Sky") then
-pcall(
- function()
- if _DDlOw1ZI:IsA("Sky") then
- if _DDlOw1ZI.Parentthen _DDlOw1ZI.Parent = nil
- end
-else
- if _DDlOw1ZI.Enabled then
-_DDlOw1ZI.Enabled = false
- end
-end
-end)
-end
-end
-end
-end)
-Lighting.ChildAdded:Connect(
+end) qxUnN["ChildAdded"]:Connect(
 function(u0xH0O0UD_)
-if ESPState.removeVfxEnabled then
- if u0xH0O0UD_:IsA("PostEffect") or u0xH0O0UD_:IsA("Clouds") or u0xH0O0UD_:IsA("Atmosphere") or u0xH0O0UD_:IsA("Sky") then
-task.spawn(
- function() pcall(
- function()
- if u0xH0O0UD_:IsA("Sky") then
-u0xH0O0UD_.Parent = nil
- else u0xH0O0UD_.Enabled = false
- end
+if HM1uHIZZl0["removeVfxEnabled"] then
+    if u0xH0O0UD_["IsA"](u0xH0O0UD_,"PostEffect") or u0xH0O0UD_["IsA"](u0xH0O0UD_,"Clouds") or u0xH0O0UD_["IsA"](u0xH0O0UD_,"Atmosphere") or u0xH0O0UD_["IsA"](u0xH0O0UD_,"Sky") then
+task["spawn"](
+        function() w_ZpoH0p1["bHopuzIW"](
+        function()
+        if u0xH0O0UD_["IsA"](u0xH0O0UD_,"Sky") then
+u0xH0O0UD_["Parent"]= nil
+        else u0xH0O0UD_["Enabled"]= false
+    end
 end)
 end)
 end
 end
 end) do
- function MainState.DlDv_DxHml()
- local inst140 = Instance.new("ScreenGui")
-inst140.Name = "BolongFOV";
-inst140.ResetOnSpawn = false;
-inst140.DisplayOrder = 999999 pcall(
- function()
-inst140.Parent = (gethui and gethui() or game:GetService("CoreGui"))
+    function b0W0wpHoxmHDWX.DlDv_DxHml()
+    local oXNNpD0bNDXqwU= Instance["new"]("ScreenGui") oXNNpD0bNDXqwU["Name"]="BolongFOV";
+oXNNpD0bNDXqwU["ResetOnSpawn"]= false;
+oXNNpD0bNDXqwU["DisplayOrder"]=999999 w_ZpoH0p1["bHopuzIW"](
+    function() oXNNpD0bNDXqwU["Parent"]=(gethui and gethui() or game["GetService"](game,"CoreGui"))
 end)
-if not inst140.Parent then
-inst140.Parent = PlayerGui
-end
-ESPState.FOVCircle = Instance.new("Frame")
-ESPState.FOVCircle.Size = UDim2.new(0, Settings.silentAimFovRadius* 2, 0, Settings.silentAimFovRadius* 2)
-ESPState.FOVCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
-ESPState.FOVCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-ESPState.FOVCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-ESPState.FOVCircle.BackgroundTransparency = 1;
-ESPState.FOVCircle.Visible = false ESPState.FOVCircle.Parent = inst140
-local gui65 = Instance.new("UICorner");
-gui65.CornerRadius = UDim.new(1, 0);
-gui65.Parent = ESPState.FOVCircle
-local gui66 = Instance.new("UIStroke")
-gui66.Color = NotifyColor;
-gui66.Thickness = 2;
-gui66.Transparency = 0.2;
-gui66.Parent = ESPState.FOVCircle
-end
-MainState.DlDv_DxHml()
-function MainState.DM_lMDIIqlpw(oxvvNv)
+if not oXNNpD0bNDXqwU["Parent"] then
+oXNNpD0bNDXqwU["Parent"]= lXUHZ
+end HM1uHIZZl0["FOVCircle"]= Instance["new"]("Frame") HM1uHIZZl0["FOVCircle"]["Size"]= UDim2["new"]((370-370),Wv0HMNDowvn["silentAimFovRadius"]*(106-104),(298-298),Wv0HMNDowvn["silentAimFovRadius"]*2) HM1uHIZZl0["FOVCircle"]["Position"]= UDim2["new"](0.5,(813-813),0.5,(-776+776)) HM1uHIZZl0["FOVCircle"]["AnchorPoint"]= Vector2["new"](0.5,0.5) HM1uHIZZl0["FOVCircle"]["BackgroundColor3"]= Color3["fromRGB"]((802-547),255,(933-678)) HM1uHIZZl0["FOVCircle"]["BackgroundTransparency"]=(-278+279);
+HM1uHIZZl0["FOVCircle"]["Visible"]= false HM1uHIZZl0["FOVCircle"]["Parent"]= oXNNpD0bNDXqwU
+local _uu_nWZU0NO= Instance["new"]("UICorner");
+_uu_nWZU0NO["CornerRadius"]= UDim["new"](1,(768-768));
+_uu_nWZU0NO["Parent"]= HM1uHIZZl0["FOVCircle"]
+local uIZNbbUQ= Instance["new"]("UIStroke") uIZNbbUQ["Color"]= bH0vx;
+uIZNbbUQ["Thickness"]=(-980+982);
+uIZNbbUQ["Transparency"]=0.2;
+uIZNbbUQ["Parent"]= HM1uHIZZl0["FOVCircle"]
+end b0W0wpHoxmHDWX.DlDv_DxHml()
+function b0W0wpHoxmHDWX.DM_lMDIIqlpw(oxvvNv)
 if not oxvvNv then
- return nil
+    return nil
 end
-local gui67 = oxvvNv:FindFirstChild("UpperTorso")
-if gui67 and gui67:IsA("BasePart") then
- return gui67.Positionend
- local gui68 = oxvvNv:FindFirstChild("Torso")
- if gui68 and gui68:IsA("BasePart") then
- return gui68.Positionend
- local gui69 = oxvvNv:FindFirstChild("HumanoidRootPart")
- if gui69 then
- return gui69.Positionend
- return nil
- end
-function MainState.lwHZx()
- local gui70 = LocalPlayer.Character
- if not gui70 then
- return nil
- end
-local MqmoMU0MDXZlDm, HvlIxqz = pcall(
- function()
- return gui70:FindFirstChild("Twist of Fate"):FindFirstChild("Right Arm"):FindFirstChild("gun"):FindFirstChild("gun")
- end)
- if MqmoMU0MDXZlDm and HvlIxqz and HvlIxqz:IsA("BasePart") then
- return HvlIxqz.Positionend
- local inst141 = gui70:FindFirstChild("Right Arm") or gui70:FindFirstChild("RightHand")
- if inst141 then
- return inst141.Position
- end
-return nil
- end
-MainState.wOM_Wn = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Items"):WaitForChild("Twist of Fate"):WaitForChild("Fire") pcall(
- function()
-MainState.BDvWIwNMuDUoz0 = hookmetamethod(game,"__namecall",
- function(WqMm0W,..)
- local inst142 = getnamecallmethod()
- if inst142=="FireServer" and rawequal(WqMm0W, MainState.wOM_Wn) then
- local gui71 = table.pack(...)
- if ESPState.silentAimEnabled and typeof(ESPState.silentAimLookVector)=="Vector3" then
- if gui71.n>= 3 and typeof(gui71[3])=="Vector3" then
-gui71[3]= ESPState.silentAimLookVectorif ESPState.laserEspEnabledthen ESPState.triggerLaser = true
- end
-elseif gui71.n>= 2 and typeof(gui71[2])=="Vector3" then
-gui71[2]= ESPState.silentAimLookVector
- if ESPState.laserEspEnabledthen ESPState.triggerLaser = true
- end
+local Ip_UZ_w= oxvvNv["FindFirstChild"](oxvvNv,"UpperTorso")
+if Ip_UZ_w and Ip_UZ_w["IsA"](Ip_UZ_w,"BasePart") then
+    return Ip_UZ_w["Position"]
 end
+local vNW1x= oxvvNv["FindFirstChild"](oxvvNv,"Torso")
+if vNW1x and vNW1x["IsA"](vNW1x,"BasePart") then
+    return vNW1x["Position"]
 end
-return MainState.BDvWIwNMuDUoz0(WqMm0W, table.unpack(gui71, 1, gui71.n))
+local Won0M= oxvvNv["FindFirstChild"](oxvvNv,"HumanoidRootPart")
+if Won0M then
+    return Won0M["Position"]
 end
-return MainState.BDvWIwNMuDUoz0(WqMm0W,..)
-end)
-end) CreateESPEntry("UpdateSilentAimTarget", 0.05,
-function()
-if ESPState.FOVCircle then
-ESPState.FOVCircle.Visible = ESPState.silentAimFovVisiblelocal color17 = Settings.silentAimFovRadius* 2
- if ESPState.FOVCircle.Size.X.Offset~= color17 then
-ESPState.FOVCircle.Size = UDim2.new(0, color17, 0, color17)
- end
-end
-if not ESPState.silentAimEnabledthen ESPState.silentAimTarget = nil;
-ESPState.silentAimLookVector = nil;
-return
-end
-local inst143 = LocalPlayer.Character
-if not inst143 then
- return
-end
-local inst144 = inst143:FindFirstChild("HumanoidRootPart")
-if not inst144 then
- return
-end
-local inst145 = workspace.CurrentCamera
-if not inst145 then
- return
-end
-local inst146 = nil
-local pcall20 = math.hugefor BwNW_o, Bw0M_ in ipairs(Players.GetPlayers(Players)) do
- if Bw0M_~= LocalPlayer and GetPlayerRole(Bw0M_)=="killer" then
- local inst147 = Bw0M_.Character
- if inst147 then
- local inst148 = inst147:FindFirstChildOfClass("Humanoid")
- local inst149 = MainState.DM_lMDIIqlpw(inst147)
- if inst148 and inst148.Health> 0 and typeof(inst149)=="Vector3" then
- local gui72 = (inst149- inst144.Position).Magnitudeif gui72< pcall20 then
-pcall20 = gui72;
-inst146 = Bw0M_
- end
-end
- end
-end
-end
-if inst146 and inst146.Character then
- local gui73 = MainState.DM_lMDIIqlpw(inst146.Character)
- if typeof(gui73)=="Vector3" then
- local color18 = true
- local HvQ0wb0wxOp_xq, bDWoxolNOmnXz = inst145:WorldToViewportPoint(gui73)
- if bDWoxolNOmnXz then
- local inst150 = Vector2.new(inst145.ViewportSize.X/ 2, inst145.ViewportSize.Y/ 2)
- local inst151 = (Vector2.new(HvQ0wb0wxOp_xq.X, HvQ0wb0wxOp_xq.Y)- inst150).Magnitude
- if inst151> Settings.silentAimFovRadius then
-color18 = false
- end
-else color18 = false
- end
-if color18 then
- local inst152 = MainState.lwHZx()
- if typeof(inst152)~="Vector3" then
-inst152 = inst145.CFrame.Positionend
- local gui74 = gui73- inst152
- local gui75 = gui74.Magnitudeif gui75> 0.1 then
-ESPState.silentAimTarget = gui73 ESPState.silentAimLookVector = Vector3.new(gui74.X/ gui75, gui74.Y/ gui75, gui74.Z/ gui75)
-ESPState.currentMuzzlePos = inst152;
-ESPState.currentTargetPos = gui73
- else ESPState.silentAimTarget = nil;
-ESPState.silentAimLookVector = nil
- end
-else ESPState.silentAimTarget = nil;
-ESPState.silentAimLookVector = nil
-end
-else ESPState.silentAimTarget = nil;
-ESPState.silentAimLookVector = nil
-end
-else ESPState.silentAimTarget = nil;
-ESPState.silentAimLookVector = nil
-end
-end) CreateESPEntry("DrawLaserESP", 0,
-function()
-if not ESPState.triggerLaser then
- return
-end
-ESPState.triggerLaser = false
-local val18 = ESPState.currentMuzzlePos
-local val19 = ESPState.currentTargetPos
-if typeof(val18)~="Vector3" or typeof(val19)~="Vector3" then
- return
-end
-local val20 = (val18- val19).Magnitude
-if val20< 0.1 then
- return
-end
-local val21 = Instance.new("Part")
-val21.Name = "SilentLaser";
-val21.Anchored = true;
-val21.CanCollide = false val21.Material = Enum.Material.Neon;
-val21.Color = Color3.fromRGB(255, 0, 0)
-val21.Transparency = 0.3;
-val21.Size = Vector3.new(0.15, 0.15, val20)
-val21.CFrame = CFrame.new(val18, val19)* CFrame.new(0, 0,- val20/ 2)
-val21.Parent = workspace task.delay(0.4,
-function()
-if val21 then
-val21.Destroy(val21)
-end
-end)
-end)
-end
-do
- function MainState.ppmDZmUwpIop(uZzNlz)
- if not uZzNlz then
- return nil
- end
-local v62 = uZzNlz:FindFirstChild("UpperTorso")
- if v62 and v62:IsA("BasePart") then
- return v62.Position
- end
-local val22 = uZzNlz:FindFirstChild("Torso")
- if val22 and val22:IsA("BasePart") then
- return val22.Position
- end
-local val23 = uZzNlz:FindFirstChild("HumanoidRootPart")
- if val23 then
- return val23.Position+ Vector3.new(0, 0.5, 0)
- end
 return nil
 end
-function MainState._vMo1mZ1l(qxxuWHnX_p0, wv1lblzM, D_UInxMv)
-local HoM10xblpWb, q01XnvuZX = qxxuWHnX_p0:WorldToViewportPoint(wv1lblzM)
+function b0W0wpHoxmHDWX.lwHZx()
+local NwHppmuN0M__b= Hnv0Zw["Character"]
+if not NwHppmuN0M__b then
+    return nil
+end
+local MqmoMU0MDXZlDm,HvlIxqz= w_ZpoH0p1["bHopuzIW"](
+function()
+return NwHppmuN0M__b["FindFirstChild"](NwHppmuN0M__b,"Twist of Fate"):FindFirstChild("Right Arm"):FindFirstChild("gun"):FindFirstChild("gun")
+end)
+if MqmoMU0MDXZlDm and HvlIxqz and HvlIxqz["IsA"](HvlIxqz,"BasePart") then
+    return HvlIxqz["Position"]
+end
+local w0Zn0XowQ= NwHppmuN0M__b["FindFirstChild"](NwHppmuN0M__b,"Right Arm") or NwHppmuN0M__b["FindFirstChild"](NwHppmuN0M__b,"RightHand")
+if w0Zn0XowQ then
+    return w0Zn0XowQ["Position"]
+end
+return nil
+end b0W0wpHoxmHDWX.wOM_Wn= DMNlwumvQ0Mmvp["WaitForChild"](DMNlwumvQ0Mmvp,"Remotes"):WaitForChild("Items"):WaitForChild("Twist of Fate"):WaitForChild("Fire") w_ZpoH0p1["bHopuzIW"](
+function() b0W0wpHoxmHDWX.BDvWIwNMuDUoz0= hookmetamethod(game,"__namecall",
+function(WqMm0W,...)
+local D1oDvlqzUMlbv= getnamecallmethod()
+if D1oDvlqzUMlbv=="FireServer" and w_ZpoH0p1["vumZ11WpXWw"](WqMm0W,b0W0wpHoxmHDWX.wOM_Wn) then
+    local H__IlMOwx= table["pack"](...)
+    if HM1uHIZZl0["silentAimEnabled"] and w_ZpoH0p1["bHmuv"](HM1uHIZZl0["silentAimLookVector"])=="Vector3" then
+        if H__IlMOwx["n"]>=(191-188) and w_ZpoH0p1["bHmuv"](H__IlMOwx[3])=="Vector3" then
+H__IlMOwx[3]= HM1uHIZZl0["silentAimLookVector"]
+            if HM1uHIZZl0["laserEspEnabled"] then
+HM1uHIZZl0["triggerLaser"]= true
+            end
+        elseif H__IlMOwx["n"]>=(662-660) and w_ZpoH0p1["bHmuv"](H__IlMOwx[(-503+505)])=="Vector3" then
+H__IlMOwx[2]= HM1uHIZZl0["silentAimLookVector"]
+            if HM1uHIZZl0["laserEspEnabled"] then
+HM1uHIZZl0["triggerLaser"]= true
+            end
+        end
+    end
+    return b0W0wpHoxmHDWX.BDvWIwNMuDUoz0(WqMm0W,w_ZpoH0p1["MIWZ1OD"](H__IlMOwx,(932-931),H__IlMOwx["n"]))
+end
+return b0W0wpHoxmHDWX.BDvWIwNMuDUoz0(WqMm0W,...)
+end)
+end) NpvQIDpz("UpdateSilentAimTarget",0.05,
+function()
+if HM1uHIZZl0["FOVCircle"] then
+HM1uHIZZl0["FOVCircle"]["Visible"]= HM1uHIZZl0["silentAimFovVisible"]
+    local NzHnwxn_u__bQH= Wv0HMNDowvn["silentAimFovRadius"]*(273-271)
+    if HM1uHIZZl0["FOVCircle"]["Size"]["X"]["Offset"]~= NzHnwxn_u__bQH then
+HM1uHIZZl0["FOVCircle"]["Size"]= UDim2["new"](0,NzHnwxn_u__bQH,0,NzHnwxn_u__bQH)
+    end
+end
+if not HM1uHIZZl0["silentAimEnabled"] then
+HM1uHIZZl0["silentAimTarget"]= nil;
+HM1uHIZZl0["silentAimLookVector"]= nil;
+    return
+end
+local wvXquolD= Hnv0Zw["Character"]
+if not wvXquolD then
+    return
+end
+local ObXQznpDDo= wvXquolD["FindFirstChild"](wvXquolD,"HumanoidRootPart")
+if not ObXQznpDDo then
+    return
+end
+local obOZ_HQn= workspace["CurrentCamera"]
+if not obOZ_HQn then
+    return
+end
+local _N_p1x__UMX= nil
+local BOpXvMDw= math["huge"]
+for BwNW_o,Bw0M_ in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if Bw0M_~= Hnv0Zw and vWlM1ZWQubmZp(Bw0M_)=="killer" then
+        local obl__IbuQlvWw1= Bw0M_["Character"]
+        if obl__IbuQlvWw1 then
+            local Np0Iu= obl__IbuQlvWw1["FindFirstChildOfClass"](obl__IbuQlvWw1,"Humanoid")
+            local _HwnNDXHmwHm1z= b0W0wpHoxmHDWX.DM_lMDIIqlpw(obl__IbuQlvWw1)
+            if Np0Iu and Np0Iu["Health"]>0 and w_ZpoH0p1["bHmuv"](_HwnNDXHmwHm1z)=="Vector3" then
+                local DbwNum_ZvZoX=(_HwnNDXHmwHm1z- ObXQznpDDo["Position"])["Magnitude"]
+                if DbwNum_ZvZoX< BOpXvMDw then
+BOpXvMDw= DbwNum_ZvZoX;
+_N_p1x__UMX= Bw0M_
+                end
+            end
+        end
+    end
+end
+if _N_p1x__UMX and _N_p1x__UMX["Character"] then
+    local vnmlb1DwvbOQl= b0W0wpHoxmHDWX.DM_lMDIIqlpw(_N_p1x__UMX["Character"])
+    if w_ZpoH0p1["bHmuv"](vnmlb1DwvbOQl)=="Vector3" then
+        local MpU0mvuvHNxWU= true
+        local HvQ0wb0wxOp_xq,bDWoxolNOmnXz= obOZ_HQn["WorldToViewportPoint"](obOZ_HQn,vnmlb1DwvbOQl)
+        if bDWoxolNOmnXz then
+            local lnQNDUOmbNwQNo= Vector2["new"](obOZ_HQn["ViewportSize"]["X"]/(423-421),obOZ_HQn["ViewportSize"]["Y"]/(-592+594))
+            local bMMxDp0=(Vector2["new"](HvQ0wb0wxOp_xq["X"],HvQ0wb0wxOp_xq["Y"])- lnQNDUOmbNwQNo)["Magnitude"]
+            if bMMxDp0> Wv0HMNDowvn["silentAimFovRadius"] then
+MpU0mvuvHNxWU= false
+            end
+        else MpU0mvuvHNxWU= false
+    end
+    if MpU0mvuvHNxWU then
+        local __pIZnl1N0= b0W0wpHoxmHDWX.lwHZx()
+        if w_ZpoH0p1["bHmuv"](__pIZnl1N0)~="Vector3" then
+__pIZnl1N0= obOZ_HQn["CFrame"]["Position"]
+        end
+        local MzqDOuqqou= vnmlb1DwvbOQl- __pIZnl1N0
+        local DvMXmxInwzb= MzqDOuqqou["Magnitude"]
+        if DvMXmxInwzb>0.1 then
+HM1uHIZZl0["silentAimTarget"]= vnmlb1DwvbOQl HM1uHIZZl0["silentAimLookVector"]= Vector3["new"](MzqDOuqqou["X"]/ DvMXmxInwzb,MzqDOuqqou["Y"]/ DvMXmxInwzb,MzqDOuqqou["Z"]/ DvMXmxInwzb) HM1uHIZZl0["currentMuzzlePos"]= __pIZnl1N0;
+HM1uHIZZl0["currentTargetPos"]= vnmlb1DwvbOQl
+        else HM1uHIZZl0["silentAimTarget"]= nil;
+HM1uHIZZl0["silentAimLookVector"]= nil
+    end
+else HM1uHIZZl0["silentAimTarget"]= nil;
+HM1uHIZZl0["silentAimLookVector"]= nil
+end
+else HM1uHIZZl0["silentAimTarget"]= nil;
+HM1uHIZZl0["silentAimLookVector"]= nil
+end
+else HM1uHIZZl0["silentAimTarget"]= nil;
+HM1uHIZZl0["silentAimLookVector"]= nil
+end
+end) NpvQIDpz("DrawLaserESP",0,
+function()
+if not HM1uHIZZl0["triggerLaser"] then
+    return
+end HM1uHIZZl0["triggerLaser"]= false
+local oqnxDxoNnOxIxq= HM1uHIZZl0["currentMuzzlePos"]
+local pxMMlmuI= HM1uHIZZl0["currentTargetPos"]
+if w_ZpoH0p1["bHmuv"](oqnxDxoNnOxIxq)~="Vector3" or w_ZpoH0p1["bHmuv"](pxMMlmuI)~="Vector3" then
+    return
+end
+local wwIxqMWlb=(oqnxDxoNnOxIxq- pxMMlmuI)["Magnitude"]
+if wwIxqMWlb<0.1 then
+    return
+end
+local NxIN1NzIq= Instance["new"]("Part") NxIN1NzIq["Name"]="SilentLaser";
+NxIN1NzIq["Anchored"]= true;
+NxIN1NzIq["CanCollide"]= false NxIN1NzIq["Material"]= Enum["Material"]["Neon"];
+NxIN1NzIq["Color"]= Color3["fromRGB"]((737-482),(231-231),0) NxIN1NzIq["Transparency"]=0.3;
+NxIN1NzIq["Size"]= Vector3["new"](0.15,0.15,wwIxqMWlb) NxIN1NzIq["CFrame"]= CFrame["new"](oqnxDxoNnOxIxq,pxMMlmuI)* CFrame["new"](0,0,- wwIxqMWlb/2) NxIN1NzIq["Parent"]= workspace task["delay"](0.4,
+function()
+if NxIN1NzIq then
+NxIN1NzIq["Destroy"](NxIN1NzIq)
+end
+end)
+end)
+end do
+    function b0W0wpHoxmHDWX.ppmDZmUwpIop(uZzNlz)
+    if not uZzNlz then
+        return nil
+    end
+    local BMp_1w0HQN_b= uZzNlz["FindFirstChild"](uZzNlz,"UpperTorso")
+    if BMp_1w0HQN_b and BMp_1w0HQN_b["IsA"](BMp_1w0HQN_b,"BasePart") then
+        return BMp_1w0HQN_b["Position"]
+    end
+    local D_nXzn= uZzNlz["FindFirstChild"](uZzNlz,"Torso")
+    if D_nXzn and D_nXzn["IsA"](D_nXzn,"BasePart") then
+        return D_nXzn["Position"]
+    end
+    local wD1zxIWNozb= uZzNlz["FindFirstChild"](uZzNlz,"HumanoidRootPart")
+    if wD1zxIWNozb then
+        return wD1zxIWNozb["Position"]+ Vector3["new"]((737-737),0.5,0)
+    end
+    return nil
+end
+function b0W0wpHoxmHDWX._vMo1mZ1l(qxxuWHnX_p0,wv1lblzM,D_UInxMv)
+local HoM10xblpWb,q01XnvuZX= qxxuWHnX_p0["WorldToViewportPoint"](qxxuWHnX_p0,wv1lblzM)
 if not q01XnvuZX then
- return false
+    return false
 end
-local val24 = Vector2.new(qxxuWHnX_p0.ViewportSize.X/ 2, qxxuWHnX_p0.ViewportSize.Y/ 2)
-local val25 = Vector2.new(HoM10xblpWb.X, HoM10xblpWb.Y)
-local v63 = (val25- val24).Magnitudereturn v63<= D_UInxMv
+local ImuUMXID= Vector2["new"](qxxuWHnX_p0["ViewportSize"]["X"]/2,qxxuWHnX_p0["ViewportSize"]["Y"]/(521-519))
+local vwbHDo1= Vector2["new"](HoM10xblpWb["X"],HoM10xblpWb["Y"])
+local lox1u1uIuo=(vwbHDo1- ImuUMXID)["Magnitude"]
+return lox1u1uIuo<= D_UInxMv
 end
-function MainState._ONZmmHUz()
-local v64 = Instance.new("ScreenGui")
-v64.Name = "BolongSpearFOV";
-v64.ResetOnSpawn = false;
-v64.DisplayOrder = 999999 pcall(
-function()
-v64.Parent = (gethui and gethui() or game:GetService("CoreGui"))
+function b0W0wpHoxmHDWX._ONZmmHUz()
+local bv01ZlI= Instance["new"]("ScreenGui") bv01ZlI["Name"]="BolongSpearFOV";
+bv01ZlI["ResetOnSpawn"]= false;
+bv01ZlI["DisplayOrder"]=999999 w_ZpoH0p1["bHopuzIW"](
+function() bv01ZlI["Parent"]=(gethui and gethui() or game["GetService"](game,"CoreGui"))
 end)
-if not v64.Parent then
-v64.Parent = PlayerGui
-end
-ESPState.SpearFOVCircle = Instance.new("Frame")
-ESPState.SpearFOVCircle.Size = UDim2.new(0, Settings.spearFovRadius* 2, 0, Settings.spearFovRadius* 2)
-ESPState.SpearFOVCircle.Position = UDim2.new(0.5, 0, 0.5, 0)
-ESPState.SpearFOVCircle.AnchorPoint = Vector2.new(0.5, 0.5)
-ESPState.SpearFOVCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-ESPState.SpearFOVCircle.BackgroundTransparency = 1;
-ESPState.SpearFOVCircle.Visible = false ESPState.SpearFOVCircle.Parent = v64
-local v65 = Instance.new("UICorner");
-v65.CornerRadius = UDim.new(1, 0);
-v65.Parent = ESPState.SpearFOVCirclelocal val26 = Instance.new("UIStroke")
-val26.Color = NotifyColor;
-val26.Thickness = 2;
-val26.Transparency = 0.2;
-val26.Parent = ESPState.SpearFOVCircleend MainState._ONZmmHUz()
-function MainState.Bvolu1()
-local val27 = Instance.new("ScreenGui")
-val27.Name = "SpearIndicatorUI";
-val27.ResetOnSpawn = false;
-val27.Enabled = false val27.DisplayOrder = 999998;
-val27.IgnoreGuiInset = true pcall(
-function()
-val27.Parent = (gethui and gethui() or game:GetService("CoreGui"))
+if not bv01ZlI["Parent"] then
+bv01ZlI["Parent"]= lXUHZ
+end HM1uHIZZl0["SpearFOVCircle"]= Instance["new"]("Frame") HM1uHIZZl0["SpearFOVCircle"]["Size"]= UDim2["new"](0,Wv0HMNDowvn["spearFovRadius"]*2,(237-237),Wv0HMNDowvn["spearFovRadius"]*2) HM1uHIZZl0["SpearFOVCircle"]["Position"]= UDim2["new"](0.5,0,0.5,0) HM1uHIZZl0["SpearFOVCircle"]["AnchorPoint"]= Vector2["new"](0.5,0.5) HM1uHIZZl0["SpearFOVCircle"]["BackgroundColor3"]= Color3["fromRGB"](255,255,255) HM1uHIZZl0["SpearFOVCircle"]["BackgroundTransparency"]=1;
+HM1uHIZZl0["SpearFOVCircle"]["Visible"]= false HM1uHIZZl0["SpearFOVCircle"]["Parent"]= bv01ZlI
+local lMHbwUw= Instance["new"]("UICorner");
+lMHbwUw["CornerRadius"]= UDim["new"](1,0);
+lMHbwUw["Parent"]= HM1uHIZZl0["SpearFOVCircle"]
+local oHzvuluWW= Instance["new"]("UIStroke") oHzvuluWW["Color"]= bH0vx;
+oHzvuluWW["Thickness"]=2;
+oHzvuluWW["Transparency"]=0.2;
+oHzvuluWW["Parent"]= HM1uHIZZl0["SpearFOVCircle"]
+end b0W0wpHoxmHDWX._ONZmmHUz()
+function b0W0wpHoxmHDWX.Bvolu1()
+local umDlo= Instance["new"]("ScreenGui") umDlo["Name"]="SpearIndicatorUI";
+umDlo["ResetOnSpawn"]= false;
+umDlo["Enabled"]= false umDlo["DisplayOrder"]=(1000546-548);
+umDlo["IgnoreGuiInset"]= true w_ZpoH0p1["bHopuzIW"](
+function() umDlo["Parent"]=(gethui and gethui() or game["GetService"](game,"CoreGui"))
 end)
-if not val27.Parent then
-val27.Parent = PlayerGui
-end
-ESPState.SpearMainFrame = Instance.new("Frame")
-ESPState.SpearMainFrame.Name = "MainFrame" ESPState.SpearMainFrame.Size = UDim2.new(0, 180, 0, 42)
-ESPState.SpearMainFrame.Position = UDim2.new(0.5, 0, 0.82, 0)
-ESPState.SpearMainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-ESPState.SpearMainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-ESPState.SpearMainFrame.BackgroundTransparency = 0.1 ESPState.SpearMainFrame.BorderSizePixel = 0 ESPState.SpearMainFrame.Parent = val27
-local flag29 = Instance.new("UICorner");
-flag29.CornerRadius = UDim.new(0, 8);
-flag29.Parent = ESPState.SpearMainFramelocal Tmp2 = Instance.new("UIStroke")
-Tmp2.Color = Color3.fromRGB(45, 45, 55);
-Tmp2.Thickness = 1;
-Tmp2.Transparency = 0.2;
-Tmp2.Parent = ESPState.SpearMainFrame
-local inst153 = Instance.new("UIGradient")
-inst153.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 40)), ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 20))})
-inst153.Rotation = 90;
-inst153.Parent = ESPState.SpearMainFrame ESPState.SpearAccentBar = Instance.new("Frame")
-ESPState.SpearAccentBar.Name = "AccentBar" ESPState.SpearAccentBar.Size = UDim2.new(0, 3, 1,- 12)
-ESPState.SpearAccentBar.Position = UDim2.new(0, 6, 0, 6)
-ESPState.SpearAccentBar.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-ESPState.SpearAccentBar.BorderSizePixel = 0;
-ESPState.SpearAccentBar.Parent = ESPState.SpearMainFrame
-local remote11 = Instance.new("UICorner");
-remote11.CornerRadius = UDim.new(1, 0);
-remote11.Parent = ESPState.SpearAccentBarESPState.SpearStatusText = Instance.new("TextLabel")
-ESPState.SpearStatusText.Name = "StatusText" ESPState.SpearStatusText.Size = UDim2.new(1,- 18, 0, 18)
-ESPState.SpearStatusText.Position = UDim2.new(0, 14, 0, 5)
-ESPState.SpearStatusText.BackgroundTransparency = 1 HM1uHIZZl0.SpearStatusText.Text = "NO TARGET" ESPState.SpearStatusText.TextColor3 = Color3.fromRGB(255, 255, 255)
-ESPState.SpearStatusText.TextSize = 13;
-ESPState.SpearStatusText.Font = Enum.Font.GothamBoldESPState.SpearStatusText.TextXAlignment = Enum.TextXAlignment.LeftESPState.SpearStatusText.TextTruncate = Enum.TextTruncate.AtEndESPState.SpearStatusText.Parent = ESPState.SpearMainFrame ESPState.SpearInfoText = Instance.new("TextLabel")
-ESPState.SpearInfoText.Name = "InfoText" ESPState.SpearInfoText.Size = UDim2.new(1,- 18, 0, 14)
-ESPState.SpearInfoText.Position = UDim2.new(0, 14, 0, 23)
-ESPState.SpearInfoText.BackgroundTransparency = 1 HM1uHIZZl0.SpearInfoText.Text = "Aim to Survivor" ESPState.SpearInfoText.TextColor3 = Color3.fromRGB(160, 160, 170)
-ESPState.SpearInfoText.TextSize = 10;
-ESPState.SpearInfoText.Font = Enum.Font.Gotham ESPState.SpearInfoText.TextXAlignment = Enum.TextXAlignment.Left ESPState.SpearInfoText.TextTruncate = Enum.TextTruncate.AtEnd ESPState.SpearInfoText.Parent = ESPState.SpearMainFrameESPState.SpearIndicatorGui = val27
-end
-MainState.Bvolu1()
-function MainState.Bznqp()
-ESPState.SnapLineGui = Instance.new("ScreenGui")
-ESPState.SnapLineGui.Name = "SpearVeil_SnapLine" ESPState.SnapLineGui.IgnoreGuiInset = true;
-ESPState.SnapLineGui.ResetOnSpawn = false ESPState.SnapLineGui.DisplayOrder = 999999 pcall(
-function()
-ESPState.SnapLineGui.Parent = (gethui and gethui() or game:GetService("CoreGui"))
+if not umDlo["Parent"] then
+umDlo["Parent"]= lXUHZ
+end HM1uHIZZl0["SpearMainFrame"]= Instance["new"]("Frame") HM1uHIZZl0["SpearMainFrame"]["Name"]="MainFrame" HM1uHIZZl0["SpearMainFrame"]["Size"]= UDim2["new"](0,180,(-232+232),42) HM1uHIZZl0["SpearMainFrame"]["Position"]= UDim2["new"](0.5,0,0.82,(-931+931)) HM1uHIZZl0["SpearMainFrame"]["AnchorPoint"]= Vector2["new"](0.5,0.5) HM1uHIZZl0["SpearMainFrame"]["BackgroundColor3"]= Color3["fromRGB"](20,20,25) HM1uHIZZl0["SpearMainFrame"]["BackgroundTransparency"]=0.1 HM1uHIZZl0["SpearMainFrame"]["BorderSizePixel"]=0 HM1uHIZZl0["SpearMainFrame"]["Parent"]= umDlo
+local BwWXUozxQQbQZM= Instance["new"]("UICorner");
+BwWXUozxQQbQZM["CornerRadius"]= UDim["new"]((118-118),(261-253));
+BwWXUozxQQbQZM["Parent"]= HM1uHIZZl0["SpearMainFrame"]
+local DUImup00N= Instance["new"]("UIStroke") DUImup00N["Color"]= Color3["fromRGB"]((-944+989),(89-44),(-413+468));
+DUImup00N["Thickness"]=1;
+DUImup00N["Transparency"]=0.2;
+DUImup00N["Parent"]= HM1uHIZZl0["SpearMainFrame"]
+local W1pmlQu1v= Instance["new"]("UIGradient") W1pmlQu1v["Color"]= ColorSequence["new"]({ColorSequenceKeypoint["new"]((100-100),Color3["fromRGB"](35,35,(667-627))),ColorSequenceKeypoint["new"](1,Color3["fromRGB"]((-262+277),15,20))}) W1pmlQu1v["Rotation"]=(-814+904);
+W1pmlQu1v["Parent"]= HM1uHIZZl0["SpearMainFrame"] HM1uHIZZl0["SpearAccentBar"]= Instance["new"]("Frame") HM1uHIZZl0["SpearAccentBar"]["Name"]="AccentBar" HM1uHIZZl0["SpearAccentBar"]["Size"]= UDim2["new"](0,(732-729),1,-12) HM1uHIZZl0["SpearAccentBar"]["Position"]= UDim2["new"](0,6,0,6) HM1uHIZZl0["SpearAccentBar"]["BackgroundColor3"]= Color3["fromRGB"](200,(1148-948),(-629+829)) HM1uHIZZl0["SpearAccentBar"]["BorderSizePixel"]=(-187+187);
+HM1uHIZZl0["SpearAccentBar"]["Parent"]= HM1uHIZZl0["SpearMainFrame"]
+local _1vZ1nn= Instance["new"]("UICorner");
+_1vZ1nn["CornerRadius"]= UDim["new"](1,(-339+339));
+_1vZ1nn["Parent"]= HM1uHIZZl0["SpearAccentBar"] HM1uHIZZl0["SpearStatusText"]= Instance["new"]("TextLabel") HM1uHIZZl0["SpearStatusText"]["Name"]="StatusText" HM1uHIZZl0["SpearStatusText"]["Size"]= UDim2["new"]((268-267),-18,(952-952),(921-903)) HM1uHIZZl0["SpearStatusText"]["Position"]= UDim2["new"](0,14,0,5) HM1uHIZZl0["SpearStatusText"]["BackgroundTransparency"]=(-794+795) HM1uHIZZl0["SpearStatusText"]["Text"]="NO TARGET" HM1uHIZZl0["SpearStatusText"]["TextColor3"]= Color3["fromRGB"](255,(176+79),255) HM1uHIZZl0["SpearStatusText"]["TextSize"]=(233-220);
+HM1uHIZZl0["SpearStatusText"]["Font"]= Enum["Font"]["GothamBold"] HM1uHIZZl0["SpearStatusText"]["TextXAlignment"]= Enum["TextXAlignment"]["Left"] HM1uHIZZl0["SpearStatusText"]["TextTruncate"]= Enum["TextTruncate"]["AtEnd"] HM1uHIZZl0["SpearStatusText"]["Parent"]= HM1uHIZZl0["SpearMainFrame"] HM1uHIZZl0["SpearInfoText"]= Instance["new"]("TextLabel") HM1uHIZZl0["SpearInfoText"]["Name"]="InfoText" HM1uHIZZl0["SpearInfoText"]["Size"]= UDim2["new"](1,-(-325+343),(59-59),(573-559)) HM1uHIZZl0["SpearInfoText"]["Position"]= UDim2["new"]((242-242),14,0,(696-673)) HM1uHIZZl0["SpearInfoText"]["BackgroundTransparency"]=(871-870) HM1uHIZZl0["SpearInfoText"]["Text"]="Aim to Survivor" HM1uHIZZl0["SpearInfoText"]["TextColor3"]= Color3["fromRGB"]((1041-881),160,(85+85)) HM1uHIZZl0["SpearInfoText"]["TextSize"]=10;
+HM1uHIZZl0["SpearInfoText"]["Font"]= Enum["Font"]["Gotham"] HM1uHIZZl0["SpearInfoText"]["TextXAlignment"]= Enum["TextXAlignment"]["Left"] HM1uHIZZl0["SpearInfoText"]["TextTruncate"]= Enum["TextTruncate"]["AtEnd"] HM1uHIZZl0["SpearInfoText"]["Parent"]= HM1uHIZZl0["SpearMainFrame"] HM1uHIZZl0["SpearIndicatorGui"]= umDlo
+end b0W0wpHoxmHDWX.Bvolu1()
+function b0W0wpHoxmHDWX.Bznqp() HM1uHIZZl0["SnapLineGui"]= Instance["new"]("ScreenGui") HM1uHIZZl0["SnapLineGui"]["Name"]="SpearVeil_SnapLine" HM1uHIZZl0["SnapLineGui"]["IgnoreGuiInset"]= true;
+HM1uHIZZl0["SnapLineGui"]["ResetOnSpawn"]= false HM1uHIZZl0["SnapLineGui"]["DisplayOrder"]=(999088+911) w_ZpoH0p1["bHopuzIW"](
+function() HM1uHIZZl0["SnapLineGui"]["Parent"]=(gethui and gethui() or game["GetService"](game,"CoreGui"))
 end)
-if not ESPState.SnapLineGui.Parentthen ESPState.SnapLineGui.Parent = PlayerGui
+if not HM1uHIZZl0["SnapLineGui"]["Parent"] then
+HM1uHIZZl0["SnapLineGui"]["Parent"]= lXUHZ
+end HM1uHIZZl0["SnapLineFrame"]= Instance["new"]("Frame") HM1uHIZZl0["SnapLineFrame"]["Name"]="Line" HM1uHIZZl0["SnapLineFrame"]["AnchorPoint"]= Vector2["new"](0.5,0.5) HM1uHIZZl0["SnapLineFrame"]["BorderSizePixel"]=(-599+599) HM1uHIZZl0["SnapLineFrame"]["BackgroundColor3"]= Color3["fromRGB"]((-339+594),220,(123-123)) HM1uHIZZl0["SnapLineFrame"]["BackgroundTransparency"]=0.35 HM1uHIZZl0["SnapLineFrame"]["Visible"]= false;
+HM1uHIZZl0["SnapLineFrame"]["Parent"]= HM1uHIZZl0["SnapLineGui"] HM1uHIZZl0["SnapLineDot"]= Instance["new"]("Frame") HM1uHIZZl0["SnapLineDot"]["Name"]="Dot" HM1uHIZZl0["SnapLineDot"]["AnchorPoint"]= Vector2["new"](0.5,0.5) HM1uHIZZl0["SnapLineDot"]["BorderSizePixel"]=(858-858) HM1uHIZZl0["SnapLineDot"]["BackgroundColor3"]= Color3["fromRGB"](255,220,(-143+143)) HM1uHIZZl0["SnapLineDot"]["BackgroundTransparency"]=0 HM1uHIZZl0["SnapLineDot"]["Size"]= UDim2["fromOffset"]((108-104),(-235+239)) HM1uHIZZl0["SnapLineDot"]["Visible"]= false;
+HM1uHIZZl0["SnapLineDot"]["Parent"]= HM1uHIZZl0["SnapLineGui"]
+local ppWZDlMxM1Zz= Instance["new"]("UICorner");
+ppWZDlMxM1Zz["CornerRadius"]= UDim["new"](1,0);
+ppWZDlMxM1Zz["Parent"]= HM1uHIZZl0["SnapLineDot"] HM1uHIZZl0["SnapLineTextLabel"]= Instance["new"]("TextLabel") HM1uHIZZl0["SnapLineTextLabel"]["Name"]="InfoText" HM1uHIZZl0["SnapLineTextLabel"]["AnchorPoint"]= Vector2["new"](0.5,1) HM1uHIZZl0["SnapLineTextLabel"]["Size"]= UDim2["new"]((-381+381),(-135+335),0,16) HM1uHIZZl0["SnapLineTextLabel"]["BackgroundTransparency"]=(-552+553) HM1uHIZZl0["SnapLineTextLabel"]["Text"]="" HM1uHIZZl0["SnapLineTextLabel"]["TextColor3"]= Color3["fromRGB"]((-72+327),255,(817-562)) HM1uHIZZl0["SnapLineTextLabel"]["TextSize"]=12;
+HM1uHIZZl0["SnapLineTextLabel"]["Font"]= Enum["Font"]["GothamBold"] HM1uHIZZl0["SnapLineTextLabel"]["TextStrokeTransparency"]=(732-732) HM1uHIZZl0["SnapLineTextLabel"]["TextStrokeColor3"]= Color3["new"]((-622+622),(613-613),(553-553)) HM1uHIZZl0["SnapLineTextLabel"]["TextXAlignment"]= Enum["TextXAlignment"]["Center"] HM1uHIZZl0["SnapLineTextLabel"]["TextTruncate"]= Enum["TextTruncate"]["AtEnd"] HM1uHIZZl0["SnapLineTextLabel"]["Visible"]= false;
+HM1uHIZZl0["SnapLineTextLabel"]["Parent"]= HM1uHIZZl0["SnapLineGui"]
+end b0W0wpHoxmHDWX.Bznqp()
+function b0W0wpHoxmHDWX.Wlx1W0xW(WpUuO1bQbqvqOW,BH_lz_O1D_QU,MODqwXnbn1Iz,qUxWlwvHZX)
+local lZDoumw0Olul= math["cos"](BH_lz_O1D_QU)
+if lZDoumw0Olul<= 0.015 then
+    return nil,nil
 end
-ESPState.SnapLineFrame = Instance.new("Frame")
-ESPState.SnapLineFrame.Name = "Line" ESPState.SnapLineFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-ESPState.SnapLineFrame.BorderSizePixel = 0 HM1uHIZZl0.SnapLineFrame.BackgroundColor3 = Color3.fromRGB(255, 220, 0)
-ESPState.SnapLineFrame.BackgroundTransparency = 0.35 ESPState.SnapLineFrame.Visible = false;
-ESPState.SnapLineFrame.Parent = ESPState.SnapLineGui ESPState.SnapLineDot = Instance.new("Frame")
-ESPState.SnapLineDot.Name = "Dot" ESPState.SnapLineDot.AnchorPoint = Vector2.new(0.5, 0.5)
-ESPState.SnapLineDot.BorderSizePixel = 0 ESPState.SnapLineDot.BackgroundColor3 = Color3.fromRGB(255, 220, 0)
-ESPState.SnapLineDot.BackgroundTransparency = 0 ESPState.SnapLineDot.Size = UDim2.fromOffset(4, 4)
-ESPState.SnapLineDot.Visible = false;
-ESPState.SnapLineDot.Parent = ESPState.SnapLineGuilocal inst154 = Instance.new("UICorner");
-inst154.CornerRadius = UDim.new(1, 0);
-inst154.Parent = ESPState.SnapLineDot ESPState.SnapLineTextLabel = Instance.new("TextLabel")
-ESPState.SnapLineTextLabel.Name = "InfoText" ESPState.SnapLineTextLabel.AnchorPoint = Vector2.new(0.5, 1)
-ESPState.SnapLineTextLabel.Size = UDim2.new(0, 200, 0, 16)
-ESPState.SnapLineTextLabel.BackgroundTransparency = 1 ESPState.SnapLineTextLabel.Text = "" ESPState.SnapLineTextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-ESPState.SnapLineTextLabel.TextSize = 12;
-ESPState.SnapLineTextLabel.Font = Enum.Font.GothamBoldESPState.SnapLineTextLabel.TextStrokeTransparency = 0 HM1uHIZZl0.SnapLineTextLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-ESPState.SnapLineTextLabel.TextXAlignment = Enum.TextXAlignment.Center ESPState.SnapLineTextLabel.TextTruncate = Enum.TextTruncate.AtEndESPState.SnapLineTextLabel.Visible = false;
-ESPState.SnapLineTextLabel.Parent = ESPState.SnapLineGuiend MainState.Bznqp()
-function MainState.Wlx1W0xW(WpUuO1bQbqvqOW, BH_lz_O1D_QU, MODqwXnbn1Iz, qUxWlwvHZX)
-local gui76 = math.cos(BH_lz_O1D_QU)
-if gui76<= 0.015 then
- return nil, nil
+local OZmnlX0= WpUuO1bQbqvqOW/(MODqwXnbn1Iz* lZDoumw0Olul)
+if OZmnlX0~= OZmnlX0 or OZmnlX0<=(-161+161) then
+    return nil,nil
 end
-local gui77 = WpUuO1bQbqvqOW/(MODqwXnbn1Iz* gui76)
-if gui77~= gui77 or gui77<= 0 then
- return nil, nil
+local Mv0x0HI1pbbmXz=(227-226)/(221-161)
+local plbn1ZmwxlpZbQ=0.5* qUxWlwvHZX* Mv0x0HI1pbbmXz* OZmnlX0
+local DxoQlvDUxHWxXW= MODqwXnbn1Iz* math["sin"](BH_lz_O1D_QU)* OZmnlX0-(0.5* qUxWlwvHZX* OZmnlX0* OZmnlX0)- plbn1ZmwxlpZbQ
+return DxoQlvDUxHWxXW,OZmnlX0
 end
-local gui78 = 1/ 60
-local gui79 = 0.5* qUxWlwvHZX* gui78* gui77
-local gui80 = MODqwXnbn1Iz* math.sin(BH_lz_O1D_QU)* gui77-(0.5* qUxWlwvHZX* gui77* gui77)- gui79
-return gui80, gui77
-end
-function MainState.oIO1v(pOMWuuQm, bZ00l, pmIHpDvpplMp, lMpMW, HUqXuvXuWXu_)
-local qDzpoH0qXNM1Wu, lv_NWuq_pDX0l = MainState.Wlx1W0xW(pOMWuuQm, pmIHpDvpplMp, lMpMW, HUqXuvXuWXu_)
+function b0W0wpHoxmHDWX.oIO1v(pOMWuuQm,bZ00l,pmIHpDvpplMp,lMpMW,HUqXuvXuWXu_)
+local qDzpoH0qXNM1Wu,lv_NWuq_pDX0l= b0W0wpHoxmHDWX.Wlx1W0xW(pOMWuuQm,pmIHpDvpplMp,lMpMW,HUqXuvXuWXu_)
 if not qDzpoH0qXNM1Wu or not lv_NWuq_pDX0l then
- return nil
+    return nil
 end
-if lv_NWuq_pDX0l< 0.025 or lv_NWuq_pDX0l> 5 then
- return nil
+if lv_NWuq_pDX0l<0.025 or lv_NWuq_pDX0l>5 then
+    return nil
 end
-local gui81 = math.abs(qDzpoH0qXNM1Wu- bZ00l)
-local gui82 = math.max(pmIHpDvpplMp- Angle42, 0)* 0.35
-local NwMqv = math.max(lv_NWuq_pDX0l- 1.3, 0)* 0.25
-return gui81+ gui82+ NwMqv, gui81, lv_NWuq_pDX0l
+local bWlpq= w_ZpoH0p1["lqWzNNmZIlpXZ"](qDzpoH0qXNM1Wu- bZ00l)
+local wOnzz0OW1Xxq= w_ZpoH0p1["lZUWvp_XuN"](pmIHpDvpplMp- bQnHb0zmnnW1Z_,(499-499))*0.35
+local NwMqv= w_ZpoH0p1["lZUWvp_XuN"](lv_NWuq_pDX0l-1.3,0)*0.25
+return bWlpq+ wOnzz0OW1Xxq+ NwMqv,bWlpq,lv_NWuq_pDX0l
 end
-function MainState.MqHuIln(qDWnbvupq, vlW1OHDx, MXMWUZn, MIlmOQHI)
+function b0W0wpHoxmHDWX.MqHuIln(qDWnbvupq,vlW1OHDx,MXMWUZn,MIlmOQHI)
 if MXMWUZn<= 0 then
-MXMWUZn = 142.5
+MXMWUZn=142.5
 end
 if MIlmOQHI<= 0 then
-MIlmOQHI = 196.2
+MIlmOQHI=196.2
 end
-local char36 = vlW1OHDx- qDWnbvupq
-local inst155 = Vector3.new(char36.X, 0, char36.Z)
-local Iopppl = inst155.Magnitudelocal inst156 = char36.Y
-if char36.Magnitude<= 0.001 then
- return nil
+local QqNpXI1ZMxU= vlW1OHDx- qDWnbvupq
+local vwn1X= Vector3["new"](QqNpXI1ZMxU["X"],0,QqNpXI1ZMxU["Z"])
+local Iopppl= vwn1X["Magnitude"]
+local lnn0WNZ= QqNpXI1ZMxU["Y"]
+if QqNpXI1ZMxU["Magnitude"]<= 0.001 then
+    return nil
 end
 if Iopppl<= 0.35 or MIlmOQHI<= 0.001 then
- return char36.Unit, math.clamp(char36.Magnitude/ MXMWUZn, 0.025, 5)
+    return QqNpXI1ZMxU["Unit"],w_ZpoH0p1["_WXbbv_1_HnO"](QqNpXI1ZMxU["Magnitude"]/ MXMWUZn,0.025,5)
 end
-local char37 = inst155.Unitlocal char38 = math.atan2(inst156, Iopppl)
-local char39 = math.max(- Angle28, char38- Angle18)
-local val28 = Angle72
-local QpwzDvQvX, IoXwDmzowvXbU, QxlObm0WO, bzlz1QD1DXvW = nil, math.huge, math.huge, nil
-local val29 = 30 do
- local val30 = bit32.band(369, 0)
- local val31 = bit32.bor(val30, 571)- 571
+local bZ0xl0mb= vwn1X["Unit"]
+local H_UWmn= math["atan2"](lnn0WNZ,Iopppl)
+local OpvMHpHpXN_vZ= w_ZpoH0p1["lZUWvp_XuN"](- o0xuulOwqZzqoq,H_UWmn- OplO01_N)
+local lQovnQD= DXxXZIHnb0H
+local QpwzDvQvX,IoXwDmzowvXbU,QxlObm0WO,bzlz1QD1DXvW= nil,math["huge"],math["huge"],nil
+local B1qMwpwxn=30 do
+    local IzN0DMzZWuI= bit32.band(369,0)
+    local pzOxz1luODDUM= bit32.bor(IzN0DMzZWuI,571)-571
 end
-for pzWN01unm = 0, val29 do
- local val32 = char39+(val28- char39)*(pzWN01unm/ val29)
- local Im1M_l11z0, ql_pn, lONQu = MainState.oIO1v(Iopppl, inst156, val32, MXMWUZn, MIlmOQHI)
- if Im1M_l11z0 and Im1M_l11z0< IoXwDmzowvXbU then
-IoXwDmzowvXbU, QxlObm0WO, QpwzDvQvX, bzlz1QD1DXvW = Im1M_l11z0, ql_pn, val32, lONQu
- if QxlObm0WO< SmallOffset then
+for pzWN01unm=0,B1qMwpwxn do
+    local BxW1bzMXXDOm= OpvMHpHpXN_vZ+(lQovnQD- OpvMHpHpXN_vZ)*(pzWN01unm/ B1qMwpwxn)
+    local Im1M_l11z0,ql_pn,lONQu= b0W0wpHoxmHDWX.oIO1v(Iopppl,lnn0WNZ,BxW1bzMXXDOm,MXMWUZn,MIlmOQHI)
+    if Im1M_l11z0 and Im1M_l11z0< IoXwDmzowvXbU then
+IoXwDmzowvXbU,QxlObm0WO,QpwzDvQvX,bzlz1QD1DXvW= Im1M_l11z0,ql_pn,BxW1bzMXXDOm,lONQu
+        if QxlObm0WO< bOQbMlXUwwWx then
 break
- end
-end
+        end
+    end
 end
 if QpwzDvQvX then
- local HMNMN = (val28- char39)/ val29* 2.5
- local flag30 = (QxlObm0WO< SmallOffset) and 1 or 4
- for NwvmmmvvoWw = 1, flag30 do
- local pZumMoH0DzbUbD, _on_z, DxNXwp1xOOU, w_nUqDWxW = QpwzDvQvX, IoXwDmzowvXbU, QxlObm0WO, bzlz1QD1DXvW
- for pZzwNxD = -3, 3 do
- local inst157 = math.clamp(QpwzDvQvX+ HMNMN*(pZzwNxD/ 3), char39, val28)
- local pXxIUqDwzqU, Mu0xw1ul1vQ, wN1qup1xQ1U = MainState.oIO1v(Iopppl, inst156, inst157, MXMWUZn, MIlmOQHI)
- if pXxIUqDwzqU and pXxIUqDwzqU< _on_z then
-_on_z, DxNXwp1xOOU, pZumMoH0DzbUbD, w_nUqDWxW = pXxIUqDwzqU, Mu0xw1ul1vQ, inst157, wN1qup1xQ1U
- end
-end QpwzDvQvX, IoXwDmzowvXbU, QxlObm0WO, bzlz1QD1DXvW = pZumMoH0DzbUbD, _on_z, DxNXwp1xOOU, w_nUqDWxW
- if QxlObm0WO< SmallOffset then
+    local HMNMN=(lQovnQD- OpvMHpHpXN_vZ)/ B1qMwpwxn*2.5
+    local lQmx0Q1WQqq=(QxlObm0WO< bOQbMlXUwwWx) and 1 or(158-154)
+    for NwvmmmvvoWw=(895-894),lQmx0Q1WQqq do
+        local pZumMoH0DzbUbD,_on_z,DxNXwp1xOOU,w_nUqDWxW= QpwzDvQvX,IoXwDmzowvXbU,QxlObm0WO,bzlz1QD1DXvW
+        for pZzwNxD=-(-69+72),(-274+277) do
+            local vWqzxlXXX1= w_ZpoH0p1["_WXbbv_1_HnO"](QpwzDvQvX+ HMNMN*(pZzwNxD/3),OpvMHpHpXN_vZ,lQovnQD)
+            local pXxIUqDwzqU,Mu0xw1ul1vQ,wN1qup1xQ1U= b0W0wpHoxmHDWX.oIO1v(Iopppl,lnn0WNZ,vWqzxlXXX1,MXMWUZn,MIlmOQHI)
+            if pXxIUqDwzqU and pXxIUqDwzqU< _on_z then
+_on_z,DxNXwp1xOOU,pZumMoH0DzbUbD,w_nUqDWxW= pXxIUqDwzqU,Mu0xw1ul1vQ,vWqzxlXXX1,wN1qup1xQ1U
+            end
+        end QpwzDvQvX,IoXwDmzowvXbU,QxlObm0WO,bzlz1QD1DXvW= pZumMoH0DzbUbD,_on_z,DxNXwp1xOOU,w_nUqDWxW
+        if QxlObm0WO< bOQbMlXUwwWx then
 break
- end
-HMNMN = HMNMN* 0.38
- end
+        end HMNMN= HMNMN*0.38
+    end
 end
 if not QpwzDvQvX then
- local val33 = math.clamp(Iopppl/ MXMWUZn, 0.025, 5)
- local val34 = vlW1OHDx+ Vector3.new(0, 0.5* MIlmOQHI* val33* val33, 0)
- local val35 = val34- qDWnbvupq
- if val35.Magnitude<= 0.001 then
- return nil
- end
-return val35.Unit, val33
+    local w0UQHoZHMH= w_ZpoH0p1["_WXbbv_1_HnO"](Iopppl/ MXMWUZn,0.025,5)
+    local WnXoDZpu= vlW1OHDx+ Vector3["new"](0,0.5* MIlmOQHI* w0UQHoZHMH* w0UQHoZHMH,(337-337))
+    local MUopUO= WnXoDZpu- qDWnbvupq
+    if MUopUO["Magnitude"]<= 0.001 then
+        return nil
+    end
+    return MUopUO["Unit"],w0UQHoZHMH
 end
-local flag31 = char37* math.cos(QpwzDvQvX)+ Vector3.new(0, math.sin(QpwzDvQvX), 0)
-if flag31.Magnitude<= 0.001 then
- if(0> 1) then
- if(221< 497) then
- local char40 = 221+ 497
- end
+local bw_wDDwMWx= bZ0xl0mb* math["cos"](QpwzDvQvX)+ Vector3["new"](0,math["sin"](QpwzDvQvX),(-157+157))
+if bw_wDDwMWx["Magnitude"]<= 0.001 then
+    if(0>1) then
+        if(221<497) then
+            local qbDUHm1QlMoD1=221+497
+        end
+    end
+    return nil
 end
- return nil
+return bw_wDDwMWx["Unit"],bzlz1QD1DXvW
 end
-return flag31.Unit, bzlz1QD1DXvW
+function b0W0wpHoxmHDWX.vpDvmUq(q00HInHX0,_qZ0xw,NOwXIDzvXX,wDzZmp_p0m_oo)
+if NOwXIDzvXX<=(936-936) or wDzZmp_p0m_oo<=(737-737) then
+    return false
 end
-function MainState.vpDvmUq(q00HInHX0, _qZ0xw, NOwXIDzvXX, wDzZmp_p0m_oo)
-if NOwXIDzvXX<= 0 or wDzZmp_p0m_oo<= 0 then
- return false
+local vb0qllMol1,uvoumZnNuNXoI,v0NQ1wOumuHvw,_XoQIuUzz0NW= q00HInHX0,_qZ0xw,NOwXIDzvXX,wDzZmp_p0m_oo
+local pUlp1nzv1v_z_=(_XoQIuUzz0NW* vb0qllMol1* vb0qllMol1)/((-319+321)* v0NQ1wOumuHvw* v0NQ1wOumuHvw)
+if pUlp1nzv1v_z_<= 0 then
+    return false
 end
-local vb0qllMol1, uvoumZnNuNXoI, v0NQ1wOumuHvw, _XoQIuUzz0NW = q00HInHX0, _qZ0xw, NOwXIDzvXX, wDzZmp_p0m_oo
-local flag32 = (_XoQIuUzz0NW* vb0qllMol1* vb0qllMol1)/(2* v0NQ1wOumuHvw* v0NQ1wOumuHvw)
-if flag32<= 0 then
- return false
+local bumDuWQWQON,qxWb0NlMHXbmNv,NpoNDMMpwx= pUlp1nzv1v_z_,- vb0qllMol1,uvoumZnNuNXoI+ pUlp1nzv1v_z_
+return(qxWb0NlMHXbmNv* qxWb0NlMHXbmNv-4* bumDuWQWQON* NpoNDMMpwx)>=(-334+334)
 end
-local bumDuWQWQON, qxWb0NlMHXbmNv, NpoNDMMpwx = flag32,- vb0qllMol1, uvoumZnNuNXoI+ flag32
-return(qxWb0NlMHXbmNv* qxWb0NlMHXbmNv- 4* bumDuWQWQON* NpoNDMMpwx)>= 0
+function b0W0wpHoxmHDWX.BQOObX(qnNUMI,BlzQl0,q_x_WUQUoO_v)
+for WumzQw=0.1,3.0,0.05 do
+    local HIbQlwI0qMNn=(-510+533)
+    if WumzQw<1 then
+HIbQlwI0qMNn= w_ZpoH0p1["lZUWvp_XuN"](23,WumzQw*(709-559))
+    elseif WumzQw<(-143+145) then
+HIbQlwI0qMNn=142.5
+    else HIbQlwI0qMNn=165
 end
-function MainState.BQOObX(qnNUMI, BlzQl0, q_x_WUQUoO_v)
-for WumzQw = 0.1, 3.0, 0.05 do
- local gui83 = 23
- if WumzQw< 1 then
-gui83 = math.max(23, WumzQw* 150)
- elseif WumzQw< 2 then
-gui83 = 142.5
- else gui83 = 165
-end
-if MainState.vpDvmUq(qnNUMI, BlzQl0, gui83, q_x_WUQUoO_v) then
- return WumzQw
+if b0W0wpHoxmHDWX.vpDvmUq(qnNUMI,BlzQl0,HIbQlwI0qMNn,q_x_WUQUoO_v) then
+    return WumzQw
 end
 end
 return nil
-end
-do
-MainState.vbbz0lv = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Killers"):WaitForChild("Veil"):WaitForChild("Spearthrow")
-MainState.u0uHqHxm0DHI = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Mechanics"):WaitForChild("visualize")
-MainState.u0uHqHxm0DHI.OnClientEvent:Connect(
- function(NQ1nvw, BXZl_, NWMIwUoHQOZo_W, NnubI0U0oOm)
- if NQ1nvw== LocalPlayer.Character then
- if type(NWMIwUoHQOZo_W)=="number" and NWMIwUoHQOZo_W> 0 then
-ESPState.lastSpearSpeed = NWMIwUoHQOZo_W
- end
-if type(NnubI0U0oOm)=="number" and NnubI0U0oOm>= 0 then
-ESPState.lastGravityMult = NnubI0U0oOm
- end
-end
-end)
-MainState.N_ulNqbOqbD0 = hookmetamethod(game,"__namecall",
+end do
+b0W0wpHoxmHDWX.vbbz0lv= DMNlwumvQ0Mmvp["WaitForChild"](DMNlwumvQ0Mmvp,"Remotes"):WaitForChild("Killers"):WaitForChild("Veil"):WaitForChild("Spearthrow") b0W0wpHoxmHDWX.u0uHqHxm0DHI= DMNlwumvQ0Mmvp["WaitForChild"](DMNlwumvQ0Mmvp,"Remotes"):WaitForChild("Mechanics"):WaitForChild("visualize") b0W0wpHoxmHDWX.u0uHqHxm0DHI["OnClientEvent"]:Connect(
+    function(NQ1nvw,BXZl_,NWMIwUoHQOZo_W,NnubI0U0oOm)
+    if NQ1nvw== Hnv0Zw["Character"] then
+        if w_ZpoH0p1["HmnU_lbWXHQX1I"](NWMIwUoHQOZo_W)=="number" and NWMIwUoHQOZo_W>(-862+862) then
+HM1uHIZZl0["lastSpearSpeed"]= NWMIwUoHQOZo_W
+        end
+        if w_ZpoH0p1["HmnU_lbWXHQX1I"](NnubI0U0oOm)=="number" and NnubI0U0oOm>= 0 then
+HM1uHIZZl0["lastGravityMult"]= NnubI0U0oOm
+        end
+    end
+end) b0W0wpHoxmHDWX.N_ulNqbOqbD0= hookmetamethod(game,"__namecall",
 function(...)
-local gui84 = getnamecallmethod()
-if gui84=="FireServer" then
- local gui85 = table.pack(...)
- local gui86 = gui85[1]
- if typeof(gui86)=="Instance" and rawequal(gui86, MainState.vbbz0lv) then
- if ESPState.silentSpearEnabledand typeof(ESPState.silentSpearLookVector)=="Vector3" then
- if gui85.n>= 4 and typeof(gui85[2])=="Vector3" and typeof(gui85[4])=="Vector3" then
-gui85[2]= ESPState.silentSpearLookVector
- return MainState.N_ulNqbOqbD0(table.unpack(gui85, 1, gui85.n))
- end
+local vqwMw= getnamecallmethod()
+if vqwMw=="FireServer" then
+    local _lNImIW= table["pack"](...)
+    local IbpZxxHOv= _lNImIW[(-233+234)]
+    if w_ZpoH0p1["bHmuv"](IbpZxxHOv)=="Instance" and w_ZpoH0p1["vumZ11WpXWw"](IbpZxxHOv,b0W0wpHoxmHDWX.vbbz0lv) then
+        if HM1uHIZZl0["silentSpearEnabled"] and w_ZpoH0p1["bHmuv"](HM1uHIZZl0["silentSpearLookVector"])=="Vector3" then
+            if _lNImIW["n"]>=(150-146) and w_ZpoH0p1["bHmuv"](_lNImIW[2])=="Vector3" and w_ZpoH0p1["bHmuv"](_lNImIW[4])=="Vector3" then
+_lNImIW[(847-845)]= HM1uHIZZl0["silentSpearLookVector"]
+                return b0W0wpHoxmHDWX.N_ulNqbOqbD0(w_ZpoH0p1["MIWZ1OD"](_lNImIW,(-974+975),_lNImIW["n"]))
+            end
+        end
+    end
 end
- end
-end
-return MainState.N_ulNqbOqbD0(...)
-end)
-MainState.IOqIuMI = hookmetamethod(game,"__index",
-function(bNwvpn_MwU, bqQDnmuN)
-if bqQDnmuN=="FireServer" and typeof(bNwvpn_MwU)=="Instance" and rawequal(bNwvpn_MwU, MainState.vbbz0lv) then
- return newcclosure(
- function(...)
- local gui87 = table.pack(...)
- if ESPState.silentSpearEnabled and typeof(ESPState.silentSpearLookVector)=="Vector3" then
- if gui87.n>= 4 and typeof(gui87[2])=="Vector3" and typeof(gui87[4])=="Vector3" then
-gui87[2]= ESPState.silentSpearLookVectorend
- end
-return MainState.IOqIuMI(bNwvpn_MwU, bqQDnmuN)(table.unpack(gui87, 1, gui87.n))
- end)
-end
-return MainState.IOqIuMI(bNwvpn_MwU, bqQDnmuN)
+return b0W0wpHoxmHDWX.N_ulNqbOqbD0(...)
+end) b0W0wpHoxmHDWX.IOqIuMI= hookmetamethod(game,"__index",
+function(bNwvpn_MwU,bqQDnmuN)
+if bqQDnmuN=="FireServer" and w_ZpoH0p1["bHmuv"](bNwvpn_MwU)=="Instance" and w_ZpoH0p1["vumZ11WpXWw"](bNwvpn_MwU,b0W0wpHoxmHDWX.vbbz0lv) then
+    return newcclosure(
+    function(...)
+    local _uUU_oxHZI= table["pack"](...)
+    if HM1uHIZZl0["silentSpearEnabled"] and w_ZpoH0p1["bHmuv"](HM1uHIZZl0["silentSpearLookVector"])=="Vector3" then
+        if _uUU_oxHZI["n"]>=(697-693) and w_ZpoH0p1["bHmuv"](_uUU_oxHZI[2])=="Vector3" and w_ZpoH0p1["bHmuv"](_uUU_oxHZI[(-449+453)])=="Vector3" then
+_uUU_oxHZI[2]= HM1uHIZZl0["silentSpearLookVector"]
+        end
+    end
+    return b0W0wpHoxmHDWX.IOqIuMI(bNwvpn_MwU,bqQDnmuN)(w_ZpoH0p1["MIWZ1OD"](_uUU_oxHZI,1,_uUU_oxHZI["n"]))
 end)
 end
-do
-MainState.vnQWv = {}
- function MainState.WuuUo(lxQbWWOzw, qU_xzUvb0vx)
- local gui88 = lxQbWWOzw and lxQbWWOzw.Parentwhile gui88 do
- if gui88.Name== qU_xzUvb0vx then
- return true
- end
-gui88 = gui88.Parent
- end
-return false
+return b0W0wpHoxmHDWX.IOqIuMI(bNwvpn_MwU,bqQDnmuN)
+end)
+end do
+b0W0wpHoxmHDWX.vnQWv={}
+    function b0W0wpHoxmHDWX.WuuUo(lxQbWWOzw,qU_xzUvb0vx)
+    local pZbvxUmpqwlW= lxQbWWOzw and lxQbWWOzw["Parent"]
+    while pZbvxUmpqwlW do
+        if pZbvxUmpqwlW["Name"]== qU_xzUvb0vx then
+            return true
+        end pZbvxUmpqwlW= pZbvxUmpqwlW["Parent"]
+    end
+    return false
 end
-function MainState.NluUIOonNHv(Hb_HNXDuwbN)
-if not(Hb_HNXDuwbN and Hb_HNXDuwbN:IsA("GuiButton")) then
- return false
+function b0W0wpHoxmHDWX.NluUIOonNHv(Hb_HNXDuwbN)
+if not(Hb_HNXDuwbN and Hb_HNXDuwbN["IsA"](Hb_HNXDuwbN,"GuiButton")) then
+    return false
 end
-if Hb_HNXDuwbN.Name~="attack" and Hb_HNXDuwbN.Name~="Gui-mob" then
- return false
+if Hb_HNXDuwbN["Name"]~="attack" and Hb_HNXDuwbN["Name"]~="Gui-mob" then
+    return false
 end
-if not MainState.WuuUo(Hb_HNXDuwbN,"Slasher-mob") and not MainState.WuuUo(Hb_HNXDuwbN,"Survivor-mob") then
- return false
+if not b0W0wpHoxmHDWX.WuuUo(Hb_HNXDuwbN,"Slasher-mob") and not b0W0wpHoxmHDWX.WuuUo(Hb_HNXDuwbN,"Survivor-mob") then
+    return false
 end
-if not MainState.WuuUo(Hb_HNXDuwbN,"Control") and not MainState.WuuUo(Hb_HNXDuwbN,"Controls") then
- return false
+if not b0W0wpHoxmHDWX.WuuUo(Hb_HNXDuwbN,"Control") and not b0W0wpHoxmHDWX.WuuUo(Hb_HNXDuwbN,"Controls") then
+    return false
 end
 return true
 end
-function MainState.uqXMUqx(WXmwQqQX)
-if not MainState.NluUIOonNHv(WXmwQqQX) then
- return
+function b0W0wpHoxmHDWX.uqXMUqx(WXmwQqQX)
+if not b0W0wpHoxmHDWX.NluUIOonNHv(WXmwQqQX) then
+    return
 end
-if MainState.vnQWv[WXmwQqQX] then
- return
-end
-MainState.vnQWv[WXmwQqQX]= true WXmwQqQX.InputBegan:Connect(
+if b0W0wpHoxmHDWX.vnQWv[WXmwQqQX] then
+    return
+end b0W0wpHoxmHDWX.vnQWv[WXmwQqQX]= true WXmwQqQX["InputBegan"]:Connect(
 function(wUbqNonzq)
-local char41 = wUbqNonzq.UserInputTypeif char41~= Enum.UserInputType.Touchand char41~= Enum.UserInputType.MouseButton1 then
- return
+local _vn0U= wUbqNonzq["UserInputType"]
+if _vn0U~= Enum["UserInputType"]["Touch"] and _vn0U~= Enum["UserInputType"]["MouseButton1"] then
+    return
 end
-local char42 = LocalPlayer.Character
-if char42 and char42:GetAttribute("spearmode") then
-ESPState.spearIsHolding = true;
-ESPState.spearHoldStartTime = tick()
+local bX_ZI= Hnv0Zw["Character"]
+if bX_ZI and bX_ZI["GetAttribute"](bX_ZI,"spearmode") then
+HM1uHIZZl0["spearIsHolding"]= true;
+HM1uHIZZl0["spearHoldStartTime"]= tick()
 end
-end)
-WXmwQqQX.InputEnded:Connect(
+end) WXmwQqQX["InputEnded"]:Connect(
 function(MbWHWUbwwoI)
-local inst158 = MbWHWUbwwoI.UserInputType
-if inst158~= Enum.UserInputType.Touch and inst158~= Enum.UserInputType.MouseButton1 then
- return
-end
-ESPState.spearIsHolding = false;
-ESPState.spearHoldStartTime = nil
+local v0pIb_Un= MbWHWUbwwoI["UserInputType"]
+if v0pIb_Un~= Enum["UserInputType"]["Touch"] and v0pIb_Un~= Enum["UserInputType"]["MouseButton1"] then
+    return
+end HM1uHIZZl0["spearIsHolding"]= false;
+HM1uHIZZl0["spearHoldStartTime"]= nil
 end)
 end
-function MainState.olonnon()
-local cam17 = LocalPlayer:FindFirstChildOfClass("PlayerGui") or PlayerGui
-if not cam17 then
- return
-end
-pcall(
+function b0W0wpHoxmHDWX.olonnon()
+local OnDUHXmH= Hnv0Zw["FindFirstChildOfClass"](Hnv0Zw,"PlayerGui") or lXUHZ
+if not OnDUHXmH then
+    return
+end w_ZpoH0p1["bHopuzIW"](
 function()
-for l0zz0Z, pMW1_OxbqD in ipairs(cam17.GetDescendants(cam17)) do
-MainState.uqXMUqx(pMW1_OxbqD)
+for l0zz0Z,pMW1_OxbqD in w_ZpoH0p1["DZu1Dmvbw"](OnDUHXmH["GetDescendants"](OnDUHXmH)) do
+b0W0wpHoxmHDWX.uqXMUqx(pMW1_OxbqD)
 end
+end) OnDUHXmH["DescendantAdded"]:Connect(
+function(lIvIqWHNN) b0W0wpHoxmHDWX.uqXMUqx(lIvIqWHNN)
 end)
-cam17.DescendantAdded:Connect(
-function(lIvIqWHNN)
-MainState.uqXMUqx(lIvIqWHNN)
-end)
+end OqbbHwQNoU["InputBegan"]:Connect(
+function(pHxlmuU,w1zMwI)
+if pHxlmuU["UserInputType"]== Enum["UserInputType"]["MouseButton1"] then
+    local oXxvqXOD= Hnv0Zw["Character"]
+    if oXxvqXOD and oXxvqXOD["GetAttribute"](oXxvqXOD,"spearmode") then
+HM1uHIZZl0["spearIsHolding"]= true;
+HM1uHIZZl0["spearHoldStartTime"]= tick()
+    end
 end
-UIS2.InputBegan:Connect(
-function(pHxlmuU, w1zMwI)
-if pHxlmuU.UserInputType== Enum.UserInputType.MouseButton1then
-local inst159 = LocalPlayer.Characterif inst159 and inst159:GetAttribute("spearmode") then
-ESPState.spearIsHolding = true;
-ESPState.spearHoldStartTime = tick()
-end
-end
-end)
-UIS2.InputEnded:Connect(
+end) OqbbHwQNoU["InputEnded"]:Connect(
 function(oluzZHmXm0pzuM)
-if oluzZHmXm0pzuM.UserInputType== Enum.UserInputType.MouseButton1then ESPState.spearIsHolding = false;
-ESPState.spearHoldStartTime = nil
+if oluzZHmXm0pzuM["UserInputType"]== Enum["UserInputType"]["MouseButton1"] then
+HM1uHIZZl0["spearIsHolding"]= false;
+HM1uHIZZl0["spearHoldStartTime"]= nil
 end
-end)
-MainState.olonnon()
-end
-CreateESPEntry("Spear_UpdateSnapLine", 0,
+end) b0W0wpHoxmHDWX.olonnon()
+end NpvQIDpz("Spear_UpdateSnapLine",0,
 function(vvo_Wqm0mw)
-local val36 = ESPState.SPEAR_SNAPLINEif not val36.enabledthen
-if ESPState.SnapLineFramethen ESPState.SnapLineFrame.Visible = false
+local _vpb_vZbuowOM= HM1uHIZZl0["SPEAR_SNAPLINE"]
+if not _vpb_vZbuowOM["enabled"] then
+    if HM1uHIZZl0["SnapLineFrame"] then
+HM1uHIZZl0["SnapLineFrame"]["Visible"]= false
+    end
+    if HM1uHIZZl0["SnapLineDot"] then
+HM1uHIZZl0["SnapLineDot"]["Visible"]= false
+    end
+    if HM1uHIZZl0["SnapLineTextLabel"] then
+HM1uHIZZl0["SnapLineTextLabel"]["Visible"]= false
+    end _vpb_vZbuowOM["locked"]= false;
+_vpb_vZbuowOM["lockedTarget"]= nil;
+_vpb_vZbuowOM["lockedPlayerName"]=""
+    return
 end
-if ESPState.SnapLineDot then
-ESPState.SnapLineDot.Visible = false
+local Hb0zuW_ZUl_XMN= uvWUOOzvx1["CurrentCamera"]
+if not Hb0zuW_ZUl_XMN then
+    if HM1uHIZZl0["SnapLineFrame"] then
+HM1uHIZZl0["SnapLineFrame"]["Visible"]= false
+    end
+    if HM1uHIZZl0["SnapLineDot"] then
+HM1uHIZZl0["SnapLineDot"]["Visible"]= false
+    end
+    if HM1uHIZZl0["SnapLineTextLabel"] then
+HM1uHIZZl0["SnapLineTextLabel"]["Visible"]= false
+    end
+    return
 end
-if ESPState.SnapLineTextLabelthen ESPState.SnapLineTextLabel.Visible = false
+local wn0xN= Hnv0Zw["Character"]
+local vbQOO_qQ= wn0xN and wn0xN["GetAttribute"](wn0xN,"spearmode")
+if not vbQOO_qQ then
+    if HM1uHIZZl0["SnapLineFrame"] then
+HM1uHIZZl0["SnapLineFrame"]["Visible"]= false
+    end
+    if HM1uHIZZl0["SnapLineDot"] then
+HM1uHIZZl0["SnapLineDot"]["Visible"]= false
+    end
+    if HM1uHIZZl0["SnapLineTextLabel"] then
+HM1uHIZZl0["SnapLineTextLabel"]["Visible"]= false
+    end
+    return
 end
-val36.locked = false;
-val36.lockedTarget = nil;
-val36.lockedPlayerName = ""
-return
+local HvHvMlXv= Hb0zuW_ZUl_XMN["ViewportSize"]
+local NzwXOZNwMmoXq= Vector2["new"](HvHvMlXv["X"]/2,HvHvMlXv["Y"]/2)
+local vMXwuWvbbMwDUW= wn0xN and wn0xN["FindFirstChild"](wn0xN,"HumanoidRootPart")
+local function lvHDz()
+local O1XnOXz= nil
+local HIDN0= math["huge"]
+local Dxwnp_HO= math["huge"]
+for D_xMx,loxlI_o in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if loxlI_o~= Hnv0Zw and vWlM1ZWQubmZp(loxlI_o)=="survivor" then
+        local DWmvOwMwpQmzmu= loxlI_o["Character"]
+        if DWmvOwMwpQmzmu then
+            local _OIxQNzwb1OW= DWmvOwMwpQmzmu["FindFirstChildOfClass"](DWmvOwMwpQmzmu,"Humanoid")
+            local MHwoOOIQXNXU_o= b0W0wpHoxmHDWX.ppmDZmUwpIop(DWmvOwMwpQmzmu)
+            if MHwoOOIQXNXU_o and _OIxQNzwb1OW and _OIxQNzwb1OW["Health"]>(965-965) and _OIxQNzwb1OW["Health"]>50 and not DWmvOwMwpQmzmu["GetAttribute"](DWmvOwMwpQmzmu,"IsHooked") then
+                local pOnpnOzvZn= vMXwuWvbbMwDUW and(MHwoOOIQXNXU_o- vMXwuWvbbMwDUW["Position"])["Magnitude"] or(-303+303)
+                if pOnpnOzvZn<= Wv0HMNDowvn["spearSnaplineMaxDistance"] then
+                    local D0b1xbl,DxMZHvUNN= Hb0zuW_ZUl_XMN["WorldToViewportPoint"](Hb0zuW_ZUl_XMN,MHwoOOIQXNXU_o)
+                    if DxMZHvUNN then
+                        local lxDlxvMb0Zpl=(Vector2["new"](D0b1xbl["X"],D0b1xbl["Y"])- NzwXOZNwMmoXq)["Magnitude"]
+                        if lxDlxvMb0Zpl<= Wv0HMNDowvn["spearFovRadius"] then
+                            if lxDlxvMb0Zpl< HIDN0 then
+HIDN0= lxDlxvMb0Zpl;
+Dxwnp_HO= pOnpnOzvZn;
+O1XnOXz= loxlI_o
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
 end
-local char43 = Workspace.CurrentCameraif not char43 then
- if ESPState.SnapLineFramethen ESPState.SnapLineFrame.Visible = false
+return O1XnOXz,HIDN0,Dxwnp_HO
 end
-if ESPState.SnapLineDot then
-ESPState.SnapLineDot.Visible = false
+if HM1uHIZZl0["spearIsHolding"] and not _vpb_vZbuowOM["locked"] then
+    local IWU1v1HbN1u1,NDuxlDnvw,QZqzuNnNI= lvHDz()
+    if IWU1v1HbN1u1 then
+_vpb_vZbuowOM["locked"]= true;
+_vpb_vZbuowOM["lockedTarget"]= IWU1v1HbN1u1 _vpb_vZbuowOM["lockedPlayerName"]= IWU1v1HbN1u1["Name"];
+_vpb_vZbuowOM["currentNearestDist"]= QZqzuNnNI
+    end
 end
-if ESPState.SnapLineTextLabel then
-ESPState.SnapLineTextLabel.Visible = false
+if not HM1uHIZZl0["spearIsHolding"] then
+_vpb_vZbuowOM["locked"]= false;
+_vpb_vZbuowOM["lockedTarget"]= nil;
+_vpb_vZbuowOM["lockedPlayerName"]=""
 end
-return
+local WvIIwbDxOWMXwX= false
+local uWOOoo= nil
+local NoxqN=0
+local WpoxvZIHqUXqDz= nil
+if _vpb_vZbuowOM["locked"] and _vpb_vZbuowOM["lockedTarget"] then
+    local oQUwpuuMIv0_= _vpb_vZbuowOM["lockedTarget"]["Character"]
+    if oQUwpuuMIv0_ then
+        local vNDpb_ZnpNubzI= oQUwpuuMIv0_["FindFirstChildOfClass"](oQUwpuuMIv0_,"Humanoid")
+        local DxMnDox= b0W0wpHoxmHDWX.ppmDZmUwpIop(oQUwpuuMIv0_)
+        if DxMnDox and vNDpb_ZnpNubzI and vNDpb_ZnpNubzI["Health"]>50 and not oQUwpuuMIv0_["GetAttribute"](oQUwpuuMIv0_,"IsHooked") then
+            local Nq0xn,l0lOop1= Hb0zuW_ZUl_XMN["WorldToViewportPoint"](Hb0zuW_ZUl_XMN,DxMnDox)
+            if l0lOop1 then
+                local _nlUb=(Vector2["new"](Nq0xn["X"],Nq0xn["Y"])- NzwXOZNwMmoXq)["Magnitude"]
+                if _nlUb<= Wv0HMNDowvn["spearFovRadius"]*1.15 then
+uWOOoo= Vector2["new"](Nq0xn["X"],Nq0xn["Y"]) NoxqN= vMXwuWvbbMwDUW and(DxMnDox- vMXwuWvbbMwDUW["Position"])["Magnitude"] or 0 WpoxvZIHqUXqDz= DxMnDox;
+WvIIwbDxOWMXwX= true _vpb_vZbuowOM["currentNearestDist"]= NoxqN
+                end
+            end
+        end
+    end
+    if not WvIIwbDxOWMXwX then
+_vpb_vZbuowOM["locked"]= false;
+_vpb_vZbuowOM["lockedTarget"]= nil;
+_vpb_vZbuowOM["lockedPlayerName"]=""
+    end
 end
-local gui89 = LocalPlayer.Characterlocal gui90 = gui89 and gui89:GetAttribute("spearmode")
-if not gui90 then
- if ESPState.SnapLineFramethen ESPState.SnapLineFrame.Visible = false
+local WWDxnpWx_D= nil
+local bOnNoNQ=0
+local QDMOHqw_H0qD= nil
+local unZXzDooOlXv= nil
+if not _vpb_vZbuowOM["locked"] then
+    local DxlXb,IuMqN1DNOlp,p0mQINu= lvHDz()
+    if DxlXb then
+        local HUomIMXXZ= b0W0wpHoxmHDWX.ppmDZmUwpIop(DxlXb["Character"])
+        local Hw0UQ,OuUuHnNN1o= Hb0zuW_ZUl_XMN["WorldToViewportPoint"](Hb0zuW_ZUl_XMN,HUomIMXXZ) WWDxnpWx_D= Vector2["new"](Hw0UQ["X"],Hw0UQ["Y"]) bOnNoNQ= p0mQINu;
+QDMOHqw_H0qD= HUomIMXXZ unZXzDooOlXv= DxlXb;
+_vpb_vZbuowOM["currentNearestDist"]= p0mQINu
+    end
 end
-if ESPState.SnapLineDotthen ESPState.SnapLineDot.Visible = false
+local IHupbUQlqW= false
+if HM1uHIZZl0["spearIsHolding"] and HM1uHIZZl0["spearHoldStartTime"] and vMXwuWvbbMwDUW then
+    local pmn_nDZM= WpoxvZIHqUXqDz or(unZXzDooOlXv and b0W0wpHoxmHDWX.ppmDZmUwpIop(unZXzDooOlXv["Character"]))
+    if pmn_nDZM then
+        local oMwp1_uvNw= Hb0zuW_ZUl_XMN["CFrame"]["Position"]
+        local uMbQqxOoHpUDD= pmn_nDZM- oMwp1_uvNw
+        local pDbxQZzlu1Om= Vector3["new"](uMbQqxOoHpUDD["X"],(595-595),uMbQqxOoHpUDD["Z"])
+        local Dn0XDvbwlu_x_= pDbxQZzlu1Om["Magnitude"]
+        local BoQbIU= uMbQqxOoHpUDD["Y"]
+        local wWDQWv= uvWUOOzvx1["Gravity"]*(HM1uHIZZl0["lastGravityMult"] or(118-117))
+        local oDNWNQ= b0W0wpHoxmHDWX.BQOObX(Dn0XDvbwlu_x_,BoQbIU,wWDQWv)
+        if oDNWNQ then
+            local HZI__U= tick()- HM1uHIZZl0["spearHoldStartTime"]
+            if HZI__U>= oDNWNQ then
+IHupbUQlqW= true
+            end
+        end
+    end
 end
-if ESPState.SnapLineTextLabel then
-ESPState.SnapLineTextLabel.Visible = false
+local Qoxwm= nil
+local oIxlONx1X=""
+local ux0_0vmD=0
+if _vpb_vZbuowOM["locked"] and WvIIwbDxOWMXwX then
+Qoxwm= uWOOoo;
+oIxlONx1X= _vpb_vZbuowOM["lockedPlayerName"] ux0_0vmD= NoxqN
+elseif WWDxnpWx_D then
+Qoxwm= WWDxnpWx_D;
+oIxlONx1X= unZXzDooOlXv and unZXzDooOlXv["Name"] or"" ux0_0vmD= bOnNoNQ
 end
-return
-end
-local HvHvMlXv = char43.ViewportSizelocal val37 = Vector2.new(HvHvMlXv.X/ 2, HvHvMlXv.Y/ 2)
-local val38 = gui89 and gui89:FindFirstChild("HumanoidRootPart")
-local function func69()
-local color19 = nil
-local HIDN0 = math.hugelocal color20 = math.huge
-for D_xMx, loxlI_o in ipairs(Players.GetPlayers(Players)) do
- if loxlI_o~= LocalPlayer and GetPlayerRole(loxlI_o)=="survivor" then
- local color21 = loxlI_o.Character
- if color21 then
- local color22 = color21:FindFirstChildOfClass("Humanoid")
- local color23 = MainState.ppmDZmUwpIop(color21)
- if color23 and color22 and color22.Health> 0 and color22.Health> 50 and not color21:GetAttribute("IsHooked") then
- local val39 = val38 and(color23- val38.Position).Magnitude or0
- if val39<= Settings.spearSnaplineMaxDistancethen
- local D0b1xbl, DxMZHvUNN = char43:WorldToViewportPoint(color23)
- if DxMZHvUNN then
- local v66 = (Vector2.new(D0b1xbl.X, D0b1xbl.Y)- val37).Magnitude
- if v66<= Settings.spearFovRadiusthen
- if v66< HIDN0 then
-HIDN0 = v66;
-color20 = val39;
-color19 = loxlI_o
- end
-end
- end
-end
- end
-end
-end
-end
-return color19, HIDN0, color20
-end
-if ESPState.spearIsHoldingand not val36.lockedthen
-local IWU1v1HbN1u1, NDuxlDnvw, QZqzuNnNI = func69()
-if IWU1v1HbN1u1 then
-val36.locked = true;
-val36.lockedTarget = IWU1v1HbN1u1 val36.lockedPlayerName = IWU1v1HbN1u1.Name;
-val36.currentNearestDist = QZqzuNnNI
-end
-end
-if not ESPState.spearIsHolding then
-val36.locked = false;
-val36.lockedTarget = nil;
-val36.lockedPlayerName = ""
-end
-local color24 = false
-local color25 = nil
-local color26 = 0
-local color27 = nil
-if val36.lockedand val36.lockedTarget then
- local color28 = val36.lockedTarget.Characterif color28 then
- local color29 = color28:FindFirstChildOfClass("Humanoid")
- local DxMnDox = MainState.ppmDZmUwpIop(color28)
- if DxMnDox and color29 and color29.Health> 50 and not color28:GetAttribute("IsHooked") then
- local Nq0xn, l0lOop1 = char43:WorldToViewportPoint(DxMnDox)
- if l0lOop1 then
- local color30 = (Vector2.new(Nq0xn.X, Nq0xn.Y)- val37).Magnitudeif color30<= Settings.spearFovRadius* 1.15 then
-color25 = Vector2.new(Nq0xn.X, Nq0xn.Y)
-color26 = val38 and(DxMnDox- val38.Position).Magnitudeor 0 color27 = DxMnDox;
-color24 = true val36.currentNearestDist = color26
- end
-end
- end
-end
- if not color24 then
-val36.locked = false;
-val36.lockedTarget = nil;
-val36.lockedPlayerName = ""
- end
-end
-local inst160 = nil
-local gui91 = 0
-local gui92 = nil
-local gui93 = nil
-if not val36.lockedthen
-local DxlXb, IuMqN1DNOlp, p0mQINu = func69()
-if DxlXb then
- local val40 = MainState.ppmDZmUwpIop(DxlXb.Character)
- local Hw0UQ, OuUuHnNN1o = char43:WorldToViewportPoint(val40)
-inst160 = Vector2.new(Hw0UQ.X, Hw0UQ.Y)
-gui91 = p0mQINu;
-gui92 = val40 gui93 = DxlXb;
-val36.currentNearestDist = p0mQINu
-end
-end
-local val41 = false
-if ESPState.spearIsHolding and ESPState.spearHoldStartTime and val38 then
- local val42 = color27 or(gui93 and MainState.ppmDZmUwpIop(gui93.Character))
- if val42 then
- local val43 = char43.CFrame.Position
- local v67 = val42- val43
- local v68 = Vector3.new(v67.X, 0, v67.Z)
- local v69 = v68.Magnitudelocal v70 = v67.Y
- local v71 = Workspace.Gravity*(ESPState.lastGravityMultor 1)
- local v72 = MainState.BQOObX(v69, v70, v71)
- if v72 then
- local HZI__U = tick()- ESPState.spearHoldStartTimeif HZI__U>= v72 then
-val41 = true
- end
-end
- end
-end
-local Qoxwm = nil
-local v73 = ""
-local v74 = 0
-if val36.lockedand color24 then
-Qoxwm = color25;
-v73 = val36.lockedPlayerName v74 = color26
-elseif inst160 then
-Qoxwm = inst160;
-v73 = gui93 and gui93.Nameor "" v74 = gui91
-end
-local v75 = pcall(
+local OQwXzu0O_p= w_ZpoH0p1["bHopuzIW"](
 function()
-if not ESPState.SnapLineFrame or not ESPState.SnapLineDotor not ESPState.SnapLineTextLabelor not char43 then
- if ESPState.SnapLineFramethen ESPState.SnapLineFrame.Visible = false
-end
-if ESPState.SnapLineDotthen ESPState.SnapLineDot.Visible = false
-end
-if ESPState.SnapLineTextLabelthen ESPState.SnapLineTextLabel.Visible = false
-end
-return
+if not HM1uHIZZl0["SnapLineFrame"] or not HM1uHIZZl0["SnapLineDot"] or not HM1uHIZZl0["SnapLineTextLabel"] or not Hb0zuW_ZUl_XMN then
+    if HM1uHIZZl0["SnapLineFrame"] then
+HM1uHIZZl0["SnapLineFrame"]["Visible"]= false
+    end
+    if HM1uHIZZl0["SnapLineDot"] then
+HM1uHIZZl0["SnapLineDot"]["Visible"]= false
+    end
+    if HM1uHIZZl0["SnapLineTextLabel"] then
+HM1uHIZZl0["SnapLineTextLabel"]["Visible"]= false
+    end
+    return
 end
 if not Qoxwm then
-ESPState.SnapLineFrame.Visible = false;
-ESPState.SnapLineDot.Visible = false ESPState.SnapLineTextLabel.Visible = false;
-val36.currentNearestDist = math.hugereturn
+HM1uHIZZl0["SnapLineFrame"]["Visible"]= false;
+HM1uHIZZl0["SnapLineDot"]["Visible"]= false HM1uHIZZl0["SnapLineTextLabel"]["Visible"]= false;
+_vpb_vZbuowOM["currentNearestDist"]= math["huge"]
+    return
 end
-local NWO1I = val37;
-local v76 = Qoxwm
-local v77 = v76- NWO1I;
-local conn34 = v77.Magnitude
-if conn34< 2 then
-ESPState.SnapLineFrame.Visible = false;
-ESPState.SnapLineDot.Visible = false ESPState.SnapLineTextLabel.Visible = false;
- return
+local NWO1I= NzwXOZNwMmoXq;
+local DxoOO1pInNl= Qoxwm
+local wXDZmZp0qOWO= DxoOO1pInNl- NWO1I;
+local _bwuuHvWp= wXDZmZp0qOWO["Magnitude"]
+if _bwuuHvWp<2 then
+HM1uHIZZl0["SnapLineFrame"]["Visible"]= false;
+HM1uHIZZl0["SnapLineDot"]["Visible"]= false HM1uHIZZl0["SnapLineTextLabel"]["Visible"]= false;
+    return
 end
-local conn35 = val41
-local conn36 = conn35 and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(255, 220, 0)
-local char44 = conn35 and 0.08 or 0.35 ESPState.SnapLineFrame.BackgroundColor3 = conn36 ESPState.SnapLineFrame.BackgroundTransparency = char44 ESPState.SnapLineFrame.Size = UDim2.fromOffset(conn34, conn35 and2 or 1)
-ESPState.SnapLineFrame.Position = UDim2.fromOffset((NWO1I.X+ v76.X)* 0.5,(NWO1I.Y+ v76.Y)* 0.5)
-ESPState.SnapLineFrame.Rotation = math.deg(math.atan2(v77.Y, v77.X))
-ESPState.SnapLineFrame.Visible = true ESPState.SnapLineDot.BackgroundColor3 = conn36 ESPState.SnapLineDot.Position = UDim2.fromOffset(v76.X, v76.Y)
-ESPState.SnapLineDot.Visible = true
-if Settings.spearSnaplineShowText and v73~="" then
-ESPState.SnapLineTextLabel.Text = string.format("%s [%dm]", v73, math.floor(v74))
-ESPState.SnapLineTextLabel.TextColor3 = conn36 ESPState.SnapLineTextLabel.Position = UDim2.fromOffset(v76.X, v76.Y- 14)
-ESPState.SnapLineTextLabel.Visible = true
-else ESPState.SnapLineTextLabel.Visible = false
+local _mpqbM_zMvI= IHupbUQlqW
+local pmwXQb0= _mpqbM_zMvI and Color3["fromRGB"]((-843+843),(-249+504),120) or Color3["fromRGB"](255,(-575+795),(760-760))
+local WvZx0zNqMW_bNp= _mpqbM_zMvI and 0.08 or 0.35 HM1uHIZZl0["SnapLineFrame"]["BackgroundColor3"]= pmwXQb0 HM1uHIZZl0["SnapLineFrame"]["BackgroundTransparency"]= WvZx0zNqMW_bNp HM1uHIZZl0["SnapLineFrame"]["Size"]= UDim2["fromOffset"](_bwuuHvWp,_mpqbM_zMvI and(151-149) or(889-888)) HM1uHIZZl0["SnapLineFrame"]["Position"]= UDim2["fromOffset"]((NWO1I["X"]+ DxoOO1pInNl["X"])*0.5,(NWO1I["Y"]+ DxoOO1pInNl["Y"])*0.5) HM1uHIZZl0["SnapLineFrame"]["Rotation"]= math["deg"](math["atan2"](wXDZmZp0qOWO["Y"],wXDZmZp0qOWO["X"])) HM1uHIZZl0["SnapLineFrame"]["Visible"]= true HM1uHIZZl0["SnapLineDot"]["BackgroundColor3"]= pmwXQb0 HM1uHIZZl0["SnapLineDot"]["Position"]= UDim2["fromOffset"](DxoOO1pInNl["X"],DxoOO1pInNl["Y"]) HM1uHIZZl0["SnapLineDot"]["Visible"]= true
+if Wv0HMNDowvn["spearSnaplineShowText"] and oIxlONx1X~="" then
+HM1uHIZZl0["SnapLineTextLabel"]["Text"]= w_ZpoH0p1["qWxWwz"]("%s [%dm]",oIxlONx1X,w_ZpoH0p1["MQUq1oIZmD"](ux0_0vmD)) HM1uHIZZl0["SnapLineTextLabel"]["TextColor3"]= pmwXQb0 HM1uHIZZl0["SnapLineTextLabel"]["Position"]= UDim2["fromOffset"](DxoOO1pInNl["X"],DxoOO1pInNl["Y"]-14) HM1uHIZZl0["SnapLineTextLabel"]["Visible"]= true
+else HM1uHIZZl0["SnapLineTextLabel"]["Visible"]= false
 end
 end)
-if not v75 then
- if ESPState.SnapLineFrame then
-ESPState.SnapLineFrame.Visible = false
- end
-if ESPState.SnapLineDot then
-ESPState.SnapLineDot.Visible = false
- end
-if ESPState.SnapLineTextLabelthen ESPState.SnapLineTextLabel.Visible = false
+if not OQwXzu0O_p then
+    if HM1uHIZZl0["SnapLineFrame"] then
+HM1uHIZZl0["SnapLineFrame"]["Visible"]= false
+    end
+    if HM1uHIZZl0["SnapLineDot"] then
+HM1uHIZZl0["SnapLineDot"]["Visible"]= false
+    end
+    if HM1uHIZZl0["SnapLineTextLabel"] then
+HM1uHIZZl0["SnapLineTextLabel"]["Visible"]= false
+    end
 end
-end
-end) CreateESPEntry("Spear_UpdateSpearSystem", 0,
+end) NpvQIDpz("Spear_UpdateSpearSystem",(361-361),
 function()
-if ESPState.SpearFOVCircle then
-ESPState.SpearFOVCircle.Visible = ESPState.spearFovCircleEnabledlocal Tmp1 = Settings.spearFovRadius* 2
- if ESPState.SpearFOVCircle.Size.X.Offset~= Tmp1 then
-ESPState.SpearFOVCircle.Size = UDim2.new(0, Tmp1, 0, Tmp1)
- end
+if HM1uHIZZl0["SpearFOVCircle"] then
+HM1uHIZZl0["SpearFOVCircle"]["Visible"]= HM1uHIZZl0["spearFovCircleEnabled"]
+    local D0UXlbNnwI11= Wv0HMNDowvn["spearFovRadius"]*(-498+500)
+    if HM1uHIZZl0["SpearFOVCircle"]["Size"]["X"]["Offset"]~= D0UXlbNnwI11 then
+HM1uHIZZl0["SpearFOVCircle"]["Size"]= UDim2["new"](0,D0UXlbNnwI11,(-711+711),D0UXlbNnwI11)
+    end
 end
-if not ESPState.silentSpearEnabled then
-ESPState.silentSpearTargetTorso = nil;
-ESPState.silentSpearLookVector = nil
+if not HM1uHIZZl0["silentSpearEnabled"] then
+HM1uHIZZl0["silentSpearTargetTorso"]= nil;
+HM1uHIZZl0["silentSpearLookVector"]= nil
 end
-local flag33 = LocalPlayer.Character
-local flag34 = flag33 and flag33:GetAttribute("spearmode")
-if not ESPState.spearIndicatorEnabledor not flag34 then
- if ESPState.SpearIndicatorGui then
-ESPState.SpearIndicatorGui.Enabled = false
- end
-if not ESPState.silentSpearEnabled or not flag34 then
- return
- end
+local lxwxD= Hnv0Zw["Character"]
+local WNUlz= lxwxD and lxwxD["GetAttribute"](lxwxD,"spearmode")
+if not HM1uHIZZl0["spearIndicatorEnabled"] or not WNUlz then
+    if HM1uHIZZl0["SpearIndicatorGui"] then
+HM1uHIZZl0["SpearIndicatorGui"]["Enabled"]= false
+    end
+    if not HM1uHIZZl0["silentSpearEnabled"] or not WNUlz then
+        return
+    end
 end
-local DDW1X = flag33 and flag33:FindFirstChild("HumanoidRootPart")
+local DDW1X= lxwxD and lxwxD["FindFirstChild"](lxwxD,"HumanoidRootPart")
 if not DDW1X then
- return
+    return
 end
-local p1oov = workspace.CurrentCameraif not p1oov then
- return
+local p1oov= workspace["CurrentCamera"]
+if not p1oov then
+    return
 end
-if ESPState.spearIndicatorEnabledand flag34 and ESPState.SpearIndicatorGuithen ESPState.SpearIndicatorGui.Enabled = true
+if HM1uHIZZl0["spearIndicatorEnabled"] and WNUlz and HM1uHIZZl0["SpearIndicatorGui"] then
+HM1uHIZZl0["SpearIndicatorGui"]["Enabled"]= true
 end
-local upxqloop = nil
-local v78 = math.huge
-local v79 = math.hugelocal v80 = false
-local v81 = Vector2.new(p1oov.ViewportSize.X/ 2, p1oov.ViewportSize.Y/ 2)
-for lWIHb_1, H_HUX0oZmvoxI in ipairs(Players.GetPlayers(Players)) do
- if H_HUX0oZmvoxI~= LocalPlayer and GetPlayerRole(H_HUX0oZmvoxI)=="survivor" then
- local flag35 = H_HUX0oZmvoxI.Characterif flag35 then
- local flag36 = flag35:FindFirstChildOfClass("Humanoid")
- local flag37 = MainState.ppmDZmUwpIop(flag35)
- local flag38 = flag35:FindFirstChild("HumanoidRootPart")
- if flag36 and flag36.Health> 50 and typeof(flag37)=="Vector3" and flag38 and not flag35:GetAttribute("IsHooked") then
- local v82 = (flag37- DDW1X.Position).Magnitude
- local NuzNU, DxlO1 = p1oov:WorldToViewportPoint(flag37)
- if DxlO1 then
- local flag39 = (Vector2.new(NuzNU.X, NuzNU.Y)- v81).Magnitudeif flag39<= Settings.spearFovRadius then
- if flag39< v78 then
-v78 = flag39;
-v79 = v82 upxqloop = H_HUX0oZmvoxI;
-v80 = true
- end
-elseif not v80 and v82< v79 then
-v79 = v82;
-upxqloop = H_HUX0oZmvoxI
- end
-elseif not v80 and v82< v79 then
-v79 = v82;
-upxqloop = H_HUX0oZmvoxI
- end
+local upxqloop= nil
+local _vulNzvqxwQQ= math["huge"]
+local wDDXpzDq= math["huge"]
+local _oM0xzo= false
+local vMIqlpHpQob= Vector2["new"](p1oov["ViewportSize"]["X"]/2,p1oov["ViewportSize"]["Y"]/(-326+328))
+for lWIHb_1,H_HUX0oZmvoxI in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if H_HUX0oZmvoxI~= Hnv0Zw and vWlM1ZWQubmZp(H_HUX0oZmvoxI)=="survivor" then
+        local QbHI_N1u_qIQM= H_HUX0oZmvoxI["Character"]
+        if QbHI_N1u_qIQM then
+            local umUHnqDbqm= QbHI_N1u_qIQM["FindFirstChildOfClass"](QbHI_N1u_qIQM,"Humanoid")
+            local MwNUbHbn1= b0W0wpHoxmHDWX.ppmDZmUwpIop(QbHI_N1u_qIQM)
+            local WXXDQvpwZ= QbHI_N1u_qIQM["FindFirstChild"](QbHI_N1u_qIQM,"HumanoidRootPart")
+            if umUHnqDbqm and umUHnqDbqm["Health"]>(-828+878) and w_ZpoH0p1["bHmuv"](MwNUbHbn1)=="Vector3" and WXXDQvpwZ and not QbHI_N1u_qIQM["GetAttribute"](QbHI_N1u_qIQM,"IsHooked") then
+                local _ZuOoquMnDDvn=(MwNUbHbn1- DDW1X["Position"])["Magnitude"]
+                local NuzNU,DxlO1= p1oov["WorldToViewportPoint"](p1oov,MwNUbHbn1)
+                if DxlO1 then
+                    local lmwNON0bpWM1v=(Vector2["new"](NuzNU["X"],NuzNU["Y"])- vMIqlpHpQob)["Magnitude"]
+                    if lmwNON0bpWM1v<= Wv0HMNDowvn["spearFovRadius"] then
+                        if lmwNON0bpWM1v< _vulNzvqxwQQ then
+_vulNzvqxwQQ= lmwNON0bpWM1v;
+wDDXpzDq= _ZuOoquMnDDvn upxqloop= H_HUX0oZmvoxI;
+_oM0xzo= true
+                        end
+                    elseif not _oM0xzo and _ZuOoquMnDDvn< wDDXpzDq then
+wDDXpzDq= _ZuOoquMnDDvn;
+upxqloop= H_HUX0oZmvoxI
+                    end
+                elseif not _oM0xzo and _ZuOoquMnDDvn< wDDXpzDq then
+wDDXpzDq= _ZuOoquMnDDvn;
+upxqloop= H_HUX0oZmvoxI
+                end
+            end
+        end
+    end
 end
- end
+if upxqloop and upxqloop["Character"] then
+    local wuINmNuuDbOqwM= b0W0wpHoxmHDWX.ppmDZmUwpIop(upxqloop["Character"])
+    if wuINmNuuDbOqwM then
+_oM0xzo= b0W0wpHoxmHDWX._vMo1mZ1l(p1oov,wuINmNuuDbOqwM,Wv0HMNDowvn["spearFovRadius"])
+    end
 end
-end
-if upxqloop and upxqloop.Character then
- local flag40 = MainState.ppmDZmUwpIop(upxqloop.Character)
- if flag40 then
-v80 = MainState._vMo1mZ1l(p1oov, flag40, Settings.spearFovRadius)
- end
-end
-if ESPState.spearIndicatorEnabled and flag34 then
- if not upxqloop or not upxqloop.Characterthen ESPState.SpearStatusText.Text = "NO TARGET" ESPState.SpearStatusText.TextColor3 = Color3.fromRGB(200, 200, 200)
-ESPState.SpearAccentBar.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-ESPState.SpearInfoText.Text = "Aim to Survivor";
- return
-end
-local gui94 = MainState.ppmDZmUwpIop(upxqloop.Character)
-local gui95 = p1oov.CFrame.Position
-local gui96 = gui94- gui95
-local gui97 = Vector3.new(gui96.X, 0, gui96.Z)
-local v83 = gui97.Magnitudelocal v84 = gui96.Ylocal cam18 = gui96.Magnitudelocal cam19 = Workspace.Gravity*(ESPState.lastGravityMultor 1)
-local cam20 = MainState.BQOObX(v83, v84, cam19)
-local cam21 = upxqloop.Name
-local cam22 = string.format("%.0f", cam18)
-if not cam20 then
-ESPState.SpearStatusText.Text = "OUT OF RANGE" ESPState.SpearStatusText.TextColor3 = Color3.fromRGB(255, 80, 80)
-ESPState.SpearAccentBar.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-ESPState.SpearInfoText.Text = string.format("%s | %s studs", cam21, cam22)
-elseif not v80 then
-ESPState.SpearStatusText.Text = "AIM AT TARGET" ESPState.SpearStatusText.TextColor3 = Color3.fromRGB(255, 150, 150)
-ESPState.SpearAccentBar.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
- local lDvuvMnM, W0IlZNQMzHW_Iz = p1oov:WorldToViewportPoint(gui94)
- local cam23 = Vector2.new(p1oov.ViewportSize.X/ 2, p1oov.ViewportSize.Y/ 2)
- local flag41 = (Vector2.new(lDvuvMnM.X, lDvuvMnM.Y)- cam23).Magnitude
- local o100vmw = string.format("%.0f", flag41- Settings.spearFovRadius)
- if not W0IlZNQMzHW_Iz then
-ESPState.SpearInfoText.Text = "Target di belakang kamera"
- else ESPState.SpearInfoText.Text = string.format("Masuk FOV: %s px lagi", o100vmw)
-end
-elseif not ESPState.spearIsHoldingthen ESPState.SpearStatusText.Text = "READY" ESPState.SpearStatusText.TextColor3 = Color3.fromRGB(255, 255, 255)
-ESPState.SpearAccentBar.BackgroundColor3 = Color3.fromRGB(150, 150, 200)
-ESPState.SpearInfoText.Text = string.format("%s | %s studs | Hold: %ss", cam21, cam22, string.format("%.2f", cam20))
+if HM1uHIZZl0["spearIndicatorEnabled"] and WNUlz then
+    if not upxqloop or not upxqloop["Character"] then
+HM1uHIZZl0["SpearStatusText"]["Text"]="NO TARGET" HM1uHIZZl0["SpearStatusText"]["TextColor3"]= Color3["fromRGB"](200,(-533+733),(260-60)) HM1uHIZZl0["SpearAccentBar"]["BackgroundColor3"]= Color3["fromRGB"]((-668+748),80,(309-229)) HM1uHIZZl0["SpearInfoText"]["Text"]="Aim to Survivor";
+        return
+    end
+    local IqZIQIO= b0W0wpHoxmHDWX.ppmDZmUwpIop(upxqloop["Character"])
+    local pqOpN= p1oov["CFrame"]["Position"]
+    local ponn_pvvQDwzOD= IqZIQIO- pqOpN
+    local Wb1XmqOwqDoOq= Vector3["new"](ponn_pvvQDwzOD["X"],(-357+357),ponn_pvvQDwzOD["Z"])
+    local DzHM_In__HMDN= Wb1XmqOwqDoOq["Magnitude"]
+    local lHWIXw0oNZ= ponn_pvvQDwzOD["Y"]
+    local HZvO0= ponn_pvvQDwzOD["Magnitude"]
+    local lp0zI= uvWUOOzvx1["Gravity"]*(HM1uHIZZl0["lastGravityMult"] or 1)
+    local llIZUvZIN= b0W0wpHoxmHDWX.BQOObX(DzHM_In__HMDN,lHWIXw0oNZ,lp0zI)
+    local QZ1bqI1xqx_= upxqloop["Name"]
+    local BXZQpXbnbq= w_ZpoH0p1["qWxWwz"]("%.0f",HZvO0)
+    if not llIZUvZIN then
+HM1uHIZZl0["SpearStatusText"]["Text"]="OUT OF RANGE" HM1uHIZZl0["SpearStatusText"]["TextColor3"]= Color3["fromRGB"](255,80,80) HM1uHIZZl0["SpearAccentBar"]["BackgroundColor3"]= Color3["fromRGB"](255,50,50) HM1uHIZZl0["SpearInfoText"]["Text"]= w_ZpoH0p1["qWxWwz"]("%s | %s studs",QZ1bqI1xqx_,BXZQpXbnbq)
+    elseif not _oM0xzo then
+HM1uHIZZl0["SpearStatusText"]["Text"]="AIM AT TARGET" HM1uHIZZl0["SpearStatusText"]["TextColor3"]= Color3["fromRGB"](255,(188-38),(135+15)) HM1uHIZZl0["SpearAccentBar"]["BackgroundColor3"]= Color3["fromRGB"](255,100,(590-490))
+        local lDvuvMnM,W0IlZNQMzHW_Iz= p1oov["WorldToViewportPoint"](p1oov,IqZIQIO)
+        local oOUXOo0WlXn1vl= Vector2["new"](p1oov["ViewportSize"]["X"]/2,p1oov["ViewportSize"]["Y"]/2)
+        local lzwwUpn=(Vector2["new"](lDvuvMnM["X"],lDvuvMnM["Y"])- oOUXOo0WlXn1vl)["Magnitude"]
+        local o100vmw= w_ZpoH0p1["qWxWwz"]("%.0f",lzwwUpn- Wv0HMNDowvn["spearFovRadius"])
+        if not W0IlZNQMzHW_Iz then
+HM1uHIZZl0["SpearInfoText"]["Text"]="Target di belakang kamera"
+        else HM1uHIZZl0["SpearInfoText"]["Text"]= w_ZpoH0p1["qWxWwz"]("Masuk FOV: %s px lagi",o100vmw)
+    end
+elseif not HM1uHIZZl0["spearIsHolding"] then
+HM1uHIZZl0["SpearStatusText"]["Text"]="READY" HM1uHIZZl0["SpearStatusText"]["TextColor3"]= Color3["fromRGB"]((-602+857),(64+191),255) HM1uHIZZl0["SpearAccentBar"]["BackgroundColor3"]= Color3["fromRGB"]((-171+321),(304-154),200) HM1uHIZZl0["SpearInfoText"]["Text"]= w_ZpoH0p1["qWxWwz"]("%s | %s studs | Hold: %ss",QZ1bqI1xqx_,BXZQpXbnbq,w_ZpoH0p1["qWxWwz"]("%.2f",llIZUvZIN))
 else
-local v85 = tick()- ESPState.spearHoldStartTimelocal v86 = string.format("%.2f", v85)
-local v87 = string.format("%.2f", cam20)
-local v88 = MainState._vMo1mZ1l(p1oov, gui94, Settings.spearFovRadius)
-if not v88 then
-ESPState.SpearStatusText.Text = "AIM AT TARGET" ESPState.SpearStatusText.TextColor3 = Color3.fromRGB(255, 150, 150)
-ESPState.SpearAccentBar.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-ESPState.SpearInfoText.Text = "Target keluar FOV!"
-elseif v85>= cam20 then
-ESPState.SpearStatusText.Text = "RELEASE!" ESPState.SpearStatusText.TextColor3 = Color3.fromRGB(80, 255, 120)
-ESPState.SpearAccentBar.BackgroundColor3 = Color3.fromRGB(50, 255, 100)
-ESPState.SpearInfoText.Text = string.format("Hold: %ss | Ideal: %ss", v86, v87)
-else ESPState.SpearStatusText.Text = "HOLD..." ESPState.SpearStatusText.TextColor3 = Color3.fromRGB(255, 220, 100)
-ESPState.SpearAccentBar.BackgroundColor3 = Color3.fromRGB(255, 200, 50)
-ESPState.SpearInfoText.Text = string.format("Hold: %ss | Ideal: %ss", v86, v87)
+local WWm__uuqI= tick()- HM1uHIZZl0["spearHoldStartTime"]
+local DbD0uuzu= w_ZpoH0p1["qWxWwz"]("%.2f",WWm__uuqI)
+local M0Iv_I_I= w_ZpoH0p1["qWxWwz"]("%.2f",llIZUvZIN)
+local vuuu_wvnuW0l= b0W0wpHoxmHDWX._vMo1mZ1l(p1oov,IqZIQIO,Wv0HMNDowvn["spearFovRadius"])
+if not vuuu_wvnuW0l then
+HM1uHIZZl0["SpearStatusText"]["Text"]="AIM AT TARGET" HM1uHIZZl0["SpearStatusText"]["TextColor3"]= Color3["fromRGB"]((766-511),150,(-186+336)) HM1uHIZZl0["SpearAccentBar"]["BackgroundColor3"]= Color3["fromRGB"](255,100,(426-326)) HM1uHIZZl0["SpearInfoText"]["Text"]="Target keluar FOV!"
+elseif WWm__uuqI>= llIZUvZIN then
+HM1uHIZZl0["SpearStatusText"]["Text"]="RELEASE!" HM1uHIZZl0["SpearStatusText"]["TextColor3"]= Color3["fromRGB"]((-327+407),255,(-628+748)) HM1uHIZZl0["SpearAccentBar"]["BackgroundColor3"]= Color3["fromRGB"](50,(-710+965),(-797+897)) HM1uHIZZl0["SpearInfoText"]["Text"]= w_ZpoH0p1["qWxWwz"]("Hold: %ss | Ideal: %ss",DbD0uuzu,M0Iv_I_I)
+else HM1uHIZZl0["SpearStatusText"]["Text"]="HOLD..." HM1uHIZZl0["SpearStatusText"]["TextColor3"]= Color3["fromRGB"]((-432+687),220,(75+25)) HM1uHIZZl0["SpearAccentBar"]["BackgroundColor3"]= Color3["fromRGB"](255,(445-245),(-788+838)) HM1uHIZZl0["SpearInfoText"]["Text"]= w_ZpoH0p1["qWxWwz"]("Hold: %ss | Ideal: %ss",DbD0uuzu,M0Iv_I_I)
 end
 end
 end
-if ESPState.silentSpearEnabledand flag34 and upxqloop and upxqloop.Characterthen
-local v89 = MainState.ppmDZmUwpIop(upxqloop.Character)
-local v90 = upxqloop.Character:FindFirstChild("HumanoidRootPart")
-if typeof(v89)=="Vector3" and v90 then
- local flag42 = MainState._vMo1mZ1l(p1oov, v89, Settings.spearFovRadius)
- if flag42 then
- local flag43 = p1oov.CFrame.Positionlocal flag44 = v89- flag43
- local flag45 = flag44.Magnitude
- if flag45> 0.1 then
- local v91 = 142.5
- if ESPState.spearIsHolding and ESPState.spearHoldStartTime then
- local flag46 = tick()- ESPState.spearHoldStartTime
- if flag46>= 2 then
-v91 = 165
- elseif flag46>= 1 then
-v91 = 142.5
- else v91 = math.max(23, flag46* 150)
- end
+if HM1uHIZZl0["silentSpearEnabled"] and WNUlz and upxqloop and upxqloop["Character"] then
+    local MzUnxONb= b0W0wpHoxmHDWX.ppmDZmUwpIop(upxqloop["Character"])
+    local qObNlX_Ul= upxqloop["Character"]:FindFirstChild("HumanoidRootPart")
+    if w_ZpoH0p1["bHmuv"](MzUnxONb)=="Vector3" and qObNlX_Ul then
+        local InwZpW= b0W0wpHoxmHDWX._vMo1mZ1l(p1oov,MzUnxONb,Wv0HMNDowvn["spearFovRadius"])
+        if InwZpW then
+            local WOXopozU= p1oov["CFrame"]["Position"]
+            local QHD1WOqv= MzUnxONb- WOXopozU
+            local HDpxvHUZXbo= QHD1WOqv["Magnitude"]
+            if HDpxvHUZXbo>0.1 then
+                local MIowbHNlZX0vN=142.5
+                if HM1uHIZZl0["spearIsHolding"] and HM1uHIZZl0["spearHoldStartTime"] then
+                    local bZwH_MNMvXDX= tick()- HM1uHIZZl0["spearHoldStartTime"]
+                    if bZwH_MNMvXDX>= 2 then
+MIowbHNlZX0vN=(548-383)
+                    elseif bZwH_MNMvXDX>=(-757+758) then
+MIowbHNlZX0vN=142.5
+                    else MIowbHNlZX0vN= w_ZpoH0p1["lZUWvp_XuN"](23,bZwH_MNMvXDX*(481-331))
+                end
+            end
+            local NU_IubZ_MZp= uvWUOOzvx1["Gravity"]*(HM1uHIZZl0["lastGravityMult"] or 1)
+            local wXqNx= qObNlX_Ul["AssemblyLinearVelocity"]
+            local MIqoIqz= Vector3["new"](wXqNx["X"],0,wXqNx["Z"])
+            if MIqoIqz["Magnitude"]>(298-233) then
+MIqoIqz= MIqoIqz["Unit"]*65
+            end HM1uHIZZl0["silentSpearTargetVel"]= MIqoIqz
+            local MQlIpoO_oz0n,QnwzNlvHWXuwb0= b0W0wpHoxmHDWX.MqHuIln(WOXopozU,MzUnxONb,MIowbHNlZX0vN,NU_IubZ_MZp)
+            if MQlIpoO_oz0n and QnwzNlvHWXuwb0 then
+                local B_xNDHonMHQ0X= HM1uHIZZl0["silentSpearTargetVel"]* QnwzNlvHWXuwb0
+                local QOZlOqQpouunD= MzUnxONb+ B_xNDHonMHQ0X
+                local DHOQnwwuovnHxW,QOvzmllUM= b0W0wpHoxmHDWX.MqHuIln(WOXopozU,QOZlOqQpouunD,MIowbHNlZX0vN,NU_IubZ_MZp)
+                if DHOQnwwuovnHxW then
+HM1uHIZZl0["silentSpearTargetTorso"]= QOZlOqQpouunD;
+HM1uHIZZl0["silentSpearLookVector"]= DHOQnwwuovnHxW
+                else HM1uHIZZl0["silentSpearTargetTorso"]= nil;
+HM1uHIZZl0["silentSpearLookVector"]= nil
+            end
+        else HM1uHIZZl0["silentSpearTargetTorso"]= nil;
+HM1uHIZZl0["silentSpearLookVector"]= nil
+    end
+else HM1uHIZZl0["silentSpearTargetTorso"]= nil;
+HM1uHIZZl0["silentSpearLookVector"]= nil
 end
- local flag47 = Workspace.Gravity*(ESPState.lastGravityMultor 1)
- local flag48 = v90.AssemblyLinearVelocitylocal flag49 = Vector3.new(flag48.X, 0, flag48.Z)
- if flag49.Magnitude> 65 then
-flag49 = flag49.Unit* 65
- end
-ESPState.silentSpearTargetVel = flag49
- local MQlIpoO_oz0n, QnwzNlvHWXuwb0 = MainState.MqHuIln(flag43, v89, v91, flag47)
- if MQlIpoO_oz0n and QnwzNlvHWXuwb0 then
- local v92 = ESPState.silentSpearTargetVel* QnwzNlvHWXuwb0
- local v93 = v89+ v92
- local DHOQnwwuovnHxW, QOvzmllUM = MainState.MqHuIln(flag43, v93, v91, flag47)
- if DHOQnwwuovnHxW then
-ESPState.silentSpearTargetTorso = v93;
-ESPState.silentSpearLookVector = DHOQnwwuovnHxW
- else ESPState.silentSpearTargetTorso = nil;
-ESPState.silentSpearLookVector = nil
- end
-else ESPState.silentSpearTargetTorso = nil;
-ESPState.silentSpearLookVector = nil
+else HM1uHIZZl0["silentSpearTargetTorso"]= nil;
+HM1uHIZZl0["silentSpearLookVector"]= nil
 end
-else ESPState.silentSpearTargetTorso = nil;
-ESPState.silentSpearLookVector = nil
+else HM1uHIZZl0["silentSpearTargetTorso"]= nil;
+HM1uHIZZl0["silentSpearLookVector"]= nil
 end
-else ESPState.silentSpearTargetTorso = nil;
-ESPState.silentSpearLookVector = nil
-end
-else ESPState.silentSpearTargetTorso = nil;
-ESPState.silentSpearLookVector = nil
-end
-else ESPState.silentSpearTargetTorso = nil;
-ESPState.silentSpearLookVector = nil
+else HM1uHIZZl0["silentSpearTargetTorso"]= nil;
+HM1uHIZZl0["silentSpearLookVector"]= nil
 end
 end)
+end do
+    function b0W0wpHoxmHDWX.bX_UINwW0NZ(HoHxxlzq,INxbwvxx_DNUw)
+    if HoHxxlzq== Hnv0Zw then
+        return
+    end
+    if not INxbwvxx_DNUw or not INxbwvxx_DNUw["Parent"] or HoHxxlzq["Character"]~= INxbwvxx_DNUw then
+        return
+    end ozoHvMX1wbMNu(HoHxxlzq,INxbwvxx_DNUw) Oqpmb(HoHxxlzq,INxbwvxx_DNUw)
+    if Wv0HMNDowvn["hitboxEnabled"] then
+task["wait"](0.3)
+        if HoHxxlzq["Character"]== INxbwvxx_DNUw and INxbwvxx_DNUw["Parent"] then
+WpblbNNwxMIv(HoHxxlzq,INxbwvxx_DNUw)
+        end
+    end
+    if Wv0HMNDowvn["hitboxEspEnabled"] then
+_zWMxWbmXoUxzU(HoHxxlzq,INxbwvxx_DNUw)
+    end
+    if HM1uHIZZl0["autoParryEnabled"] or(AP_State and AP_State["Enabled"]) then
+        if AP_HookKiller then
+AP_HookKiller(HoHxxlzq,INxbwvxx_DNUw)
+        end
+    end
 end
-do
- function MainState.bX_UINwW0NZ(HoHxxlzq, INxbwvxx_DNUw)
- if HoHxxlzq== LocalPlayer then
- return
- end
-if not INxbwvxx_DNUw or not INxbwvxx_DNUw.Parentor HoHxxlzq.Character~= INxbwvxx_DNUw then
- return
- end
-func5(HoHxxlzq, INxbwvxx_DNUw) Oqpmb(HoHxxlzq, INxbwvxx_DNUw)
- if Settings.hitboxEnabled then
-task.wait(0.3)
- if HoHxxlzq.Character== INxbwvxx_DNUw and INxbwvxx_DNUw.Parent then
-func32(HoHxxlzq, INxbwvxx_DNUw)
- end
-end
- if Settings.hitboxEspEnabledthen func36(HoHxxlzq, INxbwvxx_DNUw)
-end
-if ESPState.autoParryEnabledor(AP_State and AP_State.Enabled) then
- if AP_HookKiller then
-AP_HookKiller(HoHxxlzq, INxbwvxx_DNUw)
- end
-end
-end
-function MainState.NuMzNx(HpwX0vQxDo1Wpo)
-if HpwX0vQxDo1Wpo== LocalPlayer then
- return
-end
-IsPlayerAlive(HpwX0vQxDo1Wpo) func8(HpwX0vQxDo1Wpo) wxouub(HpwX0vQxDo1Wpo) HpwX0vQxDo1Wpo:GetPropertyChangedSignal("Team"):Connect(
-function() IsPlayerAlive(HpwX0vQxDo1Wpo)
-task.wait(0.2)
-if ESPState.autoParryEnabled or(AP_State and AP_State.Enabled) then
- if AP_HookKiller then
+function b0W0wpHoxmHDWX.NuMzNx(HpwX0vQxDo1Wpo)
+if HpwX0vQxDo1Wpo== Hnv0Zw then
+    return
+end oHpnQZpOMIO0n(HpwX0vQxDo1Wpo) HxW0NlvXwXHIqQ(HpwX0vQxDo1Wpo) wxouub(HpwX0vQxDo1Wpo) HpwX0vQxDo1Wpo:GetPropertyChangedSignal("Team"):Connect(
+function() oHpnQZpOMIO0n(HpwX0vQxDo1Wpo) task["wait"](0.2)
+if HM1uHIZZl0["autoParryEnabled"] or(AP_State and AP_State["Enabled"]) then
+    if AP_HookKiller then
 AP_HookKiller(HpwX0vQxDo1Wpo)
- end
+    end
 end
 end)
-if HpwX0vQxDo1Wpo.Characterthen task.spawn(
-function()
-MainState.bX_UINwW0NZ(HpwX0vQxDo1Wpo, HpwX0vQxDo1Wpo.Character)
+if HpwX0vQxDo1Wpo["Character"] then
+task["spawn"](
+    function() b0W0wpHoxmHDWX.bX_UINwW0NZ(HpwX0vQxDo1Wpo,HpwX0vQxDo1Wpo["Character"])
 end)
-end
-HpwX0vQxDo1Wpo.CharacterAdded:Connect(
-function(MwZx_mq)
-task.spawn(
-function()
-MainState.bX_UINwW0NZ(HpwX0vQxDo1Wpo, MwZx_mq)
+end HpwX0vQxDo1Wpo["CharacterAdded"]:Connect(
+function(MwZx_mq) task["spawn"](
+function() b0W0wpHoxmHDWX.bX_UINwW0NZ(HpwX0vQxDo1Wpo,MwZx_mq)
 end)
 end)
 end
-function MainState.MnZvvMbQvnOzu(IuXvZp) func6(IuXvZp) func37(IuXvZp)
-if IuXvZp.Character then
-func33(IuXvZp, IuXvZp.Character)
+function b0W0wpHoxmHDWX.MnZvvMbQvnOzu(IuXvZp) MXwU1D0(IuXvZp) QNnzOW0mu(IuXvZp)
+if IuXvZp["Character"] then
+NnnxXDbZqlOwxv(IuXvZp,IuXvZp["Character"])
 end
-end Players.PlayerAdded:Connect(MainState.NuMzNx)
-Players.PlayerRemoving:Connect(MainState.MnZvvMbQvnOzu)
-for w0zmvpUIn, MND0WOn in ipairs(Players.GetPlayers(Players)) do
- if MND0WOn~= LocalPlayer then
-MainState.NuMzNx(MND0WOn)
- end
+end OD_0p_00Xblo["PlayerAdded"]:Connect(b0W0wpHoxmHDWX.NuMzNx) OD_0p_00Xblo["PlayerRemoving"]:Connect(b0W0wpHoxmHDWX.MnZvvMbQvnOzu)
+for w0zmvpUIn,MND0WOn in w_ZpoH0p1["DZu1Dmvbw"](OD_0p_00Xblo["GetPlayers"](OD_0p_00Xblo)) do
+    if MND0WOn~= Hnv0Zw then
+b0W0wpHoxmHDWX.NuMzNx(MND0WOn)
+    end
 end
-function MainState.pzZMm(ODOwMO)
-ESPState.HoldLockActive = false;
-ESPState.godLastHP = nil ESPState.CV_HoldingPC = false;
-ESPState.CV_HoldingMobile = false ResetCameraVeil()
-if ESPState.CV_Enabled then
-task.defer(TempFlag)
+function b0W0wpHoxmHDWX.pzZMm(ODOwMO) HM1uHIZZl0["HoldLockActive"]= false;
+HM1uHIZZl0["godLastHP"]= nil HM1uHIZZl0["CV_HoldingPC"]= false;
+HM1uHIZZl0["CV_HoldingMobile"]= false qW1lMWN()
+if HM1uHIZZl0["CV_Enabled"] then
+task["defer"](DvpWoQQ0pQ_1)
+end task["spawn"](ox0Np,ODOwMO)
+if HM1uHIZZl0["godEnabled"] then
+task["wait"](0.3);
+HoHNI0HlooDU();
+D_wqpNMI1MUvm()
 end
-task.spawn(func48, ODOwMO)
-if ESPState.godEnabledthen task.wait(0.3);
-func55();
-func54()
+if Wv0HMNDowvn["lockFovEnabled"] then
+task["wait"](0.1);
+HM1uHIZZl0["originalFOV"]= nil;
+b0W0wpHoxmHDWX.BWQoHbUwlp0MZb(Wv0HMNDowvn["customFovValue"])
 end
-if Settings.lockFovEnabledthen task.wait(0.1);
-ESPState.originalFOV = nil;
-MainState.BWQoHbUwlp0MZb(Settings.customFovValue)
-end
-if Settings.cameraZoomEnabledthen task.wait(0.1);
-ESPState.originalMaxZoom = nil;
-MainState.w_vnXUZ(Settings.cameraZoomValue)
+if Wv0HMNDowvn["cameraZoomEnabled"] then
+task["wait"](0.1);
+HM1uHIZZl0["originalMaxZoom"]= nil;
+b0W0wpHoxmHDWX.w_vnXUZ(Wv0HMNDowvn["cameraZoomValue"])
 end
 end
-if LocalPlayer.Character then
-task.spawn(MainState.pzZMm, LocalPlayer.Character)
-end
-LocalPlayer.CharacterAdded:Connect(
-function(Nb_bQvlImbwUW)
-task.spawn(MainState.pzZMm, Nb_bQvlImbwUW)
-end)
-RunService.Heartbeat:Connect(
+if Hnv0Zw["Character"] then
+task["spawn"](b0W0wpHoxmHDWX.pzZMm,Hnv0Zw["Character"])
+end Hnv0Zw["CharacterAdded"]:Connect(
+function(Nb_bQvlImbwUW) task["spawn"](b0W0wpHoxmHDWX.pzZMm,Nb_bQvlImbwUW)
+end) u0xpmq_WoUlm["Heartbeat"]:Connect(
 function(QpQDqWu)
-for IXmHQmXHHqno = 1,#ESPEntries do
- local v94 = ESPEntries[IXmHQmXHHqno] v94.timer = v94.timer+ QpQDqWu
- if v94.timer>= v94.intervalthen v94.timer = 0 v94.fn(QpQDqWu)
+for IXmHQmXHHqno=(-575+576),#IWzQn do
+    local Bxu_OOQM= IWzQn[IXmHQmXHHqno] Bxu_OOQM["timer"]= Bxu_OOQM["timer"]+ QpQDqWu
+    if Bxu_OOQM["timer"]>= Bxu_OOQM["interval"] then
+Bxu_OOQM["timer"]=(-893+893) Bxu_OOQM["fn"](QpQDqWu)
+    end
 end
+end) b0W0wpHoxmHDWX.p0WOU0IM= B0mzDm1QO["Window"](B0mzDm1QO,{["Title"]="BOLONG-HUB",["Image"]="84034353458936",["Footer"]="Violence District",["Author"]="Discord.gg/pWpgqVGxNK",["Color"]= bH0vx,["Version"]=1,["Search"]= true,}) b0W0wpHoxmHDWX.WXDOInoUOHpw= b0W0wpHoxmHDWX.p0WOU0IM["AddTab"](b0W0wpHoxmHDWX.p0WOU0IM,{["Name"]="Exclusive",["Icon"]="sparkles"}) b0W0wpHoxmHDWX.uXo1oQQNM= b0W0wpHoxmHDWX.p0WOU0IM["AddTab"](b0W0wpHoxmHDWX.p0WOU0IM,{["Name"]="Killer",["Icon"]="swords"}) b0W0wpHoxmHDWX.DO_nopuz= b0W0wpHoxmHDWX.p0WOU0IM["AddTab"](b0W0wpHoxmHDWX.p0WOU0IM,{["Name"]="Survivor",["Icon"]="user"}) b0W0wpHoxmHDWX._Q_UQwvznNuxzH= b0W0wpHoxmHDWX.p0WOU0IM["AddTab"](b0W0wpHoxmHDWX.p0WOU0IM,{["Name"]="Visual",["Icon"]="eye"}) b0W0wpHoxmHDWX.p0N1pxWHmq= b0W0wpHoxmHDWX.p0WOU0IM["AddTab"](b0W0wpHoxmHDWX.p0WOU0IM,{["Name"]="Misc",["Icon"]="settings"}) b0W0wpHoxmHDWX.ODQQmq= b0W0wpHoxmHDWX.p0WOU0IM["AddTab"](b0W0wpHoxmHDWX.p0WOU0IM,{["Name"]="Config",["Icon"]="save"}) do
+b0W0wpHoxmHDWX.Mqqznm= b0W0wpHoxmHDWX.WXDOInoUOHpw["AddSection"](b0W0wpHoxmHDWX.WXDOInoUOHpw,"Auto Parry",nil) b0W0wpHoxmHDWX.Opoxb= b0W0wpHoxmHDWX.Mqqznm["AddHStack"](b0W0wpHoxmHDWX.Mqqznm) b0W0wpHoxmHDWX.Opoxb:AddToggle({["Title"]="Auto Parry",["Default"]= false,["Callback"]=
+    function(OqoZW) HM1uHIZZl0["autoParryEnabled"]= OqoZW
+end,}) b0W0wpHoxmHDWX.Opoxb:AddToggle({["Title"]="Radius ESP",["Default"]= false,["Callback"]=
+function(BW1HZvUHupMn) HM1uHIZZl0["autoParryRadiusEsp"]= BW1HZvUHupMn
+if b0W0wpHoxmHDWX.onDxz1o then
+b0W0wpHoxmHDWX.onDxz1o(BW1HZvUHupMn)
 end
-end)
-MainState.p0WOU0IM = UILib:Window({ Title = "BOLONG-HUB", Image = "84034353458936", Footer = "Violence District", Author = "Discord.gg/pWpgqVGxNK", Color = NotifyColor, Version = 1, Search = true,})
-MainState.WXDOInoUOHpw = MainState.p0WOU0IM.AddTab(MainState.p0WOU0IM,{ Name = "Exclusive", Icon = "sparkles"})
-MainState.uXo1oQQNM = MainState.p0WOU0IM.AddTab(MainState.p0WOU0IM,{ Name = "Killer", Icon = "swords"})
-MainState.DO_nopuz = MainState.p0WOU0IM.AddTab(MainState.p0WOU0IM,{ Name = "Survivor", Icon = "user"})
-MainState._Q_UQwvznNuxzH = MainState.p0WOU0IM.AddTab(MainState.p0WOU0IM,{ Name = "Visual", Icon = "eye"})
-MainState.p0N1pxWHmq = MainState.p0WOU0IM.AddTab(MainState.p0WOU0IM,{ Name = "Misc", Icon = "settings"})
-MainState.ODQQmq = MainState.p0WOU0IM.AddTab(MainState.p0WOU0IM,{ Name = "Config", Icon = "save"}) do
-MainState.Mqqznm = MainState.WXDOInoUOHpw.AddSection(MainState.WXDOInoUOHpw,"Auto Parry", nil)
-MainState.Opoxb = MainState.Mqqznm.AddHStack(MainState.Mqqznm)
-MainState.Opoxb:AddToggle({ Title = "Auto Parry", Default = false, Callback = function(OqoZW)
-ESPState.autoParryEnabled = OqoZW
-end,})
-MainState.Opoxb:AddToggle({ Title = "Radius ESP", Default = false, Callback = function(BW1HZvUHupMn)
-ESPState.autoParryRadiusEsp = BW1HZvUHupMn
-if MainState.onDxz1o then
-MainState.onDxz1o(BW1HZvUHupMn)
-end
-end,})
-MainState.Mqqznm:AddSlider({ Title = "Parry Radius (Stud)", Min = 4, Max = 40, Default = 11, Increment = 1, Callback = function(_ZNz0W_1)
-ESPState.autoParryRadius = _ZNz0W_1
-end,})
-MainState.BlDnnQHIqXvO = MainState.WXDOInoUOHpw.AddSection(MainState.WXDOInoUOHpw,"God Mode", nil)
-MainState.BlDnnQHIqXvO:AddParagraph({ Title = "God Mode", Content = "Instant Heal + Anti Knock/Down.\nSangat Cocok Jika Digunakan Untuk Main Pistol-pistolan."})
-MainState.BlDnnQHIqXvO:AddToggle({ Title = "Enable God Mode", Default = false, Callback = function(MoInqnm1_W)
+end,}) b0W0wpHoxmHDWX.Mqqznm:AddSlider({["Title"]="Parry Radius (Stud)",["Min"]=4,["Max"]=40,["Default"]=11,["Increment"]=(368-367),["Callback"]=
+function(_ZNz0W_1) HM1uHIZZl0["autoParryRadius"]= _ZNz0W_1
+end,}) b0W0wpHoxmHDWX.BlDnnQHIqXvO= b0W0wpHoxmHDWX.WXDOInoUOHpw["AddSection"](b0W0wpHoxmHDWX.WXDOInoUOHpw,"God Mode",nil) b0W0wpHoxmHDWX.BlDnnQHIqXvO:AddParagraph({["Title"]="God Mode",["Content"]="Instant Heal + Anti Knock/Down.\nSangat Cocok Jika Digunakan Untuk Main Pistol-pistolan."}) b0W0wpHoxmHDWX.BlDnnQHIqXvO:AddToggle({["Title"]="Enable God Mode",["Default"]= false,["Callback"]=
+function(MoInqnm1_W)
 if MoInqnm1_W then
-func54()
-else func55()
+D_wqpNMI1MUvm()
+else HoHNI0HlooDU()
 end
-end,})
-MainState.uWO1p1noQnlWm = MainState.WXDOInoUOHpw.AddSection(MainState.WXDOInoUOHpw,"Aim Lock (Legit)", nil)
-MainState.uWO1p1noQnlWm:AddToggle({ Title = "Enable Aim Lock", Default = false, Callback = function(pwHM_pI_mU0)
-Settings.cameralockEnabled = pwHM_pI_mU0
+end,}) b0W0wpHoxmHDWX.uWO1p1noQnlWm= b0W0wpHoxmHDWX.WXDOInoUOHpw["AddSection"](b0W0wpHoxmHDWX.WXDOInoUOHpw,"Aim Lock (Legit)",nil) b0W0wpHoxmHDWX.uWO1p1noQnlWm:AddToggle({["Title"]="Enable Aim Lock",["Default"]= false,["Callback"]=
+function(pwHM_pI_mU0) Wv0HMNDowvn["cameralockEnabled"]= pwHM_pI_mU0
 if pwHM_pI_mU0 then
-MainState.vMvvZ()
-else MainState.Hq1wbQvMzoz()
+b0W0wpHoxmHDWX.vMvvZ()
+else b0W0wpHoxmHDWX.Hq1wbQvMzoz()
 end
-end,})
-MainState.uWO1p1noQnlWm:AddDropdown({ Title = "Target Type", Options = {"Survivor","Killer"}, Default = "Survivor", Callback = function(uUxQl)
-Settings.cameralockTargetType = uUxQl
-end,})
-MainState.uWO1p1noQnlWm:AddDropdown({ Title = "Aim Part", Options = {"Torso","Head"}, Default = "Torso", Callback = function(v0lz_olwppOvMO)
-Settings.cameralockAimPart = v0lz_olwppOvMO
-end,})
-MainState.uWO1p1noQnlWm:AddDropdown({ Title = "Lock Mode", Content = "Recommended Use: Hold to Lock (PC: Right Click / Mobile: Slasher Attack Button)", Options = {"Always Lock","Hold to Lock"}, Default = "Always Lock", Callback = function(uunXv)
-Settings.cameralockLockMode = uunXv
-end,})
-MainState.uWO1p1noQnlWm:AddSlider({ Title = "Max Distance", Content = "Maximum distance to lock target (studs)", Min = 20, Max = 700, Default = Settings.cameralockMaxDistance, Increment = 5, Callback = function(bMHXx_M0O_)
-Settings.cameralockMaxDistance = bMHXx_M0O_
-end,})
-MainState.uWO1p1noQnlWm:AddSlider({ Title = "Camera Smoothness", Min = 0.01, Max = 1, Default = Settings.cameralockSmoothness, Increment = 0.01, Callback = function(BmuH1ZbqWb_vw)
-Settings.cameralockSmoothness = BmuH1ZbqWb_vw
-end,})
-MainState.uvmnv = MainState.WXDOInoUOHpw.AddSection(MainState.WXDOInoUOHpw,"Camera Veil (Legit)", nil)
-MainState.uvmnv:AddToggle({ Title = "Camera Veil", Default = false, Callback = function(omUvvM)
-Settings.cameraVeilEnabled = omUvvM
-local gen22 = pcall(
+end,}) b0W0wpHoxmHDWX.uWO1p1noQnlWm:AddDropdown({["Title"]="Target Type",["Options"]={"Survivor","Killer"},["Default"]="Survivor",["Callback"]=
+function(uUxQl) Wv0HMNDowvn["cameralockTargetType"]= uUxQl
+end,}) b0W0wpHoxmHDWX.uWO1p1noQnlWm:AddDropdown({["Title"]="Aim Part",["Options"]={"Torso","Head"},["Default"]="Torso",["Callback"]=
+function(v0lz_olwppOvMO) Wv0HMNDowvn["cameralockAimPart"]= v0lz_olwppOvMO
+end,}) b0W0wpHoxmHDWX.uWO1p1noQnlWm:AddDropdown({["Title"]="Lock Mode",["Content"]="Recommended Use: Hold to Lock (PC: Right Click / Mobile: Slasher Attack Button)",["Options"]={"Always Lock","Hold to Lock"},["Default"]="Always Lock",["Callback"]=
+function(uunXv) Wv0HMNDowvn["cameralockLockMode"]= uunXv
+end,}) b0W0wpHoxmHDWX.uWO1p1noQnlWm:AddSlider({["Title"]="Max Distance",["Content"]="Maximum distance to lock target (studs)",["Min"]=(704-684),["Max"]=(319+381),["Default"]= Wv0HMNDowvn["cameralockMaxDistance"],["Increment"]=(-882+887),["Callback"]=
+function(bMHXx_M0O_) Wv0HMNDowvn["cameralockMaxDistance"]= bMHXx_M0O_
+end,}) b0W0wpHoxmHDWX.uWO1p1noQnlWm:AddSlider({["Title"]="Camera Smoothness",["Min"]=0.01,["Max"]=1,["Default"]= Wv0HMNDowvn["cameralockSmoothness"],["Increment"]=0.01,["Callback"]=
+function(BmuH1ZbqWb_vw) Wv0HMNDowvn["cameralockSmoothness"]= BmuH1ZbqWb_vw
+end,}) b0W0wpHoxmHDWX.uvmnv= b0W0wpHoxmHDWX.WXDOInoUOHpw["AddSection"](b0W0wpHoxmHDWX.WXDOInoUOHpw,"Camera Veil (Legit)",nil) b0W0wpHoxmHDWX.uvmnv:AddToggle({["Title"]="Camera Veil",["Default"]= false,["Callback"]=
+function(omUvvM) Wv0HMNDowvn["cameraVeilEnabled"]= omUvvM
+local umQxQZZIb= w_ZpoH0p1["bHopuzIW"](
 function()
 if omUvvM then
-GuiHolder()
-else AntiAFKConn2()
+IbxMMx1lp()
+else wm_0lW()
 end
 end)
-if not gen22 then
-Settings.cameraVeilEnabled = false ShowNotify("Camera Veil","Gagal mengaktifkan Camera Veil", 2)
+if not umQxQZZIb then
+Wv0HMNDowvn["cameraVeilEnabled"]= false pUXUIwpIMmH("Camera Veil","Gagal mengaktifkan Camera Veil",2)
 end
-end,})
-MainState.uvmnv:AddToggle({ Title = "SnapLine ESP", Default = false, Callback = function(OUXwqZ)
-Settings.cameraVeilSnapLine = OUXwqZ
+end,}) b0W0wpHoxmHDWX.uvmnv:AddToggle({["Title"]="SnapLine ESP",["Default"]= false,["Callback"]=
+function(OUXwqZ) Wv0HMNDowvn["cameraVeilSnapLine"]= OUXwqZ
 if not OUXwqZ then
- if ESPState.CV_SnapLine then
-ESPState.CV_SnapLine.Visible = false
- end
-if ESPState.CV_SnapDot then
-ESPState.CV_SnapDot.Visible = false
- end
+    if HM1uHIZZl0["CV_SnapLine"] then
+HM1uHIZZl0["CV_SnapLine"]["Visible"]= false
+    end
+    if HM1uHIZZl0["CV_SnapDot"] then
+HM1uHIZZl0["CV_SnapDot"]["Visible"]= false
+    end
 end
-end,})
-MainState.WoM_lmuoD_0o = MainState.WXDOInoUOHpw.AddSection(MainState.WXDOInoUOHpw,"Crosshair", nil)
-MainState.WoM_lmuoD_0o:AddToggle({ Title = "Enable Crosshair", Default = false, Callback = function(wHpbvZXX)
-MainState.Iw0_ov:SetEnabled(wHpbvZXX)
-end,})
-MainState.WoM_lmuoD_0o:AddDropdown({ Title = "Style / Model", Options = CROSSHAIR_STYLES, Default = "Dot", Callback = function(NDHwuN)
-MainState.Iw0_ov:SetStyle(NDHwuN)
-end,})
-MainState.WoM_lmuoD_0o:AddSlider({ Title = "Size", Min = 1, Max = 100, Default = 20, Increment = 1, Callback = function(pz1moxHIvW)
-MainState.Iw0_ov:SetSize(pz1moxHIvW)
-end,})
-MainState.WoM_lmuoD_0o:AddSlider({ Title = "Opacity", Min = 0, Max = 100, Default = 100, Increment = 1, Callback = function(QpW0MuX)
-MainState.Iw0_ov:SetOpacity(QpW0MuX/ 100)
-end,})
-MainState.WoM_lmuoD_0o:AddInput({ Title = "Position X (px)", Default = "0", Placeholder = "Offset from center (positive = right)", Callback = function(lOMxw)
-local char45 = tonumber(lOMxw)
-if char45 then
-MainState.Iw0_ov.SetOffsetX(MainState.Iw0_ov, math.clamp(char45,- 1000, 1000))
+end,}) b0W0wpHoxmHDWX.WoM_lmuoD_0o= b0W0wpHoxmHDWX.WXDOInoUOHpw["AddSection"](b0W0wpHoxmHDWX.WXDOInoUOHpw,"Crosshair",nil) b0W0wpHoxmHDWX.WoM_lmuoD_0o:AddToggle({["Title"]="Enable Crosshair",["Default"]= false,["Callback"]=
+function(wHpbvZXX) b0W0wpHoxmHDWX.Iw0_ov:SetEnabled(wHpbvZXX)
+end,}) b0W0wpHoxmHDWX.WoM_lmuoD_0o:AddDropdown({["Title"]="Style / Model",["Options"]= CROSSHAIR_STYLES,["Default"]="Dot",["Callback"]=
+function(NDHwuN) b0W0wpHoxmHDWX.Iw0_ov:SetStyle(NDHwuN)
+end,}) b0W0wpHoxmHDWX.WoM_lmuoD_0o:AddSlider({["Title"]="Size",["Min"]=1,["Max"]=(-86+186),["Default"]=(-531+551),["Increment"]=(-888+889),["Callback"]=
+function(pz1moxHIvW) b0W0wpHoxmHDWX.Iw0_ov:SetSize(pz1moxHIvW)
+end,}) b0W0wpHoxmHDWX.WoM_lmuoD_0o:AddSlider({["Title"]="Opacity",["Min"]=0,["Max"]=(-18+118),["Default"]=(-446+546),["Increment"]=(-265+266),["Callback"]=
+function(QpW0MuX) b0W0wpHoxmHDWX.Iw0_ov:SetOpacity(QpW0MuX/100)
+end,}) b0W0wpHoxmHDWX.WoM_lmuoD_0o:AddInput({["Title"]="Position X (px)",["Default"]="0",["Placeholder"]="Offset from center (positive = right)",["Callback"]=
+function(lOMxw)
+local uXD1nDv= w_ZpoH0p1["pQwQXMN1QNbu_z"](lOMxw)
+if uXD1nDv then
+b0W0wpHoxmHDWX.Iw0_ov["SetOffsetX"](b0W0wpHoxmHDWX.Iw0_ov,w_ZpoH0p1["_WXbbv_1_HnO"](uXD1nDv,-1000,1000))
 end
-end,})
-MainState.WoM_lmuoD_0o:AddInput({ Title = "Position Y (px)", Default = "0", Placeholder = "Offset from center (positive = down)", Callback = function(QDmx0zDW1)
-local flag50 = tonumber(QDmx0zDW1)
-if flag50 then
-MainState.Iw0_ov.SetOffsetY(MainState.Iw0_ov, math.clamp(flag50,- 1000, 1000))
+end,}) b0W0wpHoxmHDWX.WoM_lmuoD_0o:AddInput({["Title"]="Position Y (px)",["Default"]="0",["Placeholder"]="Offset from center (positive = down)",["Callback"]=
+function(QDmx0zDW1)
+local q_vWvIw= w_ZpoH0p1["pQwQXMN1QNbu_z"](QDmx0zDW1)
+if q_vWvIw then
+b0W0wpHoxmHDWX.Iw0_ov["SetOffsetY"](b0W0wpHoxmHDWX.Iw0_ov,w_ZpoH0p1["_WXbbv_1_HnO"](q_vWvIw,-(1294-294),(810+190)))
 end
+end,}) b0W0wpHoxmHDWX.WoM_lmuoD_0o:AddColorPicker({["Title"]="Crosshair Color",["Default"]= Color3["fromRGB"]((1218-963),255,(-139+394)),["Callback"]=
+function(WW0XZ) b0W0wpHoxmHDWX.Iw0_ov:SetColor(WW0XZ)
+end,}) b0W0wpHoxmHDWX.bI0nxwpvnN= b0W0wpHoxmHDWX.WXDOInoUOHpw["AddSection"](b0W0wpHoxmHDWX.WXDOInoUOHpw,"Silent Spear (Veil)",nil) b0W0wpHoxmHDWX.bI0nxwpvnN:AddParagraph({["Title"]="Aim Guide",["Content"]="[ID] Saat Indikator/Snapline berubah hijau atau menampilkan \"RELEASE\", itu adalah waktu paling akurat untuk melepaskan SPEAR (90% kena target jika target diam).\n\n[EN] When the Indicator/Snapline turns green or shows \"RELEASE\", it is the most accurate time to release the SPEAR (90% hit chance if the target is stationary)."}) b0W0wpHoxmHDWX.bI0nxwpvnN:AddToggle({["Title"]="Silent Spear",["Default"]= false,["Callback"]=
+function(WoDXOquvmOOw1) HM1uHIZZl0["silentSpearEnabled"]= WoDXOquvmOOw1
+end,}) b0W0wpHoxmHDWX.OplOpzllnHuMnb= b0W0wpHoxmHDWX.bI0nxwpvnN["AddHStack"](b0W0wpHoxmHDWX.bI0nxwpvnN) b0W0wpHoxmHDWX.oZwUx1zxp1v= b0W0wpHoxmHDWX.bI0nxwpvnN["AddHStack"](b0W0wpHoxmHDWX.bI0nxwpvnN) b0W0wpHoxmHDWX.OplOpzllnHuMnb:AddToggle({["Title"]="FOV Circle",["Default"]= false,["Callback"]=
+function(bqMu0bzmz0Qvop) HM1uHIZZl0["spearFovCircleEnabled"]= bqMu0bzmz0Qvop
+end,}) b0W0wpHoxmHDWX.OplOpzllnHuMnb:AddToggle({["Title"]="Aim Indicator",["Default"]= false,["Callback"]=
+function(QDDXHQQlX) HM1uHIZZl0["spearIndicatorEnabled"]= QDDXHQQlX
+end,}) b0W0wpHoxmHDWX.oZwUx1zxp1v:AddToggle({["Title"]="SnapLine",["Default"]= false,["Callback"]=
+function(Buxumn) HM1uHIZZl0["SPEAR_SNAPLINE"]["enabled"]= Buxumn
+end,}) b0W0wpHoxmHDWX.oZwUx1zxp1v:AddToggle({["Title"]="Show Name/Studs",["Default"]= true,["Callback"]=
+function(pXznlnqoZNW) Wv0HMNDowvn["spearSnaplineShowText"]= pXznlnqoZNW
+end,}) b0W0wpHoxmHDWX.bI0nxwpvnN:AddSlider({["Title"]="Spear FOV Radius",["Min"]=30,["Max"]=(1425-925),["Default"]=150,["Step"]=5,["Callback"]=
+function(uXOuxINNU) Wv0HMNDowvn["spearFovRadius"]= uXOuxINNU
+end,}) b0W0wpHoxmHDWX.OpxnOIHWnOImW= b0W0wpHoxmHDWX.WXDOInoUOHpw["AddSection"](b0W0wpHoxmHDWX.WXDOInoUOHpw,"Silent Aim (Twist of Fate)",nil) b0W0wpHoxmHDWX.OpxnOIHWnOImW:AddToggle({["Title"]="Silent Aim",["Default"]= false,["Callback"]=
+function(bwImUDQXoqz01w) HM1uHIZZl0["silentAimEnabled"]= bwImUDQXoqz01w
+end,}) b0W0wpHoxmHDWX.unnpoH= b0W0wpHoxmHDWX.OpxnOIHWnOImW["AddHStack"](b0W0wpHoxmHDWX.OpxnOIHWnOImW) b0W0wpHoxmHDWX.unnpoH:AddToggle({["Title"]="FOV Circle",["Default"]= false,["Callback"]=
+function(lqmxbQ_mv) HM1uHIZZl0["silentAimFovVisible"]= lqmxbQ_mv
+end,}) b0W0wpHoxmHDWX.unnpoH:AddToggle({["Title"]="Laser ESP",["Default"]= false,["Callback"]=
+function(q1NnQUpX) HM1uHIZZl0["laserEspEnabled"]= q1NnQUpX
+end,}) b0W0wpHoxmHDWX.OpxnOIHWnOImW:AddSlider({["Title"]="Aim FOV Radius",["Min"]=30,["Max"]=(324+176),["Default"]=(58+92),["Step"]=5,["Callback"]=
+function(_nIUNWm) Wv0HMNDowvn["silentAimFovRadius"]= _nIUNWm
 end,})
-MainState.WoM_lmuoD_0o:AddColorPicker({ Title = "Crosshair Color", Default = Color3.fromRGB(255, 255, 255), Callback = function(WW0XZ)
-MainState.Iw0_ov:SetColor(WW0XZ)
-end,})
-MainState.bI0nxwpvnN = MainState.WXDOInoUOHpw.AddSection(MainState.WXDOInoUOHpw,"Silent Spear (Veil)", nil)
-MainState.bI0nxwpvnN:AddParagraph({ Title = "Aim Guide", Content = "[ID] Saat Indikator/Snapline berubah hijau atau menampilkan \"RELEASE\", itu adalah waktu paling akurat untuk melepaskan SPEAR (90% kena target jika target diam).\n\n[EN] When the Indicator/Snapline turns green or shows \"RELEASE\", it is the most accurate time to release the SPEAR (90% hit chance if the target is stationary)."})
-MainState.bI0nxwpvnN:AddToggle({ Title = "Silent Spear", Default = false, Callback = function(WoDXOquvmOOw1)
-ESPState.silentSpearEnabled = WoDXOquvmOOw1
-end,})
-MainState.OplOpzllnHuMnb = MainState.bI0nxwpvnN.AddHStack(MainState.bI0nxwpvnN)
-MainState.oZwUx1zxp1v = MainState.bI0nxwpvnN.AddHStack(MainState.bI0nxwpvnN)
-MainState.OplOpzllnHuMnb:AddToggle({ Title = "FOV Circle", Default = false, Callback = function(bqMu0bzmz0Qvop)
-ESPState.spearFovCircleEnabled = bqMu0bzmz0Qvop
-end,})
-MainState.OplOpzllnHuMnb:AddToggle({ Title = "Aim Indicator", Default = false, Callback = function(QDDXHQQlX)
-ESPState.spearIndicatorEnabled = QDDXHQQlX
-end,})
-MainState.oZwUx1zxp1v:AddToggle({ Title = "SnapLine", Default = false, Callback = function(Buxumn)
-ESPState.SPEAR_SNAPLINE.enabled = Buxumn
-end,})
-MainState.oZwUx1zxp1v:AddToggle({ Title = "Show Name/Studs", Default = true, Callback = function(pXznlnqoZNW)
-Settings.spearSnaplineShowText = pXznlnqoZNW
-end,})
-MainState.bI0nxwpvnN:AddSlider({ Title = "Spear FOV Radius", Min = 30, Max = 500, Default = 150, Step = 5, Callback = function(uXOuxINNU)
-Settings.spearFovRadius = uXOuxINNU
-end,})
-MainState.OpxnOIHWnOImW = MainState.WXDOInoUOHpw.AddSection(MainState.WXDOInoUOHpw,"Silent Aim (Twist of Fate)", nil)
-MainState.OpxnOIHWnOImW:AddToggle({ Title = "Silent Aim", Default = false, Callback = function(bwImUDQXoqz01w)
-ESPState.silentAimEnabled = bwImUDQXoqz01w
-end,})
-MainState.unnpoH = MainState.OpxnOIHWnOImW.AddHStack(MainState.OpxnOIHWnOImW)
-MainState.unnpoH:AddToggle({ Title = "FOV Circle", Default = false, Callback = function(lqmxbQ_mv)
-ESPState.silentAimFovVisible = lqmxbQ_mv
-end,})
-MainState.unnpoH:AddToggle({ Title = "Laser ESP", Default = false, Callback = function(q1NnQUpX)
-ESPState.laserEspEnabled = q1NnQUpX
-end,})
-MainState.OpxnOIHWnOImW:AddSlider({ Title = "Aim FOV Radius", Min = 30, Max = 500, Default = 150, Step = 5, Callback = function(_nIUNWm)
-Settings.silentAimFovRadius = _nIUNWm
-end,})
+end do
+b0W0wpHoxmHDWX.vx1OlOw= b0W0wpHoxmHDWX.uXo1oQQNM["AddSection"](b0W0wpHoxmHDWX.uXo1oQQNM,"Hitbox Modifier",nil) b0W0wpHoxmHDWX.vx1OlOw:AddToggle({["Title"]="Enable Hitbox Modifier",["Default"]= false,["Callback"]=
+    function(Ozq0nXOI) Wv0HMNDowvn["hitboxEnabled"]= Ozq0nXOI
+    if Ozq0nXOI then
+pIWIOMWp()
+    else vXQHOzmuNXl()
 end
-do
-MainState.vx1OlOw = MainState.uXo1oQQNM.AddSection(MainState.uXo1oQQNM,"Hitbox Modifier", nil)
-MainState.vx1OlOw:AddToggle({ Title = "Enable Hitbox Modifier", Default = false, Callback = function(Ozq0nXOI)
-Settings.hitboxEnabled = Ozq0nXOI
- if Ozq0nXOI then
-func34()
- else func35()
+end,}) b0W0wpHoxmHDWX.blXvQx= b0W0wpHoxmHDWX.vx1OlOw["AddSlider"](b0W0wpHoxmHDWX.vx1OlOw,{["Title"]="Survivor Hitbox Size (%)",["Content"]="Ukuran hitbox Survivor (100% = normal)",["Min"]=100,["Max"]=700,["Default"]=100,["Increment"]=(900-895),["Callback"]=
+function(OXZQzq1l_HxWQ) Wv0HMNDowvn["survivorHitboxSize"]= OXZQzq1l_HxWQ
+if Wv0HMNDowvn["hitboxEnabled"] then
+pIWIOMWp()
 end
-end,})
-MainState.blXvQx = MainState.vx1OlOw.AddSlider(MainState.vx1OlOw,{ Title = "Survivor Hitbox Size (%)", Content = "Ukuran hitbox Survivor (100% = normal)", Min = 100, Max = 700, Default = 100, Increment = 5, Callback = function(OXZQzq1l_HxWQ)
-Settings.survivorHitboxSize = OXZQzq1l_HxWQ
-if Settings.hitboxEnabledthen func34()
+end,}) b0W0wpHoxmHDWX.BpZnQ1wbw1Nz= b0W0wpHoxmHDWX.vx1OlOw["AddSlider"](b0W0wpHoxmHDWX.vx1OlOw,{["Title"]="Killer Hitbox Size (%)",["Content"]="Ukuran hitbox Killer (100% = normal)",["Min"]=(-543+643),["Max"]=700,["Default"]=100,["Increment"]=(853-848),["Callback"]=
+function(WXZmZ_uIl) Wv0HMNDowvn["killerHitboxSize"]= WXZmZ_uIl
+if Wv0HMNDowvn["hitboxEnabled"] then
+pIWIOMWp()
 end
-end,})
-MainState.BpZnQ1wbw1Nz = MainState.vx1OlOw.AddSlider(MainState.vx1OlOw,{ Title = "Killer Hitbox Size (%)", Content = "Ukuran hitbox Killer (100% = normal)", Min = 100, Max = 700, Default = 100, Increment = 5, Callback = function(WXZmZ_uIl)
-Settings.killerHitboxSize = WXZmZ_uIl
-if Settings.hitboxEnabled then
-func34()
-end
-end,})
-MainState._HxmI = MainState.vx1OlOw.AddHStack(MainState.vx1OlOw)
-MainState._HxmI:AddButton({ Title = "Default", Callback = function()
-MainState.blXvQx:Set(100);
-MainState.BpZnQ1wbw1Nz.Set(MainState.BpZnQ1wbw1Nz, 100)
-if Settings.hitboxEnabledthen func34()
-end
-ShowNotify("Hitbox Preset","Reset ke Default (100%)", 1.5)
-end,})
-MainState._HxmI:AddButton({ Title = "Big (200%)", Callback = function()
-MainState.blXvQx:Set(200);
-MainState.BpZnQ1wbw1Nz.Set(MainState.BpZnQ1wbw1Nz, 200)
-if Settings.hitboxEnabled then
-func34()
-end
-ShowNotify("Hitbox Preset","Big Hitbox aktif (200%)", 1.5)
-end,})
-MainState.vx1OlOw:AddToggle({ Title = "Enable Hitbox ESP", Default = false, Callback = function(_uuXp)
-Settings.hitboxEspEnabled = _uuXp
+end,}) b0W0wpHoxmHDWX._HxmI= b0W0wpHoxmHDWX.vx1OlOw["AddHStack"](b0W0wpHoxmHDWX.vx1OlOw) b0W0wpHoxmHDWX._HxmI:AddButton({["Title"]="Default",["Callback"]=
+function() b0W0wpHoxmHDWX.blXvQx:Set((-391+491));
+b0W0wpHoxmHDWX.BpZnQ1wbw1Nz["Set"](b0W0wpHoxmHDWX.BpZnQ1wbw1Nz,(-550+650))
+if Wv0HMNDowvn["hitboxEnabled"] then
+pIWIOMWp()
+end pUXUIwpIMmH("Hitbox Preset","Reset ke Default (100%)",1.5)
+end,}) b0W0wpHoxmHDWX._HxmI:AddButton({["Title"]="Big (200%)",["Callback"]=
+function() b0W0wpHoxmHDWX.blXvQx:Set((-394+594));
+b0W0wpHoxmHDWX.BpZnQ1wbw1Nz["Set"](b0W0wpHoxmHDWX.BpZnQ1wbw1Nz,(-273+473))
+if Wv0HMNDowvn["hitboxEnabled"] then
+pIWIOMWp()
+end pUXUIwpIMmH("Hitbox Preset","Big Hitbox aktif (200%)",1.5)
+end,}) b0W0wpHoxmHDWX.vx1OlOw:AddToggle({["Title"]="Enable Hitbox ESP",["Default"]= false,["Callback"]=
+function(_uuXp) Wv0HMNDowvn["hitboxEspEnabled"]= _uuXp
 if _uuXp then
-func39()
-else func40()
+pNzHND()
+else o1II1HWx0HbZ()
 end
-end,})
-MainState.vx1OlOw:AddSlider({ Title = "Fill Transparency", Min = 0, Max = 100, Default = 50, Increment = 5, Callback = function(QNOon)
-Settings.hitboxEspTransparency = QNOon/ 100
-if not Settings.hitboxEspOutlineOnly then
-func38()
+end,}) b0W0wpHoxmHDWX.vx1OlOw:AddSlider({["Title"]="Fill Transparency",["Min"]=0,["Max"]=(83+17),["Default"]=(736-686),["Increment"]=5,["Callback"]=
+function(QNOon) Wv0HMNDowvn["hitboxEspTransparency"]= QNOon/(-746+846)
+if not Wv0HMNDowvn["hitboxEspOutlineOnly"] then
+WxWMzlH()
 end
-end,})
-MainState.MqpZOwDQ1nZ = MainState.vx1OlOw.AddHStack(MainState.vx1OlOw)
-MainState.MqpZOwDQ1nZ:AddColorPicker({ Title = "Hitbox Survivor Color", Default = Settings.hitboxEspSurvivorColor, Callback = function(_IwDIQxXQ)
-Settings.hitboxEspSurvivorColor = _IwDIQxXQ;
-func38()
-end,})
-MainState.MqpZOwDQ1nZ:AddColorPicker({ Title = "HitBox Killer Color", Default = Settings.hitboxEspKillerColor, Callback = function(bIXDDvxZb1)
-Settings.hitboxEspKillerColor = bIXDDvxZb1;
-func38()
-end,})
-MainState.qIWWoZNx1v_b = MainState.uXo1oQQNM.AddSection(MainState.uXo1oQQNM,"Killer No Cooldown", nil)
-MainState.qIWWoZNx1v_b:AddToggle({ Title = "Enable No Cooldown Bypass", Content = "Hidden, Abysswalker, Masked, More", Default = false, Callback = function(uXDomMOO_OOo)
-AntiAFKActive = uXDomMOO_OOo
+end,}) b0W0wpHoxmHDWX.MqpZOwDQ1nZ= b0W0wpHoxmHDWX.vx1OlOw["AddHStack"](b0W0wpHoxmHDWX.vx1OlOw) b0W0wpHoxmHDWX.MqpZOwDQ1nZ:AddColorPicker({["Title"]="Hitbox Survivor Color",["Default"]= Wv0HMNDowvn["hitboxEspSurvivorColor"],["Callback"]=
+function(_IwDIQxXQ) Wv0HMNDowvn["hitboxEspSurvivorColor"]= _IwDIQxXQ;
+WxWMzlH()
+end,}) b0W0wpHoxmHDWX.MqpZOwDQ1nZ:AddColorPicker({["Title"]="HitBox Killer Color",["Default"]= Wv0HMNDowvn["hitboxEspKillerColor"],["Callback"]=
+function(bIXDDvxZb1) Wv0HMNDowvn["hitboxEspKillerColor"]= bIXDDvxZb1;
+WxWMzlH()
+end,}) b0W0wpHoxmHDWX.qIWWoZNx1v_b= b0W0wpHoxmHDWX.uXo1oQQNM["AddSection"](b0W0wpHoxmHDWX.uXo1oQQNM,"Killer No Cooldown",nil) b0W0wpHoxmHDWX.qIWWoZNx1v_b:AddToggle({["Title"]="Enable No Cooldown Bypass",["Content"]="Hidden, Abysswalker, Masked, More",["Default"]= false,["Callback"]=
+function(uXDomMOO_OOo) qX0lIxI= uXDomMOO_OOo
 if uXDomMOO_OOo then
-RemoveESPEntry()
-else ClearAllESP()
+omWzxqom()
+else oWUuXq_pI1wWX()
 end
-end})
-MainState.BN1nvpWmHb = MainState.qIWWoZNx1v_b.AddHStack(MainState.qIWWoZNx1v_b)
-MainState.BN1nvpWmHb:AddButton({ Title = "Fire Corrupt (Abyss)", Callback = function() pcall(
+end}) b0W0wpHoxmHDWX.BN1nvpWmHb= b0W0wpHoxmHDWX.qIWWoZNx1v_b["AddHStack"](b0W0wpHoxmHDWX.qIWWoZNx1v_b) b0W0wpHoxmHDWX.BN1nvpWmHb:AddButton({["Title"]="Fire Corrupt (Abyss)",["Callback"]=
+function() w_ZpoH0p1["bHopuzIW"](
 function()
-local gen23 = game:GetService("ReplicatedStorage").Remotes.Killers.Abysswalker.corruptlxunQ:FireServer()
+local lxunQ= game["GetService"](game,"ReplicatedStorage")["Remotes"]["Killers"]["Abysswalker"]["corrupt"] lxunQ:FireServer()
 end)
-end})
-MainState.BN1nvpWmHb:AddButton({ Title = "Fire Slash (Abyss)", Callback = function() pcall(
+end}) b0W0wpHoxmHDWX.BN1nvpWmHb:AddButton({["Title"]="Fire Slash (Abyss)",["Callback"]=
+function() w_ZpoH0p1["bHopuzIW"](
 function()
-local inst161 = game:GetService("ReplicatedStorage").Remotes.Attacks.BasicAttackBWmqXX:FireServer(true)
+local BWmqXX= game["GetService"](game,"ReplicatedStorage")["Remotes"]["Attacks"]["BasicAttack"] BWmqXX:FireServer(true)
 end)
-end})
-MainState._MxlZloZbMNlX = MainState.qIWWoZNx1v_b.AddHStack(MainState.qIWWoZNx1v_b)
-MainState._MxlZloZbMNlX:AddButton({ Title = "Fire Leap (Hidden)", Callback = function() pcall(
+end}) b0W0wpHoxmHDWX._MxlZloZbMNlX= b0W0wpHoxmHDWX.qIWWoZNx1v_b["AddHStack"](b0W0wpHoxmHDWX.qIWWoZNx1v_b) b0W0wpHoxmHDWX._MxlZloZbMNlX:AddButton({["Title"]="Fire Leap (Hidden)",["Callback"]=
+function() w_ZpoH0p1["bHopuzIW"](
 function()
-local gen24 = game:GetService("ReplicatedStorage").Remotes.Killers.Hidden.LeapN0pxXlzxOQ:FireServer(true)
+local N0pxXlzxOQ= game["GetService"](game,"ReplicatedStorage")["Remotes"]["Killers"]["Hidden"]["Leap"] N0pxXlzxOQ:FireServer(true)
 end)
-end})
-MainState._MxlZloZbMNlX:AddButton({ Title = "Fire M2 (Hidden)", Callback = function() pcall(
+end}) b0W0wpHoxmHDWX._MxlZloZbMNlX:AddButton({["Title"]="Fire M2 (Hidden)",["Callback"]=
+function() w_ZpoH0p1["bHopuzIW"](
 function()
-local gen25 = game:GetService("ReplicatedStorage").Remotes.Killers.Hidden.M2 gen25:FireServer({}, false)
+local QNMOlU= game["GetService"](game,"ReplicatedStorage")["Remotes"]["Killers"]["Hidden"]["M2"] QNMOlU:FireServer({},false)
 end)
-end})
-MainState.OupN1u_wmZpzn = MainState.uXo1oQQNM.AddSection(MainState.uXo1oQQNM,"Masked Skill Spammer", nil)
-MainState.Wqm1UMUv = "Cobra" MainState.OupN1u_wmZpzn.AddDropdown(MainState.OupN1u_wmZpzn,{ Title = "Select Mask Power", Options = {"Alex","Brandon","Cobra","Rabbit","Richter","Tony"}, Default = "Cobra", Callback = function(N_ZDWopxpxoUH)
-MainState.Wqm1UMUv = N_ZDWopxpxoUH
-end})
-MainState.DnpuM = MainState.OupN1u_wmZpzn.AddHStack(MainState.OupN1u_wmZpzn)
-MainState.DnpuM:AddButton({ Title = "Activate Power", Callback = function() pcall(
+end}) b0W0wpHoxmHDWX.OupN1u_wmZpzn= b0W0wpHoxmHDWX.uXo1oQQNM["AddSection"](b0W0wpHoxmHDWX.uXo1oQQNM,"Masked Skill Spammer",nil) b0W0wpHoxmHDWX.Wqm1UMUv="Cobra" b0W0wpHoxmHDWX.OupN1u_wmZpzn["AddDropdown"](b0W0wpHoxmHDWX.OupN1u_wmZpzn,{["Title"]="Select Mask Power",["Options"]={"Alex","Brandon","Cobra","Rabbit","Richter","Tony"},["Default"]="Cobra",["Callback"]=
+function(N_ZDWopxpxoUH) b0W0wpHoxmHDWX.Wqm1UMUv= N_ZDWopxpxoUH
+end}) b0W0wpHoxmHDWX.DnpuM= b0W0wpHoxmHDWX.OupN1u_wmZpzn["AddHStack"](b0W0wpHoxmHDWX.OupN1u_wmZpzn) b0W0wpHoxmHDWX.DnpuM:AddButton({["Title"]="Activate Power",["Callback"]=
+function() w_ZpoH0p1["bHopuzIW"](
 function()
-local v95 = game:GetService("ReplicatedStorage").Remotes.Killers.Masked.ActivatepowerQpuXmbb0wH:FireServer(MainState.Wqm1UMUv)
-end) ShowNotify("Masked","Power Activated: "..MainState.Wqm1UMUv, 1.5)
-end})
-MainState.DnpuM:AddButton({ Title = "Deactivate Power", Callback = function() pcall(
+local QpuXmbb0wH= game["GetService"](game,"ReplicatedStorage")["Remotes"]["Killers"]["Masked"]["Activatepower"] QpuXmbb0wH:FireServer(b0W0wpHoxmHDWX.Wqm1UMUv)
+end) pUXUIwpIMmH("Masked","Power Activated: ".. b0W0wpHoxmHDWX.Wqm1UMUv,1.5)
+end}) b0W0wpHoxmHDWX.DnpuM:AddButton({["Title"]="Deactivate Power",["Callback"]=
+function() w_ZpoH0p1["bHopuzIW"](
 function()
-local gen26 = game:GetService("ReplicatedStorage").Remotes.Killers.Masked.Deactivatepower gen26:FireServer()
-end) ShowNotify("Masked","Power Deactivated", 1.5)
-end})
-MainState.HoZvH = MainState.uXo1oQQNM.AddSection(MainState.uXo1oQQNM,"Anti Blind", nil)
-MainState.HoZvH:AddToggle({ Title = "Anti Flashlight Blind", Content = "Mencegah kamu terkena efek buta (Blinded) dari senter Survivor", Default = false, Callback = function(vZpupHuOXNMx)
-Settings.antiBlindEnabled = vZpupHuOXNMx
-end,})
-MainState.oz_H1NbwmH_wM = MainState.uXo1oQQNM.AddSection(MainState.uXo1oQQNM,"Anti Looping", nil)
-MainState.oz_H1NbwmH_wM:AddToggle({ Title = "Anti Loop Window", Content = "Membuat semua window di map tidak bisa digunakan untuk looping", Default = false, Callback = function(uQqmnvUqoID)
-ESPState.antiLoopWindowEnabled = uQqmnvUqoID
+local Om1po0bI0MO= game["GetService"](game,"ReplicatedStorage")["Remotes"]["Killers"]["Masked"]["Deactivatepower"] Om1po0bI0MO:FireServer()
+end) pUXUIwpIMmH("Masked","Power Deactivated",1.5)
+end}) b0W0wpHoxmHDWX.HoZvH= b0W0wpHoxmHDWX.uXo1oQQNM["AddSection"](b0W0wpHoxmHDWX.uXo1oQQNM,"Anti Blind",nil) b0W0wpHoxmHDWX.HoZvH:AddToggle({["Title"]="Anti Flashlight Blind",["Content"]="Mencegah kamu terkena efek buta (Blinded) dari senter Survivor",["Default"]= false,["Callback"]=
+function(vZpupHuOXNMx) Wv0HMNDowvn["antiBlindEnabled"]= vZpupHuOXNMx
+end,}) b0W0wpHoxmHDWX.oz_H1NbwmH_wM= b0W0wpHoxmHDWX.uXo1oQQNM["AddSection"](b0W0wpHoxmHDWX.uXo1oQQNM,"Anti Looping",nil) b0W0wpHoxmHDWX.oz_H1NbwmH_wM:AddToggle({["Title"]="Anti Loop Window",["Content"]="Membuat semua window di map tidak bisa digunakan untuk looping",["Default"]= false,["Callback"]=
+function(uQqmnvUqoID) HM1uHIZZl0["antiLoopWindowEnabled"]= uQqmnvUqoID
 if uQqmnvUqoID then
-func28()
-else func29()
+vlmOH1_X()
+else IM_WpzUx1nu()
 end
+end}) b0W0wpHoxmHDWX.oz_H1NbwmH_wM:AddButton({["Title"]="Auto Drop All Pallets",["Callback"]=
+function() w1mO_U1I_()
 end})
-MainState.oz_H1NbwmH_wM:AddButton({ Title = "Auto Drop All Pallets", Callback = function() func30()
-end})
-end
-do
-MainState.w_IX1 = MainState.DO_nopuz.AddSection(MainState.DO_nopuz,"Auto Generator", nil)
-MainState.w_IX1:AddToggle({ Title = "Auto Generator", Default = Settings.autoGenerator, Callback = function(OWllluOD)
-Settings.autoGenerator = OWllluOD
-end,})
-MainState.w_IX1:AddDropdown({ Title = "Mode", Content = "Normal = safe zone | Perfect = zona Perfect | Instant = 😈 | Random = Succes/Neutral", Options = {"Instant","Perfect","Normal","Random"}, Default = Settings.autoGeneratorMode, Callback = function(v_Z_QZlWnxZmU)
-Settings.autoGeneratorMode = v_Z_QZlWnxZmU
-end,})
-MainState.lzoOZm = MainState.DO_nopuz.AddSection(MainState.DO_nopuz,"Anti Fall Slow", nil)
-MainState.lzoOZm:AddToggle({ Title = "Anti Fall Slow", Content = "Mencegah karakter melambat saat mendarat / jatuh dari ketinggian berapa pun", Default = false, Callback = function(Wxz1Zw1Mp)
-ESPState.AntiFallSlow = Wxz1Zw1Mp
-local v96 = LocalPlayer.Characterlocal wuvbv1 = v96 and v96:FindFirstChildOfClass("Humanoid")
+end do
+b0W0wpHoxmHDWX.w_IX1= b0W0wpHoxmHDWX.DO_nopuz["AddSection"](b0W0wpHoxmHDWX.DO_nopuz,"Auto Generator",nil) b0W0wpHoxmHDWX.w_IX1:AddToggle({["Title"]="Auto Generator",["Default"]= Wv0HMNDowvn["autoGenerator"],["Callback"]=
+    function(OWllluOD) Wv0HMNDowvn["autoGenerator"]= OWllluOD
+end,}) b0W0wpHoxmHDWX.w_IX1:AddDropdown({["Title"]="Mode",["Content"]="Normal = safe zone | Perfect = zona Perfect | Instant = 😈 | Random = Succes/Neutral",["Options"]={"Instant","Perfect","Normal","Random"},["Default"]= Wv0HMNDowvn["autoGeneratorMode"],["Callback"]=
+function(v_Z_QZlWnxZmU) Wv0HMNDowvn["autoGeneratorMode"]= v_Z_QZlWnxZmU
+end,}) b0W0wpHoxmHDWX.lzoOZm= b0W0wpHoxmHDWX.DO_nopuz["AddSection"](b0W0wpHoxmHDWX.DO_nopuz,"Anti Fall Slow",nil) b0W0wpHoxmHDWX.lzoOZm:AddToggle({["Title"]="Anti Fall Slow",["Content"]="Mencegah karakter melambat saat mendarat / jatuh dari ketinggian berapa pun",["Default"]= false,["Callback"]=
+function(Wxz1Zw1Mp) HM1uHIZZl0["AntiFallSlow"]= Wxz1Zw1Mp
+local Mnq0NI0ZMUb= Hnv0Zw["Character"]
+local wuvbv1= Mnq0NI0ZMUb and Mnq0NI0ZMUb["FindFirstChildOfClass"](Mnq0NI0ZMUb,"Humanoid")
 if Wxz1Zw1Mp then
-func44(wuvbv1)
-else func45(wuvbv1)
+Nvw0ZDnxoImoH(wuvbv1)
+else vZW11Xq1xZD_(wuvbv1)
 end
-end,})
-MainState._pnvvou0uvl1Mz = MainState.DO_nopuz.AddSection(MainState.DO_nopuz,"Movement Modification", nil)
-MainState._pnvvou0uvl1Mz:AddToggle({ Title = "No Slowdown", Default = false, Callback = function(qwwomlzo_zu)
-ESPState.NoSlowdown = qwwomlzo_zu
-local flag51 = LocalPlayer.Character
-local flag52 = flag51 and flag51:FindFirstChildOfClass("Humanoid")
+end,}) b0W0wpHoxmHDWX._pnvvou0uvl1Mz= b0W0wpHoxmHDWX.DO_nopuz["AddSection"](b0W0wpHoxmHDWX.DO_nopuz,"Movement Modification",nil) b0W0wpHoxmHDWX._pnvvou0uvl1Mz:AddToggle({["Title"]="No Slowdown",["Default"]= false,["Callback"]=
+function(qwwomlzo_zu) HM1uHIZZl0["NoSlowdown"]= qwwomlzo_zu
+local QvnD_HOqW= Hnv0Zw["Character"]
+local NnND_N= QvnD_HOqW and QvnD_HOqW["FindFirstChildOfClass"](QvnD_HOqW,"Humanoid")
 if qwwomlzo_zu then
-func46(flag52)
+vqQoXU(NnND_N)
 else _StopNoSlowdown()
 end
-end,})
-MainState._pnvvou0uvl1Mz:AddToggle({ Title = "Speed Boost", Default = false, Callback = function(HX1mDmbDQ)
-ESPState.SpeedBoostInit = HX1mDmbDQ
+end,}) b0W0wpHoxmHDWX._pnvvou0uvl1Mz:AddToggle({["Title"]="Speed Boost",["Default"]= false,["Callback"]=
+function(HX1mDmbDQ) HM1uHIZZl0["SpeedBoost"]= HX1mDmbDQ
 if not HX1mDmbDQ then
- local flag53 = LocalPlayer.Characterlocal flag54 = flag53 and flag53:FindFirstChildOfClass("Humanoid")
- if flag54 then
-func42(flag54, MagicConst)
- end
+    local lmHquDOzZIl1X= Hnv0Zw["Character"]
+    local IlbopNO1onvbZv= lmHquDOzZIl1X and lmHquDOzZIl1X["FindFirstChildOfClass"](lmHquDOzZIl1X,"Humanoid")
+    if IlbopNO1onvbZv then
+qNMQXII(IlbopNO1onvbZv,ulUmWDQmqmmv)
+    end
 else
-local flag55 = LocalPlayer.Characterlocal flag56 = flag55 and flag55:FindFirstChildOfClass("Humanoid")
-if not ESPState.safeModeSpeedor(flag56 and flag56.Health> 50 and not(flag55:GetAttribute("IsHooked") or flag55:GetAttribute("IsCarried"))) then
-func42(flag56, func41())
+local ImUUWblWD1= Hnv0Zw["Character"]
+local Opz1DOIxozOl= ImUUWblWD1 and ImUUWblWD1["FindFirstChildOfClass"](ImUUWblWD1,"Humanoid")
+if not HM1uHIZZl0["safeModeSpeed"] or(Opz1DOIxozOl and Opz1DOIxozOl["Health"]>(739-689) and not(ImUUWblWD1["GetAttribute"](ImUUWblWD1,"IsHooked") or ImUUWblWD1["GetAttribute"](ImUUWblWD1,"IsCarried"))) then
+qNMQXII(Opz1DOIxozOl,WwOu1ZXou0Z())
 end
 end
-end,})
-MainState._pnvvou0uvl1Mz:AddToggle({ Title = "Safe Mode (Speed)", Content = "Speed Boost & No Slowdown otomatis nonaktif saat Knockdown, Hook, dll.", Default = true, Callback = function(_1HHmI0ooN)
-ESPState.safeModeSpeed = _1HHmI0ooN
-end,})
-MainState._pnvvou0uvl1Mz:AddSlider({ Title = "Boost Amount (%)", Min = 0, Max = 100, Default = 50, Callback = function(qpbQoMuNNlw1w)
-ESPState.BoostPercent = qpbQoMuNNlw1w
-end,})
-MainState.DzNvHWmzIxDmmu = MainState.DO_nopuz.AddSection(MainState.DO_nopuz,"Auto Crouch (Abyss)", nil)
-MainState.DzNvHWmzIxDmmu:AddToggle({ Title = "Auto Crouch", Default = false, Callback = function(_npU_pDIxzxuHU)
-Settings.autoCrouchEnabled = _npU_pDIxzxuHU
+end,}) b0W0wpHoxmHDWX._pnvvou0uvl1Mz:AddToggle({["Title"]="Safe Mode (Speed)",["Content"]="Speed Boost & No Slowdown otomatis nonaktif saat Knockdown, Hook, dll.",["Default"]= true,["Callback"]=
+function(_1HHmI0ooN) HM1uHIZZl0["safeModeSpeed"]= _1HHmI0ooN
+end,}) b0W0wpHoxmHDWX._pnvvou0uvl1Mz:AddSlider({["Title"]="Boost Amount (%)",["Min"]=0,["Max"]=100,["Default"]=(-811+861),["Callback"]=
+function(qpbQoMuNNlw1w) HM1uHIZZl0["BoostPercent"]= qpbQoMuNNlw1w
+end,}) b0W0wpHoxmHDWX.DzNvHWmzIxDmmu= b0W0wpHoxmHDWX.DO_nopuz["AddSection"](b0W0wpHoxmHDWX.DO_nopuz,"Auto Crouch (Abyss)",nil) b0W0wpHoxmHDWX.DzNvHWmzIxDmmu:AddToggle({["Title"]="Auto Crouch",["Default"]= false,["Callback"]=
+function(_npU_pDIxzxuHU) Wv0HMNDowvn["autoCrouchEnabled"]= _npU_pDIxzxuHU
 if not _npU_pDIxzxuHU then
-MainState.uuMqxOzluob(false)
+b0W0wpHoxmHDWX.uuMqxOzluob(false)
 end
-end})
-MainState.DzNvHWmzIxDmmu:AddSlider({ Title = "Crouch Radius (Stud)", Min = 4, Max = 40, Default = 18, Increment = 1, Callback = function(O0zwIbuImDZZu)
-Settings.autoCrouchRadius = O0zwIbuImDZZu
-end,})
-MainState.vlIOU10MzvW = MainState.DO_nopuz.AddSection(MainState.DO_nopuz,"Auto Drop Nearby Pallet", nil)
-MainState.vlIOU10MzvW:AddToggle({ Title = "Auto Drop Nearby Pallet", Default = false, Callback = function(BQWOMlDOM1Il)
-ESPState.autoDropNearbyPallets = BQWOMlDOM1Il
+end}) b0W0wpHoxmHDWX.DzNvHWmzIxDmmu:AddSlider({["Title"]="Crouch Radius (Stud)",["Min"]=4,["Max"]=(1025-985),["Default"]=(717-699),["Increment"]=(-959+960),["Callback"]=
+function(O0zwIbuImDZZu) Wv0HMNDowvn["autoCrouchRadius"]= O0zwIbuImDZZu
+end,}) b0W0wpHoxmHDWX.vlIOU10MzvW= b0W0wpHoxmHDWX.DO_nopuz["AddSection"](b0W0wpHoxmHDWX.DO_nopuz,"Auto Drop Nearby Pallet",nil) b0W0wpHoxmHDWX.vlIOU10MzvW:AddToggle({["Title"]="Auto Drop Nearby Pallet",["Default"]= false,["Callback"]=
+function(BQWOMlDOM1Il) HM1uHIZZl0["autoDropNearbyPallets"]= BQWOMlDOM1Il
 if BQWOMlDOM1Il then
-ESPState.palletPointsCache = nil
+HM1uHIZZl0["palletPointsCache"]= nil
 end
-end})
-MainState.Ox_OoNDZDOUplX = MainState.DO_nopuz.AddSection(MainState.DO_nopuz,"Moonwalk", nil)
-MainState.Ox_OoNDZDOUplX:AddToggle({ Title = "Enable Moonwalk (Mobile GUI)", Default = false, Callback = function(WOlQub0IInIp0)
-Settings.moonwalkEnabled = WOlQub0IInIp0
+end}) b0W0wpHoxmHDWX.Ox_OoNDZDOUplX= b0W0wpHoxmHDWX.DO_nopuz["AddSection"](b0W0wpHoxmHDWX.DO_nopuz,"Moonwalk",nil) b0W0wpHoxmHDWX.Ox_OoNDZDOUplX:AddToggle({["Title"]="Enable Moonwalk (Mobile GUI)",["Default"]= false,["Callback"]=
+function(WOlQub0IInIp0) Wv0HMNDowvn["moonwalkEnabled"]= WOlQub0IInIp0
 if WOlQub0IInIp0 then
-func49()
- if ESPState.moonwalkGuithen ESPState.moonwalkGui.Enabled = true
-end
+NubHIl()
+    if HM1uHIZZl0["moonwalkGui"] then
+HM1uHIZZl0["moonwalkGui"]["Enabled"]= true
+    end
 else
-if ESPState.moonwalkGuithen ESPState.moonwalkGui.Enabled = false
+if HM1uHIZZl0["moonwalkGui"] then
+HM1uHIZZl0["moonwalkGui"]["Enabled"]= false
+end HM1uHIZZl0["moonwalkMobileDir"]=(-224+224) HM1uHIZZl0["moonwalkPCForward"]= false HM1uHIZZl0["moonwalkPCBackward"]= false
 end
-ESPState.moonwalkMobileDir = 0 HM1uHIZZl0.moonwalkPCForward = false ESPState.moonwalkPCBackward = false
+end}) b0W0wpHoxmHDWX.Ox_OoNDZDOUplX:AddKeybind({["Title"]="PC Lock Forward Key",["Default"]= Enum["KeyCode"]["Unknown"],["Callback"]=
+function()
+if Wv0HMNDowvn["moonwalkEnabled"] then
+HM1uHIZZl0["moonwalkPCForward"]= not HM1uHIZZl0["moonwalkPCForward"]
+    if HM1uHIZZl0["moonwalkPCForward"] then
+HM1uHIZZl0["moonwalkPCBackward"]= false
+    end
 end
-end})
-MainState.Ox_OoNDZDOUplX:AddKeybind({ Title = "PC Lock Forward Key", Default = Enum.KeyCode.Unknown, Callback = function()
-if Settings.moonwalkEnabled then
-ESPState.moonwalkPCForward = not ESPState.moonwalkPCForward
- if ESPState.moonwalkPCForwardthen ESPState.moonwalkPCBackward = false
+end}) b0W0wpHoxmHDWX.Ox_OoNDZDOUplX:AddKeybind({["Title"]="PC Lock Backward Key",["Default"]= Enum["KeyCode"]["Unknown"],["Callback"]=
+function()
+if Wv0HMNDowvn["moonwalkEnabled"] then
+HM1uHIZZl0["moonwalkPCBackward"]= not HM1uHIZZl0["moonwalkPCBackward"]
+    if HM1uHIZZl0["moonwalkPCBackward"] then
+HM1uHIZZl0["moonwalkPCForward"]= false
+    end
 end
-end
-end})
-MainState.Ox_OoNDZDOUplX:AddKeybind({ Title = "PC Lock Backward Key", Default = Enum.KeyCode.Unknown, Callback = function()
-if Settings.moonwalkEnabled then
-ESPState.moonwalkPCBackward = not ESPState.moonwalkPCBackwardif ESPState.moonwalkPCBackward then
-ESPState.moonwalkPCForward = false
- end
-end
-end})
-MainState.WZpWIzxOMuD = MainState.DO_nopuz.AddSection(MainState.DO_nopuz,"Escape Gate", nil)
-MainState.WZpWIzxOMuD:AddButton({ Title = "Auto Escape (Teleport)", Callback = function()
-MainState._XDNw()
-end})
-MainState.WZpWIzxOMuD:AddToggle({ Title = "Ghost Gate (Legit Mode)", Default = false, Callback = function(ImZMoux)
-ESPState.ghostGateEnabled = ImZMoux MainState.lHZlWupp()
-end})
-MainState.OmlqwO0Z = MainState.DO_nopuz.AddSection(MainState.DO_nopuz,"Lock FOV", nil)
-MainState.OmlqwO0Z:AddToggle({ Title = "Lock FOV", Default = Settings.lockFovEnabled, Callback = function(pzQXnNU0_lH)
-Settings.lockFovEnabled = pzQXnNU0_lH
+end}) b0W0wpHoxmHDWX.WZpWIzxOMuD= b0W0wpHoxmHDWX.DO_nopuz["AddSection"](b0W0wpHoxmHDWX.DO_nopuz,"Escape Gate",nil) b0W0wpHoxmHDWX.WZpWIzxOMuD:AddButton({["Title"]="Auto Escape (Teleport)",["Callback"]=
+function() b0W0wpHoxmHDWX._XDNw()
+end}) b0W0wpHoxmHDWX.WZpWIzxOMuD:AddToggle({["Title"]="Ghost Gate (Legit Mode)",["Default"]= false,["Callback"]=
+function(ImZMoux) HM1uHIZZl0["ghostGateEnabled"]= ImZMoux b0W0wpHoxmHDWX.lHZlWupp()
+end}) b0W0wpHoxmHDWX.OmlqwO0Z= b0W0wpHoxmHDWX.DO_nopuz["AddSection"](b0W0wpHoxmHDWX.DO_nopuz,"Lock FOV",nil) b0W0wpHoxmHDWX.OmlqwO0Z:AddToggle({["Title"]="Lock FOV",["Default"]= Wv0HMNDowvn["lockFovEnabled"],["Callback"]=
+function(pzQXnNU0_lH) Wv0HMNDowvn["lockFovEnabled"]= pzQXnNU0_lH
 if pzQXnNU0_lH then
-MainState.BWQoHbUwlp0MZb(Settings.customFovValue)
-else MainState.bxOlDXWlooNM()
+b0W0wpHoxmHDWX.BWQoHbUwlp0MZb(Wv0HMNDowvn["customFovValue"])
+else b0W0wpHoxmHDWX.bxOlDXWlooNM()
+end
+end,}) b0W0wpHoxmHDWX.OmlqwO0Z:AddSlider({["Title"]="FOV Value",["Min"]=(-37+67),["Max"]=120,["Default"]= Wv0HMNDowvn["customFovValue"],["Increment"]=1,["Callback"]=
+function(qHwMWp0vwvp) Wv0HMNDowvn["customFovValue"]= qHwMWp0vwvp
+if Wv0HMNDowvn["lockFovEnabled"] then
+b0W0wpHoxmHDWX.BWQoHbUwlp0MZb(qHwMWp0vwvp)
 end
 end,})
-MainState.OmlqwO0Z:AddSlider({ Title = "FOV Value", Min = 30, Max = 120, Default = Settings.customFovValue, Increment = 1, Callback = function(qHwMWp0vwvp)
-Settings.customFovValue = qHwMWp0vwvp
-if Settings.lockFovEnabledthen MainState.BWQoHbUwlp0MZb(qHwMWp0vwvp)
+end do
+b0W0wpHoxmHDWX.NvOXM= b0W0wpHoxmHDWX._Q_UQwvznNuxzH["AddSection"](b0W0wpHoxmHDWX._Q_UQwvznNuxzH,"Killer ESP",nil) b0W0wpHoxmHDWX.pwQOzxOmU00Oq= b0W0wpHoxmHDWX.NvOXM["AddHStack"](b0W0wpHoxmHDWX.NvOXM) b0W0wpHoxmHDWX.pwQOzxOmU00Oq:AddToggle({["Title"]="Show Name",["Default"]= Wv0HMNDowvn["killerShowName"],["Callback"]=
+    function(vqubnXmvXI) Wv0HMNDowvn["killerShowName"]= vqubnXmvXI;
+uQmbzH_zOzIX()
+end,}) b0W0wpHoxmHDWX.pwQOzxOmU00Oq:AddToggle({["Title"]="Show Outline",["Default"]= Wv0HMNDowvn["killerShowOutline"],["Callback"]=
+function(HWXWbMQo) Wv0HMNDowvn["killerShowOutline"]= HWXWbMQo;
+uQmbzH_zOzIX()
+end,}) b0W0wpHoxmHDWX.NvOXM:AddColorPicker({["Title"]="Killer Color",["Default"]= Wv0HMNDowvn["killerColor"],["Callback"]=
+function(qWwbub_lpU1) Wv0HMNDowvn["killerColor"]= qWwbub_lpU1;
+uQmbzH_zOzIX()
+end,}) b0W0wpHoxmHDWX.vIZuUHO1= b0W0wpHoxmHDWX._Q_UQwvznNuxzH["AddSection"](b0W0wpHoxmHDWX._Q_UQwvznNuxzH,"Survivor ESP",nil) b0W0wpHoxmHDWX.loHWU= b0W0wpHoxmHDWX.vIZuUHO1["AddHStack"](b0W0wpHoxmHDWX.vIZuUHO1) b0W0wpHoxmHDWX.loHWU:AddToggle({["Title"]="Show Name",["Default"]= Wv0HMNDowvn["survivorShowName"],["Callback"]=
+function(uz1wZNHpoQzZ1I) Wv0HMNDowvn["survivorShowName"]= uz1wZNHpoQzZ1I;
+uQmbzH_zOzIX()
+end,}) b0W0wpHoxmHDWX.loHWU:AddToggle({["Title"]="Show Outline",["Default"]= Wv0HMNDowvn["survivorShowOutline"],["Callback"]=
+function(vQqmuZHD) Wv0HMNDowvn["survivorShowOutline"]= vQqmuZHD;
+uQmbzH_zOzIX()
+end,}) b0W0wpHoxmHDWX.vIZuUHO1:AddColorPicker({["Title"]="Survivor Color",["Default"]= Wv0HMNDowvn["survivorColor"],["Callback"]=
+function(wzZmD0_uOvHUn) Wv0HMNDowvn["survivorColor"]= wzZmD0_uOvHUn;
+uQmbzH_zOzIX()
+end,}) b0W0wpHoxmHDWX.vlbbmUHO0DqzX= b0W0wpHoxmHDWX._Q_UQwvznNuxzH["AddSection"](b0W0wpHoxmHDWX._Q_UQwvznNuxzH,"Show Item Survivor",nil) b0W0wpHoxmHDWX.vlbbmUHO0DqzX:AddToggle({["Title"]="Show Equipped Item",["Default"]= false,["Callback"]=
+function(p1zvlbW) Wv0HMNDowvn["espItemEnabled"]= p1zvlbW
+end,}) b0W0wpHoxmHDWX.MQOoHpooND= b0W0wpHoxmHDWX._Q_UQwvznNuxzH["AddSection"](b0W0wpHoxmHDWX._Q_UQwvznNuxzH,"Outline Settings",nil) b0W0wpHoxmHDWX.MQOoHpooND:AddToggle({["Title"]="Outline Only",["Content"]="Tampilkan outline saja tanpa fill (berlaku untuk Killer & Survivor)",["Default"]= Wv0HMNDowvn["killerOutlineOnly"],["Callback"]=
+function(bXMOOon) Wv0HMNDowvn["killerOutlineOnly"]= bXMOOon;
+Wv0HMNDowvn["survivorOutlineOnly"]= bXMOOon uQmbzH_zOzIX()
+end,}) b0W0wpHoxmHDWX.qwXOxuX= b0W0wpHoxmHDWX._Q_UQwvznNuxzH["AddSection"](b0W0wpHoxmHDWX._Q_UQwvznNuxzH,"Object ESP",nil) b0W0wpHoxmHDWX.bwZzbozHD= b0W0wpHoxmHDWX.qwXOxuX["AddHStack"](b0W0wpHoxmHDWX.qwXOxuX) b0W0wpHoxmHDWX.bwZzbozHD:AddToggle({["Title"]="ESP Generator",["Default"]= Wv0HMNDowvn["espGeneratorEnabled"],["Callback"]=
+function(q1uDuD10X0HH_u) Wv0HMNDowvn["espGeneratorEnabled"]= q1uDuD10X0HH_u;
+bbQbmv1MbH()
+end,}) b0W0wpHoxmHDWX.bwZzbozHD:AddToggle({["Title"]="Progress Gen",["Default"]= Wv0HMNDowvn["espGeneratorProgressGen"],["Callback"]=
+function(BIWbZZNnpOwXWv) Wv0HMNDowvn["espGeneratorProgressGen"]= BIWbZZNnpOwXWv
+for _1WmxNbNzI0wz_,uIpD1QXm in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Generators"]) do
+    if uIpD1QXm and uIpD1QXm["Parent"] then
+uIpD1QXm["SetAttribute"](uIpD1QXm,"__BolongGenLastPct__",nil)
+        if not BIWbZZNnpOwXWv then
+            local HNOQw1oDwHZ= uIpD1QXm["FindFirstChild"](uIpD1QXm,"__BolongGenProgress__")
+            if HNOQw1oDwHZ then
+HNOQw1oDwHZ["Destroy"](HNOQw1oDwHZ)
+            end
+        end
+    end
+end bbQbmv1MbH()
+end,}) b0W0wpHoxmHDWX.qwXOxuX:AddToggle({["Title"]="Show Generator Info",["Default"]= Wv0HMNDowvn["espGenShowPK"],["Content"]="Player & Break",["Callback"]=
+function(NMIv0lNxwIoq) Wv0HMNDowvn["espGenShowPK"]= NMIv0lNxwIoq
+for HvInNnz,ln0_pIZQu1W in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Generators"]) do
+    if ln0_pIZQu1W and ln0_pIZQu1W["Parent"] then
+ln0_pIZQu1W["SetAttribute"](ln0_pIZQu1W,"__BolongGenLastPct__",nil)
+    end
 end
-end,})
+end,}) b0W0wpHoxmHDWX.MN0XuxIQDDnl= b0W0wpHoxmHDWX.qwXOxuX["AddHStack"](b0W0wpHoxmHDWX.qwXOxuX) b0W0wpHoxmHDWX.MN0XuxIQDDnl:AddToggle({["Title"]="ESP Window",["Default"]= Wv0HMNDowvn["espWindowEnabled"],["Callback"]=
+function(IbnIbWnQw) Wv0HMNDowvn["espWindowEnabled"]= IbnIbWnQw bbQbmv1MbH()
+end,}) b0W0wpHoxmHDWX.MN0XuxIQDDnl:AddToggle({["Title"]="ESP Pallet",["Default"]= Wv0HMNDowvn["espPalletEnabled"],["Callback"]=
+function(wMZx_0__MIuDZ) Wv0HMNDowvn["espPalletEnabled"]= wMZx_0__MIuDZ;
+bbQbmv1MbH()
+end,}) b0W0wpHoxmHDWX.wlWM_qQbD= b0W0wpHoxmHDWX.qwXOxuX["AddHStack"](b0W0wpHoxmHDWX.qwXOxuX) b0W0wpHoxmHDWX.wlWM_qQbD:AddToggle({["Title"]="ESP Hook",["Default"]= Wv0HMNDowvn["espHookEnabled"],["Callback"]=
+function(NlNllmM0oWqp) Wv0HMNDowvn["espHookEnabled"]= NlNllmM0oWqp;
+bbQbmv1MbH()
+end,}) b0W0wpHoxmHDWX.wlWM_qQbD:AddToggle({["Title"]="ESP Gate",["Default"]= Wv0HMNDowvn["espGateEnabled"],["Callback"]=
+function(bOlI1m1Xm) Wv0HMNDowvn["espGateEnabled"]= bOlI1m1Xm;
+bbQbmv1MbH()
+end,}) b0W0wpHoxmHDWX.uMUI0QpIl= b0W0wpHoxmHDWX.qwXOxuX["AddHStack"](b0W0wpHoxmHDWX.qwXOxuX) b0W0wpHoxmHDWX.uMUI0QpIl:AddColorPicker({["Title"]="Generator Color",["Default"]= Wv0HMNDowvn["espGeneratorColor"],["Callback"]=
+function(voH1Q1O1Zw) Wv0HMNDowvn["espGeneratorColor"]= voH1Q1O1Zw
+if Wv0HMNDowvn["espGeneratorEnabled"] then
+    for HxbWnI11z,W0xbx in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Generators"]) do
+        if W0xbx and W0xbx["Parent"] then
+            local QQp1v= W0xbx["FindFirstChild"](W0xbx,"__BolongHL__")
+            if QQp1v then
+QQp1v["FillColor"]= voH1Q1O1Zw;
+QQp1v["OutlineColor"]= voH1Q1O1Zw
+            end
+        end
+    end
 end
-do
-MainState.NvOXM = MainState._Q_UQwvznNuxzH.AddSection(MainState._Q_UQwvznNuxzH,"Killer ESP", nil)
-MainState.pwQOzxOmU00Oq = MainState.NvOXM.AddHStack(MainState.NvOXM)
-MainState.pwQOzxOmU00Oq:AddToggle({ Title = "Show Name", Default = Settings.killerShowName, Callback = function(vqubnXmvXI)
-Settings.killerShowName = vqubnXmvXI;
-func4()
-end,})
-MainState.pwQOzxOmU00Oq:AddToggle({ Title = "Show Outline", Default = Settings.killerShowOutline, Callback = function(HWXWbMQo)
-Settings.killerShowOutline = HWXWbMQo;
-func4()
-end,})
-MainState.NvOXM:AddColorPicker({ Title = "Killer Color", Default = Settings.killerColor, Callback = function(qWwbub_lpU1)
-Settings.killerColor = qWwbub_lpU1;
-func4()
-end,})
-MainState.vIZuUHO1 = MainState._Q_UQwvznNuxzH.AddSection(MainState._Q_UQwvznNuxzH,"Survivor ESP", nil)
-MainState.loHWU = MainState.vIZuUHO1.AddHStack(MainState.vIZuUHO1)
-MainState.loHWU:AddToggle({ Title = "Show Name", Default = Settings.survivorShowName, Callback = function(uz1wZNHpoQzZ1I)
-Settings.survivorShowName = uz1wZNHpoQzZ1I;
-func4()
-end,})
-MainState.loHWU:AddToggle({ Title = "Show Outline", Default = Settings.survivorShowOutline, Callback = function(vQqmuZHD)
-Settings.survivorShowOutline = vQqmuZHD;
-func4()
-end,})
-MainState.vIZuUHO1:AddColorPicker({ Title = "Survivor Color", Default = Settings.survivorColor, Callback = function(wzZmD0_uOvHUn)
-Settings.survivorColor = wzZmD0_uOvHUn;
-func4()
-end,})
-MainState.vlbbmUHO0DqzX = MainState._Q_UQwvznNuxzH.AddSection(MainState._Q_UQwvznNuxzH,"Show Item Survivor", nil)
-MainState.vlbbmUHO0DqzX:AddToggle({ Title = "Show Equipped Item", Default = false, Callback = function(p1zvlbW)
-Settings.espItemEnabled = p1zvlbW
-end,})
-MainState.MQOoHpooND = MainState._Q_UQwvznNuxzH.AddSection(MainState._Q_UQwvznNuxzH,"Outline Settings", nil)
-MainState.MQOoHpooND:AddToggle({ Title = "Outline Only", Content = "Tampilkan outline saja tanpa fill (berlaku untuk Killer & Survivor)", Default = Settings.killerOutlineOnly, Callback = function(bXMOOon)
-Settings.killerOutlineOnly = bXMOOon;
-Settings.survivorOutlineOnly = bXMOOon func4()
-end,})
-MainState.qwXOxuX = MainState._Q_UQwvznNuxzH.AddSection(MainState._Q_UQwvznNuxzH,"Object ESP", nil)
-MainState.bwZzbozHD = MainState.qwXOxuX.AddHStack(MainState.qwXOxuX)
-MainState.bwZzbozHD:AddToggle({ Title = "ESP Generator", Default = Settings.espGeneratorEnabled, Callback = function(q1uDuD10X0HH_u)
-Settings.espGeneratorEnabled = q1uDuD10X0HH_u;
-func26()
-end,})
-MainState.bwZzbozHD:AddToggle({ Title = "Progress Gen", Default = Settings.espGeneratorProgressGen, Callback = function(BIWbZZNnpOwXWv)
-Settings.espGeneratorProgressGen = BIWbZZNnpOwXWv
-for _1WmxNbNzI0wz_, uIpD1QXm in ipairs(ESPState.cachedMapObjects.Generators) do
- if uIpD1QXm and uIpD1QXm.Parentthen uIpD1QXm:SetAttribute("__BolongGenLastPct__", nil)
- if not BIWbZZNnpOwXWv then
- local v97 = uIpD1QXm:FindFirstChild("__BolongGenProgress__")
- if v97 then
-v97.Destroy(v97)
- end
-end
-end
-end func26()
-end,})
-MainState.qwXOxuX:AddToggle({ Title = "Show Generator Info", Default = Settings.espGenShowPK, Content = "Player & Break", Callback = function(NMIv0lNxwIoq)
-Settings.espGenShowPK = NMIv0lNxwIoq
-for HvInNnz, ln0_pIZQu1W in ipairs(ESPState.cachedMapObjects.Generators) do
- if ln0_pIZQu1W and ln0_pIZQu1W.Parent then
-ln0_pIZQu1W:SetAttribute("__BolongGenLastPct__", nil)
- end
-end
-end,})
-MainState.MN0XuxIQDDnl = MainState.qwXOxuX.AddHStack(MainState.qwXOxuX)
-MainState.MN0XuxIQDDnl:AddToggle({ Title = "ESP Window", Default = Settings.espWindowEnabled, Callback = function(IbnIbWnQw)
-Settings.espWindowEnabled = IbnIbWnQw func26()
-end,})
-MainState.MN0XuxIQDDnl:AddToggle({ Title = "ESP Pallet", Default = Settings.espPalletEnabled, Callback = function(wMZx_0__MIuDZ)
-Settings.espPalletEnabled = wMZx_0__MIuDZ;
-func26()
-end,})
-MainState.wlWM_qQbD = MainState.qwXOxuX.AddHStack(MainState.qwXOxuX)
-MainState.wlWM_qQbD:AddToggle({ Title = "ESP Hook", Default = Settings.espHookEnabled, Callback = function(NlNllmM0oWqp)
-Settings.espHookEnabled = NlNllmM0oWqp;
-func26()
-end,})
-MainState.wlWM_qQbD:AddToggle({ Title = "ESP Gate", Default = Settings.espGateEnabled, Callback = function(bOlI1m1Xm)
-Settings.espGateEnabled = bOlI1m1Xm;
-func26()
-end,})
-MainState.uMUI0QpIl = MainState.qwXOxuX.AddHStack(MainState.qwXOxuX)
-MainState.uMUI0QpIl:AddColorPicker({ Title = "Generator Color", Default = Settings.espGeneratorColor, Callback = function(voH1Q1O1Zw)
-Settings.espGeneratorColor = voH1Q1O1Zw
-if Settings.espGeneratorEnabledthen
-for HxbWnI11z, W0xbx in ipairs(ESPState.cachedMapObjects.Generators) do
- if W0xbx and W0xbx.Parent then
- local v98 = W0xbx:FindFirstChild("__BolongHL__")
- if v98 then
-v98.FillColor = voH1Q1O1Zw;
-v98.OutlineColor = voH1Q1O1Zw
- end
+end,}) b0W0wpHoxmHDWX.uMUI0QpIl:AddColorPicker({["Title"]="Window Color",["Default"]= Wv0HMNDowvn["espWindowColor"],["Callback"]=
+function(NoXbob) Wv0HMNDowvn["espWindowColor"]= NoXbob
+for HU0WzpN1Hbb_Z,wqvWQNlmlXp1z in w_ZpoH0p1["qpzwM0xWbbIH"](HM1uHIZZl0["windowEspObjects"]) do
+    if wqvWQNlmlXp1z and wqvWQNlmlXp1z["Parent"] then
+w_ZpoH0p1["bHopuzIW"](
+        function() wqvWQNlmlXp1z["Color3"]= NoXbob
+    end)
 end
 end
+end,}) b0W0wpHoxmHDWX.NMXN0uvm= b0W0wpHoxmHDWX.qwXOxuX["AddHStack"](b0W0wpHoxmHDWX.qwXOxuX) b0W0wpHoxmHDWX.NMXN0uvm:AddColorPicker({["Title"]="Pallet Color",["Default"]= Wv0HMNDowvn["espPalletColor"],["Callback"]=
+function(Bn_00) Wv0HMNDowvn["espPalletColor"]= Bn_00
+for Ww1oxIwuOp,HDlwqHn in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Pallets"]) do
+    if HDlwqHn then
+        local uDIuQxqlD= HDlwqHn["FindFirstChild"](HDlwqHn,"__BolongHL__")
+        if uDIuQxqlD then
+uDIuQxqlD["FillColor"]= Bn_00;
+uDIuQxqlD["OutlineColor"]= Bn_00
+        end
+    end
 end
-end,})
-MainState.uMUI0QpIl:AddColorPicker({ Title = "Window Color", Default = Settings.espWindowColor, Callback = function(NoXbob)
-Settings.espWindowColor = NoXbob
-for HU0WzpN1Hbb_Z, wqvWQNlmlXp1z in pairs(ESPState.windowEspObjects) do
- if wqvWQNlmlXp1z and wqvWQNlmlXp1z.Parentthen pcall(
- function()
-wqvWQNlmlXp1z.Color3 = NoXbob
-end)
+end,}) b0W0wpHoxmHDWX.NMXN0uvm:AddColorPicker({["Title"]="Hook Color",["Default"]= Wv0HMNDowvn["espHookColor"],["Callback"]=
+function(DQppNwUwoZonn) Wv0HMNDowvn["espHookColor"]= DQppNwUwoZonn
+for wNbz1IOzoNH,MNuMZD_UNozz in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Hooks"]) do
+    if MNuMZD_UNozz and MNuMZD_UNozz["Parent"] then
+        local qmD0I_1_luw= HM1uHIZZl0["cachedHookMeshParts"][MNuMZD_UNozz]
+        if qmD0I_1_luw then
+            for QzzqQOlvmoxbqX,qDbQWxMlN_ in w_ZpoH0p1["DZu1Dmvbw"](qmD0I_1_luw) do
+                local BpNZ_olMmqO= qDbQWxMlN_["FindFirstChild"](qDbQWxMlN_,"__BolongHL__")
+                if BpNZ_olMmqO then
+BpNZ_olMmqO["FillColor"]= DQppNwUwoZonn;
+BpNZ_olMmqO["OutlineColor"]= DQppNwUwoZonn
+                end
+            end
+        end
+    end
 end
+end,}) b0W0wpHoxmHDWX.bWnD000QvNl= b0W0wpHoxmHDWX.qwXOxuX["AddHStack"](b0W0wpHoxmHDWX.qwXOxuX) b0W0wpHoxmHDWX.bWnD000QvNl:AddColorPicker({["Title"]="Gate Color",["Default"]= Wv0HMNDowvn["espGateColor"],["Callback"]=
+function(O1UN1lZX) Wv0HMNDowvn["espGateColor"]= O1UN1lZX
+for lZQzuMbno,oIWxwzwbOQ in w_ZpoH0p1["DZu1Dmvbw"](HM1uHIZZl0["cachedMapObjects"]["Gates"]) do
+    if oIWxwzwbOQ and oIWxwzwbOQ["Parent"] then
+        local WObx_IQz= oIWxwzwbOQ["FindFirstChild"](oIWxwzwbOQ,"__BolongHL__")
+        if WObx_IQz then
+WObx_IQz["FillColor"]= O1UN1lZX;
+WObx_IQz["OutlineColor"]= O1UN1lZX
+        end
+    end
 end
-end,})
-MainState.NMXN0uvm = MainState.qwXOxuX.AddHStack(MainState.qwXOxuX)
-MainState.NMXN0uvm:AddColorPicker({ Title = "Pallet Color", Default = Settings.espPalletColor, Callback = function(Bn_00)
-Settings.espPalletColor = Bn_00
-for Ww1oxIwuOp, HDlwqHn in ipairs(ESPState.cachedMapObjects.Pallets) do
- if HDlwqHn then
- local v99 = HDlwqHn:FindFirstChild("__BolongHL__")
- if v99 then
-v99.FillColor = Bn_00;
-v99.OutlineColor = Bn_00
- end
-end
-end
-end,})
-MainState.NMXN0uvm:AddColorPicker({ Title = "Hook Color", Default = Settings.espHookColor, Callback = function(DQppNwUwoZonn)
-Settings.espHookColor = DQppNwUwoZonn
-for wNbz1IOzoNH, MNuMZD_UNozz in ipairs(ESPState.cachedMapObjects.Hooks) do
- if MNuMZD_UNozz and MNuMZD_UNozz.Parentthen
- local v100 = ESPState.cachedHookMeshParts[MNuMZD_UNozz]
- if v100 then
- for QzzqQOlvmoxbqX, qDbQWxMlN_ in ipairs(v100) do
- local v101 = qDbQWxMlN_:FindFirstChild("__BolongHL__")
- if v101 then
-v101.FillColor = DQppNwUwoZonn;
-v101.OutlineColor = DQppNwUwoZonn
- end
-end
- end
-end
-end
-end,})
-MainState.bWnD000QvNl = MainState.qwXOxuX.AddHStack(MainState.qwXOxuX)
-MainState.bWnD000QvNl:AddColorPicker({ Title = "Gate Color", Default = Settings.espGateColor, Callback = function(O1UN1lZX)
-Settings.espGateColor = O1UN1lZX
-for lZQzuMbno, oIWxwzwbOQ in ipairs(ESPState.cachedMapObjects.Gates) do
- if oIWxwzwbOQ and oIWxwzwbOQ.Parent then
- local v102 = oIWxwzwbOQ:FindFirstChild("__BolongHL__")
- if v102 then
-v102.FillColor = O1UN1lZX;
-v102.OutlineColor = O1UN1lZX
- end
-end
-end
-end,})
-MainState.bXI_Dz0vqn = MainState._Q_UQwvznNuxzH.AddSection(MainState._Q_UQwvznNuxzH,"Prediction Map&Killer", nil)
-MainState.bXI_Dz0vqn:AddToggle({ Title = "Show Prediction Monitor", Default = false, Callback = function(vbomNWnIn)
+end,}) b0W0wpHoxmHDWX.bXI_Dz0vqn= b0W0wpHoxmHDWX._Q_UQwvznNuxzH["AddSection"](b0W0wpHoxmHDWX._Q_UQwvznNuxzH,"Prediction Map&Killer",nil) b0W0wpHoxmHDWX.bXI_Dz0vqn:AddToggle({["Title"]="Show Prediction Monitor",["Default"]= false,["Callback"]=
+function(vbomNWnIn)
 if vbomNWnIn then
-MainState.HuQnoUuWpwo()
-else MainState.lboDUI()
+b0W0wpHoxmHDWX.HuQnoUuWpwo()
+else b0W0wpHoxmHDWX.lboDUI()
 end
-end,})
-MainState.vmo_0N = MainState._Q_UQwvznNuxzH.AddSection(MainState._Q_UQwvznNuxzH,"World Settings", nil)
-MainState.vmo_0N:AddToggle({ Title = "Fullbright", Default = false, Callback = function(MINOIvOXwOlxwz)
-ESPState.fullbrightEnabled = MINOIvOXwOlxwz
+end,}) b0W0wpHoxmHDWX.vmo_0N= b0W0wpHoxmHDWX._Q_UQwvznNuxzH["AddSection"](b0W0wpHoxmHDWX._Q_UQwvznNuxzH,"World Settings",nil) b0W0wpHoxmHDWX.vmo_0N:AddToggle({["Title"]="Fullbright",["Default"]= false,["Callback"]=
+function(MINOIvOXwOlxwz) HM1uHIZZl0["fullbrightEnabled"]= MINOIvOXwOlxwz
 if MINOIvOXwOlxwz then
-MainState.p_01zM1nQ()
-else MainState.un10pxvlDoWQlp()
+b0W0wpHoxmHDWX.p_01zM1nQ()
+else b0W0wpHoxmHDWX.un10pxvlDoWQlp()
 end
-end,})
-MainState.vmo_0N:AddToggle({ Title = "Remove Visual Effects", Content = "BoostFps", Default = false, Callback = function(_WvWZDm)
-ESPState.removeVfxEnabled = _WvWZDm
+end,}) b0W0wpHoxmHDWX.vmo_0N:AddToggle({["Title"]="Remove Visual Effects",["Content"]="BoostFps",["Default"]= false,["Callback"]=
+function(_WvWZDm) HM1uHIZZl0["removeVfxEnabled"]= _WvWZDm
 if _WvWZDm then
-MainState.NZ0MOpIIxM_0()
-else MainState.WwMOwDZWQxwXD()
+b0W0wpHoxmHDWX.NZ0MOpIIxM_0()
+else b0W0wpHoxmHDWX.WwMOwDZWQxwXD()
 end
 end,})
-end
-do
-MainState.BHWwUOqxM = MainState.p0N1pxWHmq.AddSection(MainState.p0N1pxWHmq,"Anti AFK", nil)
-MainState.BHWwUOqxM:AddToggle({ Title = "Enable Anti AFK", Default = false, Callback = function(vWz_pZnWxv) SetupAntiAFK(vWz_pZnWxv)
-end,})
-MainState.ol_p1qopNxquwo = MainState.p0N1pxWHmq.AddSection(MainState.p0N1pxWHmq,"Killer Warn", nil)
-MainState.ol_p1qopNxquwo:AddToggle({ Title = "Enable Killer Warn", Content = "The ! sign above your head when the killer is around you", Default = Settings.warnEnabled, Callback = function(bplwwZI)
-Settings.warnEnabled = bplwwZI
-end,})
-MainState.loXWx0_lU_0H = MainState.p0N1pxWHmq.AddSection(MainState.p0N1pxWHmq,"Performance Monitor", nil)
-MainState.loXWx0_lU_0H:AddToggle({ Title = "Show Performance Window", Default = false, Callback = function(Q1XMnDoIOQunD)
+end do
+b0W0wpHoxmHDWX.BHWwUOqxM= b0W0wpHoxmHDWX.p0N1pxWHmq["AddSection"](b0W0wpHoxmHDWX.p0N1pxWHmq,"Anti AFK",nil) b0W0wpHoxmHDWX.BHWwUOqxM:AddToggle({["Title"]="Enable Anti AFK",["Default"]= false,["Callback"]=
+    function(vWz_pZnWxv) qwvvHbn(vWz_pZnWxv)
+end,}) b0W0wpHoxmHDWX.ol_p1qopNxquwo= b0W0wpHoxmHDWX.p0N1pxWHmq["AddSection"](b0W0wpHoxmHDWX.p0N1pxWHmq,"Killer Warn",nil) b0W0wpHoxmHDWX.ol_p1qopNxquwo:AddToggle({["Title"]="Enable Killer Warn",["Content"]="The ! sign above your head when the killer is around you",["Default"]= Wv0HMNDowvn["warnEnabled"],["Callback"]=
+function(bplwwZI) Wv0HMNDowvn["warnEnabled"]= bplwwZI
+end,}) b0W0wpHoxmHDWX.loXWx0_lU_0H= b0W0wpHoxmHDWX.p0N1pxWHmq["AddSection"](b0W0wpHoxmHDWX.p0N1pxWHmq,"Performance Monitor",nil) b0W0wpHoxmHDWX.loXWx0_lU_0H:AddToggle({["Title"]="Show Performance Window",["Default"]= false,["Callback"]=
+function(Q1XMnDoIOQunD)
 if Q1XMnDoIOQunD then
-MainState.lUwpXW()
-else MainState.p_X0zlUul()
+b0W0wpHoxmHDWX.lUwpXW()
+else b0W0wpHoxmHDWX.p_X0zlUul()
 end
-end,})
-MainState._MvbqpNQIo_X1I = MainState.p0N1pxWHmq.AddSection(MainState.p0N1pxWHmq,"Camera Zoom", nil)
-MainState._MvbqpNQIo_X1I:AddToggle({ Title = "Max Camera Zoom", Default = Settings.cameraZoomEnabled, Callback = function(HMW0U)
-Settings.cameraZoomEnabled = HMW0U
+end,}) b0W0wpHoxmHDWX._MvbqpNQIo_X1I= b0W0wpHoxmHDWX.p0N1pxWHmq["AddSection"](b0W0wpHoxmHDWX.p0N1pxWHmq,"Camera Zoom",nil) b0W0wpHoxmHDWX._MvbqpNQIo_X1I:AddToggle({["Title"]="Max Camera Zoom",["Default"]= Wv0HMNDowvn["cameraZoomEnabled"],["Callback"]=
+function(HMW0U) Wv0HMNDowvn["cameraZoomEnabled"]= HMW0U
 if HMW0U then
-MainState.w_vnXUZ(Settings.cameraZoomValue)
-else MainState.Ww1z_Ob0vX()
+b0W0wpHoxmHDWX.w_vnXUZ(Wv0HMNDowvn["cameraZoomValue"])
+else b0W0wpHoxmHDWX.Ww1z_Ob0vX()
 end
-end,})
-MainState.u__Q_xlxpoxwxO = MainState.p0N1pxWHmq.AddSection(MainState.p0N1pxWHmq,"Force Cursor (PC Only)", nil)
-MainState.IlQXmXmuW = MainState.u__Q_xlxpoxwxO.AddToggle(MainState.u__Q_xlxpoxwxO,{ Title = "Force Mouse Cursor", Content = "Forces the mouse cursor to always appear on the screen.", Default = false, Callback = function(OIuvD)
-Settings.forceCursorEnabled = OIuvD
+end,}) b0W0wpHoxmHDWX.u__Q_xlxpoxwxO= b0W0wpHoxmHDWX.p0N1pxWHmq["AddSection"](b0W0wpHoxmHDWX.p0N1pxWHmq,"Force Cursor (PC Only)",nil) b0W0wpHoxmHDWX.IlQXmXmuW= b0W0wpHoxmHDWX.u__Q_xlxpoxwxO["AddToggle"](b0W0wpHoxmHDWX.u__Q_xlxpoxwxO,{["Title"]="Force Mouse Cursor",["Content"]="Forces the mouse cursor to always appear on the screen.",["Default"]= false,["Callback"]=
+function(OIuvD) Wv0HMNDowvn["forceCursorEnabled"]= OIuvD
 if OIuvD then
-MainState.vvw0v_lDxx() ShowNotify("Force Cursor","Mouse cursor forced to appear!", 2)
-else MainState.Bu0oXoOlbI()
+b0W0wpHoxmHDWX.vvw0v_lDxx() pUXUIwpIMmH("Force Cursor","Mouse cursor forced to appear!",2)
+else b0W0wpHoxmHDWX.Bu0oXoOlbI()
 end
-end,})
-MainState.u__Q_xlxpoxwxO:AddKeybind({ Title = "Toggle Keybind", Default = Enum.KeyCode.Y, Callback = function()
-local v103 = not Settings.forceCursorEnabledMainState.IlQXmXmuW:Set(v103)
+end,}) b0W0wpHoxmHDWX.u__Q_xlxpoxwxO:AddKeybind({["Title"]="Toggle Keybind",["Default"]= Enum["KeyCode"]["Y"],["Callback"]=
+function()
+local OUlxHxooZnH0O= not Wv0HMNDowvn["forceCursorEnabled"] b0W0wpHoxmHDWX.IlQXmXmuW:Set(OUlxHxooZnH0O)
 end}) do
- local v104 = bit32.band(23, 0)
- local v105 = bit32.bor(v104, 110)- 110
-end
-MainState.MnDwxvu = MainState.p0N1pxWHmq.AddSection(MainState.p0N1pxWHmq,"Protect Name", nil)
-MainState.MnDwxvu:AddToggle({ Title = "Enable Protect Name", Default = false, Callback = function(BnlOmXmbozz)
+    local HNwOb11DuMn0XU= bit32.band(23,0)
+    local H_0OQmO= bit32.bor(HNwOb11DuMn0XU,110)-110
+end b0W0wpHoxmHDWX.MnDwxvu= b0W0wpHoxmHDWX.p0N1pxWHmq["AddSection"](b0W0wpHoxmHDWX.p0N1pxWHmq,"Protect Name",nil) b0W0wpHoxmHDWX.MnDwxvu:AddToggle({["Title"]="Enable Protect Name",["Default"]= false,["Callback"]=
+function(BnlOmXmbozz)
 if BnlOmXmbozz then
-MainState.QwZpNwn()
-else MainState.lOqqxMquzxn_()
+b0W0wpHoxmHDWX.QwZpNwn()
+else b0W0wpHoxmHDWX.lOqqxMquzxn_()
 end
-end,})
-MainState.OppMnHnZv = MainState.p0N1pxWHmq.AddSection(MainState.p0N1pxWHmq,"Skip Cutscene", nil)
-MainState.NzXpUbznz = false MainState.bxUOQ = MainState.OppMnHnZv.AddToggle(MainState.OppMnHnZv,{ Title = "Skip End Screen", Default = false, Callback = function(Dm1IuI0oDn)
-if MainState.NzXpUbznz then
- return
-end
-Settings.skipEndScreenEnabled = Dm1IuI0oDn
+end,}) b0W0wpHoxmHDWX.OppMnHnZv= b0W0wpHoxmHDWX.p0N1pxWHmq["AddSection"](b0W0wpHoxmHDWX.p0N1pxWHmq,"Skip Cutscene",nil) b0W0wpHoxmHDWX.NzXpUbznz= false b0W0wpHoxmHDWX.bxUOQ= b0W0wpHoxmHDWX.OppMnHnZv["AddToggle"](b0W0wpHoxmHDWX.OppMnHnZv,{["Title"]="Skip End Screen",["Default"]= false,["Callback"]=
+function(Dm1IuI0oDn)
+if b0W0wpHoxmHDWX.NzXpUbznz then
+    return
+end Wv0HMNDowvn["skipEndScreenEnabled"]= Dm1IuI0oDn
 if Dm1IuI0oDn then
-MainState.NzXpUbznz = true Settings.skipLoadEndScreenEnabled = false
- if MainState.pXHb0oo then
-MainState.pXHb0oo.Set(MainState.pXHb0oo, false)
- end
-MainState.NzXpUbznz = false MainState.Wb0x1XpWv()
-MainState.oqWmXqpHU(false)
-else MainState.Wb0x1XpWv()
+b0W0wpHoxmHDWX.NzXpUbznz= true Wv0HMNDowvn["skipLoadEndScreenEnabled"]= false
+    if b0W0wpHoxmHDWX.pXHb0oo then
+b0W0wpHoxmHDWX.pXHb0oo["Set"](b0W0wpHoxmHDWX.pXHb0oo,false)
+    end b0W0wpHoxmHDWX.NzXpUbznz= false b0W0wpHoxmHDWX.Wb0x1XpWv() b0W0wpHoxmHDWX.oqWmXqpHU(false)
+else b0W0wpHoxmHDWX.Wb0x1XpWv()
 end
-end,})
-MainState.pXHb0oo = MainState.OppMnHnZv.AddToggle(MainState.OppMnHnZv,{ Title = "Skip Loading & End Screen", Default = false, Callback = function(pmnozwuqZwwUQ)
-if MainState.NzXpUbznz then
- return
-end
-Settings.skipLoadEndScreenEnabled = pmnozwuqZwwUQ
+end,}) b0W0wpHoxmHDWX.pXHb0oo= b0W0wpHoxmHDWX.OppMnHnZv["AddToggle"](b0W0wpHoxmHDWX.OppMnHnZv,{["Title"]="Skip Loading & End Screen",["Default"]= false,["Callback"]=
+function(pmnozwuqZwwUQ)
+if b0W0wpHoxmHDWX.NzXpUbznz then
+    return
+end Wv0HMNDowvn["skipLoadEndScreenEnabled"]= pmnozwuqZwwUQ
 if pmnozwuqZwwUQ then
-MainState.NzXpUbznz = true Settings.skipEndScreenEnabled = false
- if MainState.bxUOQ then
-MainState.bxUOQ.Set(MainState.bxUOQ, false)
- end
-MainState.NzXpUbznz = false MainState.Wb0x1XpWv()
-MainState.oqWmXqpHU(true)
-else MainState.Wb0x1XpWv()
+b0W0wpHoxmHDWX.NzXpUbznz= true Wv0HMNDowvn["skipEndScreenEnabled"]= false
+    if b0W0wpHoxmHDWX.bxUOQ then
+b0W0wpHoxmHDWX.bxUOQ["Set"](b0W0wpHoxmHDWX.bxUOQ,false)
+    end b0W0wpHoxmHDWX.NzXpUbznz= false b0W0wpHoxmHDWX.Wb0x1XpWv() b0W0wpHoxmHDWX.oqWmXqpHU(true)
+else b0W0wpHoxmHDWX.Wb0x1XpWv()
 end
-end,})
-MainState.NN_xb = MainState.p0N1pxWHmq.AddSection(MainState.p0N1pxWHmq,"Avatar Copy (Visual)", nil)
-MainState.NN_xb:AddPresetManager({ Title = "Profile Avatar By Username / ID", Placeholder = "Jandel / 1234...", Default = "", Presets = { Boy1 = "kiicaine", Boy2 = "444jamesss", Boy3 = "KiLouo14", Girl1 = "9kinb", Girl2 = "winterilous", Girl3 = "ellea_893"}, Callback = function(uD_xIzH_)
-currentAvatarInput = uD_xIzH_
-end})
-MainState.NN_xb:AddButton({ Title = "Copy Avatar", Callback = function()
+end,}) b0W0wpHoxmHDWX.NN_xb= b0W0wpHoxmHDWX.p0N1pxWHmq["AddSection"](b0W0wpHoxmHDWX.p0N1pxWHmq,"Avatar Copy (Visual)",nil) b0W0wpHoxmHDWX.NN_xb:AddPresetManager({["Title"]="Profile Avatar By Username / ID",["Placeholder"]="Jandel / 1234...",["Default"]="",["Presets"]={["Boy1"]="kiicaine",["Boy2"]="444jamesss",["Boy3"]="KiLouo14",["Girl1"]="9kinb",["Girl2"]="winterilous",["Girl3"]="ellea_893"},["Callback"]=
+function(uD_xIzH_) currentAvatarInput= uD_xIzH_
+end}) b0W0wpHoxmHDWX.NN_xb:AddButton({["Title"]="Copy Avatar",["Callback"]=
+function()
 if currentAvatarInput and currentAvatarInput~="" then
-MainState.vzImqwp(currentAvatarInput)
-else ShowNotify("BolongHub","Masukkan Username/ID terlebih dahulu!", 2)
+b0W0wpHoxmHDWX.vzImqwp(currentAvatarInput)
+else pUXUIwpIMmH("BolongHub","Masukkan Username/ID terlebih dahulu!",(-25+27))
 end
-end})
-MainState.WHZomMMH = MainState.ODQQmq.AddSection(MainState.ODQQmq,"Configuration", true)
-MainState.WHZomMMH:AddConfig()
-end
-print("BOLONGHUB LOADED!")
+end}) b0W0wpHoxmHDWX.WHZomMMH= b0W0wpHoxmHDWX.ODQQmq["AddSection"](b0W0wpHoxmHDWX.ODQQmq,"Configuration",true) b0W0wpHoxmHDWX.WHZomMMH:AddConfig()
+end w_ZpoH0p1["wWnZxWuzZuz"]("BOLONGHUB LOADED!")
